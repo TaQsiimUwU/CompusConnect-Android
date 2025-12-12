@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -183,5 +184,13 @@ fun StudentProfileScreen(
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun StudentProfileScreenPreview() {
+    com.taqsiim.compusconnect.ui.theme.CampusAppTheme(userRole = com.taqsiim.compusconnect.ui.theme.UserRole.Student) {
+        StudentProfileScreen(onSwitchRole = {})
     }
 }

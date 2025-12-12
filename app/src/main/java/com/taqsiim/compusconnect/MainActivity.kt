@@ -47,3 +47,15 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+@Preview(showBackground = true)
+@Composable
+fun MainActivityPreview() {
+    CampusAppTheme(userRole = UserRole.Student) {
+        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+            Box(modifier = Modifier.padding(innerPadding)) {
+                StudentAppRoot(onSwitchRole = {})
+            }
+        }
+    }
+}

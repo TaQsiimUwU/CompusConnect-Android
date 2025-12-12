@@ -186,3 +186,11 @@ fun ManagerProfileScreen(
         }
     }
 }
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
+@Composable
+fun ManagerProfileScreenPreview() {
+    com.taqsiim.compusconnect.ui.theme.CampusAppTheme(userRole = com.taqsiim.compusconnect.ui.theme.UserRole.ClubManager) {
+        ManagerProfileScreen(onSwitchRole = {})
+    }
+}
