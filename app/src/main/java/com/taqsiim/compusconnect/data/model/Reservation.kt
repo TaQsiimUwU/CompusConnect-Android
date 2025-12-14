@@ -1,12 +1,30 @@
 package com.taqsiim.compusconnect.data.model
 
-// TODO: Implement Reservation data class
-class Reservation
+import com.google.gson.annotations.SerializedName
 
-// TODO: Implement ReservationType enum
+data class Reservation(
+    @SerializedName("reservation_id")
+    val reservationId: String,
+    val title: String,
+    @SerializedName("start_time")
+    val startTime: String, // ISO format
+    @SerializedName("end_time")
+    val endTime: String,   // ISO format
+    val type: ReservationType
+)
+
 enum class ReservationType {
-    // TODO: Add reservation types
+    @SerializedName("event")
+    EVENT,
+    @SerializedName("session")
+    SESSION,
+    @SerializedName("studyRoom")
+    STUDY_ROOM,
+    @SerializedName("sport")
+    SPORT
 }
+
+
 
 // TODO: Implement ReservationStatus enum
 enum class ReservationStatus {
