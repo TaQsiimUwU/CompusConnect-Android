@@ -80,11 +80,6 @@ data class RegisterEventRequest(
     val studentId: Int
 )
 
-// TODO: Implement EventStatus enum
-enum class EventStatus {
-    // TODO: Add status types
-}
-
 enum class EventType  { 
     @SerializedName("session")
     SESSION,

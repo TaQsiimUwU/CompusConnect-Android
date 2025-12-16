@@ -37,5 +37,6 @@ data class LoginRequest(
 data class LoginResponse(
     @SerializedName("user_id")
     val userId: Int,
-    val role: String
+    val role: String,
+    val token: String
 )
