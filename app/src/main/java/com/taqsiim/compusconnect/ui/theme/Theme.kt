@@ -2,15 +2,14 @@ package com.taqsiim.compusconnect.ui.theme
 
 import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
@@ -21,19 +20,21 @@ enum class UserRole {
 }
 
 // --- Student Schemes ---
-private val StudentDarkColorScheme = darkColorScheme(
+// Note: "Expressive" colors are just standard ColorSchemes used inside an Expressive Theme.
+private val StudentDarkScheme = darkColorScheme(
     primary = StudentDarkPrimary,
-    onPrimary = StudentDarkBackground, // High contrast
+    onPrimary = StudentDarkBackground,
     secondary = StudentDarkSecondary,
     onSecondary = StudentDarkBackground,
     tertiary = StudentDarkAccent,
     background = StudentDarkBackground,
     onBackground = StudentDarkText,
     surface = StudentDarkBackground,
+    surfaceVariant = StudentDarkCard,
     onSurface = StudentDarkText
 )
 
-private val StudentLightColorScheme = lightColorScheme(
+private val StudentLightScheme = lightColorScheme(
     primary = StudentLightPrimary,
     onPrimary = StudentLightBackground,
     secondary = StudentLightSecondary,
@@ -46,7 +47,7 @@ private val StudentLightColorScheme = lightColorScheme(
 )
 
 // --- Manager Schemes ---
-private val ClubManagerDarkColorScheme = darkColorScheme(
+private val ClubManagerDarkScheme = darkColorScheme(
     primary = ClubManagerDarkPrimary,
     onPrimary = ClubManagerDarkBackground,
     secondary = ClubManagerDarkSecondary,
@@ -55,12 +56,13 @@ private val ClubManagerDarkColorScheme = darkColorScheme(
     background = ClubManagerDarkBackground,
     onBackground = ClubManagerDarkText,
     surface = ClubManagerDarkBackground,
+    surfaceVariant = ClubManagerDarkCard,
     onSurface = ClubManagerDarkText
 )
 
-private val ClubManagerLightColorScheme = lightColorScheme(
+private val ClubManagerLightScheme = lightColorScheme(
     primary = ClubManagerLightPrimary,
-    onPrimary = ClubManagerLightBackground, // White text might be better here depending on accessibility
+    onPrimary = ClubManagerLightBackground,
     secondary = ClubManagerLightSecondary,
     onSecondary = ClubManagerLightBackground,
     tertiary = ClubManagerLightAccent,
@@ -70,37 +72,44 @@ private val ClubManagerLightColorScheme = lightColorScheme(
     onSurface = ClubManagerLightText
 )
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun CampusAppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    userRole: UserRole = UserRole.Student, // Default to Student
-    dynamicColor: Boolean = false, // Set to false to force your custom colors
+    userRole: UserRole = UserRole.Student,
+    useExpressive: Boolean = true, // Enable Expressive by default
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-        // Select scheme based on Role and Mode
-        userRole == UserRole.Student && darkTheme -> StudentDarkColorScheme
-        userRole == UserRole.Student && !darkTheme -> StudentLightColorScheme
-        userRole == UserRole.ClubManager && darkTheme -> ClubManagerDarkColorScheme
-        else -> ClubManagerLightColorScheme
+    // 1. Determine the correct Color Scheme based on Role and Dark Mode
+    val colorScheme = when (userRole) {
+        UserRole.Student -> if (darkTheme) StudentDarkScheme else StudentLightScheme
+        UserRole.ClubManager -> if (darkTheme) ClubManagerDarkScheme else ClubManagerLightScheme
     }
 
+    // 2. Set Status Bar Colors
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.background.toArgb() // Match status bar to bg
+            window.statusBarColor = colorScheme.background.toArgb()
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
         }
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
+    // 3. Apply the Theme (Expressive or Standard)
+    if (useExpressive) {
+        // Expressive Theme (New shapes, motion, and typography handling)
+        MaterialExpressiveTheme(
+            colorScheme = colorScheme,
+            typography = Typography, // Ensure this object exists in your Type.kt
+            content = content
+        )
+    } else {
+        // Fallback to Standard Material Theme
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = Typography,
+            content = content
+        )
+    }
 }

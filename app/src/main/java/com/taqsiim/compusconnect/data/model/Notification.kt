@@ -1,9 +1,14 @@
 package com.taqsiim.compusconnect.data.model
 
-// TODO: Implement Notification data class
-class Notification
+data class Notification(
+    val id: String,
+    val title: String,
+    val message: String,
+    val timestamp: String,
+    val type: NotificationType,
+    val isRead: Boolean = false
+)
 
-// TODO: Implement NotificationType enum
 enum class NotificationType {
-    // TODO: Add notification types
+    INFO, WARNING, SUCCESS, ALERT
 }

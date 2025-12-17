@@ -1,3 +1,5 @@
+import com.google.gson.annotations.SerializedName
+
 data class Comment(
     @SerializedName("student_name")
     val studentName: String,

@@ -81,9 +81,6 @@ data class RegisterEventRequest(
 )
 
 // TODO: Implement EventStatus enum
-enum class EventStatus {
-    // TODO: Add status types
-}
 
 enum class EventType  { 
     @SerializedName("session")

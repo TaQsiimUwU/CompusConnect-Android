@@ -1,5 +1,10 @@
-package com.taqsiim.compusconnect.ui.manager
+package com.taqsiim.compusconnect.ui.clubManager
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Text
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.runtime.Composable
 import com.taqsiim.compusconnect.viewmodel.ManagerViewModel
 
@@ -11,7 +16,9 @@ fun ManagerHomeScreen(
     onScheduleEvent: () -> Unit,
     onScheduleSession: () -> Unit
 ) {
-    TODO("Implement manager home screen")
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Text("Manager Home Screen")
+    }
 }
 
 // TODO: Implement AnnouncementCard composable

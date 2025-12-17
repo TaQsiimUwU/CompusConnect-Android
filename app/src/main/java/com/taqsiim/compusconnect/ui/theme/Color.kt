@@ -14,6 +14,7 @@ val StudentDarkBackground = Color(0xFF021022)
 val StudentDarkPrimary = Color(0xFF4C7AA9)
 val StudentDarkSecondary = Color(0xFF7DA0C4)
 val StudentDarkAccent = Color(0xFFC2E9FF)
+val StudentDarkCard = Color(0xFF283D53)
 
 // --- Club Manager Colors ---
 val ClubManagerLightText = Color(0xFF1A021D)
@@ -27,3 +28,4 @@ val ClubManagerDarkBackground = Color(0xFF110113)
 val ClubManagerDarkPrimary = Color(0xFFF182F7)
 val ClubManagerDarkSecondary = Color(0xFFA20B13)
 val ClubManagerDarkAccent = Color(0xFFF16232)
+val ClubManagerDarkCard = Color(0xFFF16232)

@@ -1,4 +1,4 @@
-package com.taqsiim.compusconnect.ui.manager
+package com.taqsiim.compusconnect.ui.clubManager
 
 import androidx.compose.runtime.Composable
 import com.taqsiim.compusconnect.viewmodel.ManagerViewModel

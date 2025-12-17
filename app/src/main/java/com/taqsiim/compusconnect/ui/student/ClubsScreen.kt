@@ -1,5 +1,10 @@
 package com.taqsiim.compusconnect.ui.student
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Text
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.runtime.Composable
 import com.taqsiim.compusconnect.viewmodel.StudentViewModel
 
@@ -8,7 +13,9 @@ import com.taqsiim.compusconnect.viewmodel.StudentViewModel
 fun ClubsScreen(
     viewModel: StudentViewModel
 ) {
-    TODO("Implement clubs screen with tabs")
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Text("Clubs Screen")
+    }
 }
 
 // TODO: Implement ClubCard composable

@@ -53,18 +53,18 @@ class Repository(private val api: ApiService) {
     }
     
     // Sessions
-    suspend fun getSessions(): Result<List<Session>> {
-        TODO("Implement get sessions")
-    }
-    
-    suspend fun createSession(session: Session): Result<Session> {
-        TODO("Implement create session")
-    }
-    
-    suspend fun registerForSession(sessionId: String): Result<Session> {
-        TODO("Implement register for session")
-    }
-    
+//    suspend fun getSessions(): Result<List<Session>> {
+//        TODO("Implement get sessions")
+//    }
+//
+//    suspend fun createSession(session: Session): Result<Session> {
+//        TODO("Implement create session")
+//    }
+//
+//    suspend fun registerForSession(sessionId: String): Result<Session> {
+//        TODO("Implement register for session")
+//    }
+//
     // Clubs
     suspend fun getClubs(): Result<List<Club>> {
         TODO("Implement get clubs")
@@ -93,7 +93,7 @@ class Repository(private val api: ApiService) {
     }
     
     // Manager - Attendees
-    suspend fun getEventAttendees(eventId: String): Result<List<Attendee>> {
-        TODO("Implement get attendees")
-    }
+//    suspend fun getEventAttendees(eventId: String): Result<List<Attendee>> {
+//        TODO("Implement get attendees")
+//    }
 }

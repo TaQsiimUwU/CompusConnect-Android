@@ -5,4 +5,6 @@ package com.taqsiim.compusconnect.data.model
 // Currently, attendance is tracked using RegisteredStudent model from Event.kt
 
 // Alias for clarity when referring to attendance context
-typealias AttendeeInfo = RegisteredStudent
+
+
+//typealias AttendeeInfo = RegisteredStudent
