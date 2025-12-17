@@ -78,7 +78,29 @@ fun BookRoomForm(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-
+            // How it works
+            Card(
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        text = "How it works",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    HowItWorksItem("Submit your reservation request")
+                    HowItWorksItem("System automatically assigns best available room")
+                    HowItWorksItem("Confirmation sent via email and notification")
+                    HowItWorksItem("Room details will include amenities and location")
+                }
+            }
             // Form Fields
             Card(
                 shape = RoundedCornerShape(12.dp),
@@ -172,29 +194,7 @@ fun BookRoomForm(
                 }
             }
 
-            // How it works
-            Card(
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
-                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    Text(
-                        text = "How it works",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    HowItWorksItem("Submit your reservation request")
-                    HowItWorksItem("System automatically assigns best available room")
-                    HowItWorksItem("Confirmation sent via email and notification")
-                    HowItWorksItem("Room details will include amenities and location")
-                }
-            }
+
         }
     }
 }

@@ -1,5 +1,9 @@
 package com.taqsiim.compusconnect.ui.student
 
+import android.graphics.Bitmap
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -21,7 +25,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -42,6 +48,13 @@ fun ReportIssueScreen(
     var isEquipmentSelected by remember { mutableStateOf(false) }
     var isSafetySelected by remember { mutableStateOf(false) }
     var isOtherSelected by remember { mutableStateOf(false) }
+
+    var capturedImage by remember { mutableStateOf<Bitmap?>(null) }
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicturePreview()
+    ) { bitmap ->
+        capturedImage = bitmap
+    }
 
     val locations = listOf("Study Room B-204", "Court A", "Library Main Hall", "Cafeteria")
 
@@ -252,7 +265,7 @@ fun ReportIssueScreen(
                     )
                 }
                 Text(
-                    text = "Browse... No file selected.",
+                    text = if (capturedImage != null) "Photo captured" else "No photo selected",
                     style = MaterialTheme.typography.bodyMedium
                 )
 
@@ -265,27 +278,33 @@ fun ReportIssueScreen(
                             color = MaterialTheme.colorScheme.outlineVariant,
                             shape = RoundedCornerShape(12.dp),
                         )
-                        .background(MaterialTheme.colorScheme.surface), // Dashed border is tricky in Compose without custom draw, using solid for now
+                        .background(MaterialTheme.colorScheme.surface)
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable { cameraLauncher.launch(null) },
                     contentAlignment = Alignment.Center
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            imageVector = Icons.Default.CameraAlt,
-                            contentDescription = "Upload",
-                            modifier = Modifier.size(48.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    if (capturedImage != null) {
+                        Image(
+                            bitmap = capturedImage!!.asImageBitmap(),
+                            contentDescription = "Captured photo",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Click to take or upload photo",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Text(
-                            text = "JPG, PNG up to 10MB",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                    } else {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                imageVector = Icons.Default.CameraAlt,
+                                contentDescription = "Take Photo",
+                                modifier = Modifier.size(48.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Click to take photo",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
                     }
                 }
             }

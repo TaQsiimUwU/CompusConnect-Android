@@ -27,7 +27,7 @@ import com.taqsiim.compusconnect.viewmodel.ManagerViewModel
 import com.taqsiim.compusconnect.viewmodel.StudentViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.taqsiim.compusconnect.ui.theme.UserRole
-import com.taqsiim.compusconnect.ui.clubManager.ManagerAccountScreen
+import com.taqsiim.compusconnect.ui.clubManager.ClubAccountScreen
 import com.taqsiim.compusconnect.ui.student.ReportIssueScreen
 import com.taqsiim.compusconnect.ui.student.ReserveSport
 import com.taqsiim.compusconnect.ui.student.ReservationsScreen
@@ -210,7 +210,7 @@ fun ManagerAppRoot(onSwitchRole: () -> Unit) {
                 // TODO: Attendees Screen
             }
             composable("manager/account") {
-                ManagerAccountScreen(
+                ClubAccountScreen(
                     onSwitchToStudent = onSwitchRole,
                     onLogout = { /* TODO */ }
                 )
