@@ -90,7 +90,7 @@ fun StudentAppRoot(onSwitchRole: () -> Unit) {
         NavHost(
             navController = navController,
             startDestination = "student/home",
-
+            modifier = Modifier.padding(innerPadding)
             ) {
             composable("student/home") {
                 val viewModel: StudentViewModel = viewModel()

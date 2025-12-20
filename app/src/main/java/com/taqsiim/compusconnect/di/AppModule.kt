@@ -3,6 +3,13 @@ package com.taqsiim.compusconnect.di
 import android.content.Context
 import androidx.room.Room
 import com.taqsiim.compusconnect.data.api.ApiService
+import com.taqsiim.compusconnect.data.local.CampusDatabase
+import com.taqsiim.compusconnect.data.local.TokenManager
+import com.taqsiim.compusconnect.data.local.dao.CampusDao
+import com.taqsiim.compusconnect.data.repository.ClubRepository
+import com.taqsiim.compusconnect.data.repository.EventRepository
+import com.taqsiim.compusconnect.data.repository.PostRepository
+import com.taqsiim.compusconnect.data.repository.UserRepository
 import com.taqsiim.compusconnect.util.Constants
 import dagger.Module
 import dagger.Provides
