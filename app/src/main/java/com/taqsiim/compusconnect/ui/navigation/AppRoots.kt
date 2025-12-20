@@ -12,10 +12,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.taqsiim.compusconnect.ui.student.BookRoomForm
 import com.taqsiim.compusconnect.ui.student.ClubsScreen
 import com.taqsiim.compusconnect.ui.student.EventsScreen
@@ -32,6 +34,8 @@ import com.taqsiim.compusconnect.ui.student.ReportIssueScreen
 import com.taqsiim.compusconnect.ui.student.ReserveSport
 import com.taqsiim.compusconnect.ui.student.ReservationsScreen
 import com.taqsiim.compusconnect.ui.student.NotificationsScreen
+import com.taqsiim.compusconnect.ui.student.EventDetailScreen
+import com.taqsiim.compusconnect.ui.student.ClubProfileScreen
 
 @Composable
 fun StudentAppRoot(onSwitchRole: () -> Unit) {
@@ -48,7 +52,9 @@ fun StudentAppRoot(onSwitchRole: () -> Unit) {
                  currentRoute != "student/report_issue" &&
                  currentRoute != "student/reserve_sport" &&
                  currentRoute != "student/reservations" &&
-                 currentRoute != "student/notifications"
+                 currentRoute != "student/notifications" &&
+                 !currentRoute.startsWith("student/event/") &&
+                 !currentRoute.startsWith("student/club/")
 
             AnimatedVisibility(
                 visible = shouldShowBottomBar && isBottomBarVisible,
@@ -90,7 +96,7 @@ fun StudentAppRoot(onSwitchRole: () -> Unit) {
                 val viewModel: StudentViewModel = viewModel()
                 HomeScreen(
                     viewModel = viewModel,
-                    onNavigateToEventDetail = { /* TODO */ },
+                    onNavigateToEventDetail = { eventId -> navController.navigate("student/event/$eventId") },
                     onNavigateToReservations = { navController.navigate("student/reservations") },
                     onNavigateToRoomForm = { navController.navigate("student/book_room") },
                     onNavigateToSportForm = { navController.navigate("student/reserve_sport") },
@@ -140,13 +146,40 @@ fun StudentAppRoot(onSwitchRole: () -> Unit) {
                 val viewModel: StudentViewModel = viewModel()
                 EventsScreen(
                     viewModel = viewModel,
-                    onNavigateToEventDetail = { /* TODO */ }
+                    onNavigateToEventDetail = { eventId -> navController.navigate("student/event/$eventId") },
+                    isScrolling = { isScrolling ->
+                        isBottomBarVisible = !isScrolling
+                    }
+                )
+            }
+            composable(
+                route = "student/event/{eventId}",
+                arguments = listOf(navArgument("eventId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val eventId = backStackEntry.arguments?.getString("eventId") ?: ""
+                EventDetailScreen(
+                    eventId = eventId,
+                    onNavigateBack = { navController.popBackStack() }
                 )
             }
             composable("student/clubs") {
                 val viewModel: StudentViewModel = viewModel()
                 ClubsScreen(
-                    viewModel = viewModel
+                    viewModel = viewModel,
+                    onNavigateToClubProfile = { clubId -> navController.navigate("student/club/$clubId") },
+                    isScrolling = { isScrolling ->
+                        isBottomBarVisible = !isScrolling
+                    }
+                )
+            }
+            composable(
+                route = "student/club/{clubId}",
+                arguments = listOf(navArgument("clubId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val clubId = backStackEntry.arguments?.getString("clubId") ?: ""
+                ClubProfileScreen(
+                    clubId = clubId,
+                    onNavigateBack = { navController.popBackStack() }
                 )
             }
             composable("student/profile") {

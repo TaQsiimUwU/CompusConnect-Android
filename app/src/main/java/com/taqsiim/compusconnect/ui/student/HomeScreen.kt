@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 
 package com.taqsiim.compusconnect.ui.student
 
@@ -33,7 +33,10 @@ import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 import com.taqsiim.compusconnect.viewmodel.StudentViewModel
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.foundation.lazy.rememberLazyListState
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 
 /**
  * Student Home Screen
@@ -57,6 +60,19 @@ fun HomeScreen(
     // val posts by viewModel.posts.collectAsState()
     // val reservations by viewModel.upcomingReservations.collectAsState()
     // val isLoading by viewModel.isLoading.collectAsState()
+
+    var isRefreshing by remember { mutableStateOf(false) }
+    val pullRefreshState = rememberPullToRefreshState()
+    val coroutineScope = rememberCoroutineScope()
+
+    val onRefresh: () -> Unit = {
+        isRefreshing = true
+        coroutineScope.launch {
+            // TODO: Trigger refresh in ViewModel
+            delay(3500) // Mock delay
+            isRefreshing = false
+        }
+    }
 
     // Mock data for now
     val posts = remember {
@@ -181,53 +197,67 @@ fun HomeScreen(
             )
         }
     ) { paddingValues ->
-        LazyColumn(
-            state = listState,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-            contentPadding = PaddingValues(bottom = 16.dp)
-        ) {
-            // Quick Actions Section
-            item {
-                QuickActionsSection(
-                    onBookStudyRoom = onNavigateToRoomForm,
-                    onReserveSports = onNavigateToSportForm,
-                    onReportIssue = onNavigateToReportIssue
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
-            // Upcoming Reservations Section
-            if (reservations.isNotEmpty()) {
-                item {
-                    UpcomingReservationsSection(
-                        reservations = reservations,
-                        onViewAll = onNavigateToReservations
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = onRefresh,
+            state = pullRefreshState,
+            modifier = Modifier.padding(paddingValues),
+            indicator = {
+                if (isRefreshing) {
+                    LoadingIndicator(
+                        modifier = Modifier.align(Alignment.TopCenter),
+                        color = MaterialTheme.colorScheme.primary
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
                 }
             }
+        ) {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 16.dp)
+            ) {
+                    // Quick Actions Section
+                    item {
+                        QuickActionsSection(
+                            onBookStudyRoom = onNavigateToRoomForm,
+                            onReserveSports = onNavigateToSportForm,
+                            onReportIssue = onNavigateToReportIssue
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
 
-            // Posts List
-            items(posts) { post ->
-                PostCard(
-                    post = post,
-                    onLike = { /* viewModel.likePost(post.postId) */ },
-                    onViewDetails = { onNavigateToEventDetail(post.eventId?.toString() ?: "") }
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-            }
+                    // Upcoming Reservations Section
+                    if (reservations.isNotEmpty()) {
+                        item {
+                            UpcomingReservationsSection(
+                                reservations = reservations,
+                                onViewAll = onNavigateToReservations
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
+                    }
 
-            // Empty state
-            if (posts.isEmpty()) {
-                item {
-                    EmptyStateCard()
+                    // Posts List
+                    items(posts) { post ->
+                        PostCard(
+                            post = post,
+                            onLike = { /* viewModel.likePost(post.postId) */ },
+                            onViewDetails = { onNavigateToEventDetail(post.eventId?.toString() ?: "") }
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
+
+                    // Empty state
+                    if (posts.isEmpty()) {
+                        item {
+                            EmptyStateCard()
+                        }
+                    }
                 }
             }
         }
     }
-}
+
 
 /**
  * Quick Actions Section

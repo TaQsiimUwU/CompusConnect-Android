@@ -43,6 +43,7 @@ private val StudentLightScheme = lightColorScheme(
     background = StudentLightBackground,
     onBackground = StudentLightText,
     surface = StudentLightBackground,
+    surfaceVariant = StudentLightCard,
     onSurface = StudentLightText
 )
 
@@ -68,6 +69,7 @@ private val ClubManagerLightScheme = lightColorScheme(
     tertiary = ClubManagerLightAccent,
     background = ClubManagerLightBackground,
     onBackground = ClubManagerLightText,
+    surfaceVariant = ClubManagerLightCard,
     surface = ClubManagerLightBackground,
     onSurface = ClubManagerLightText
 )

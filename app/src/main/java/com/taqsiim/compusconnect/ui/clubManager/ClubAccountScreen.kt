@@ -155,7 +155,7 @@ fun ClubContactRow(icon: ImageVector, text: String) {
 fun AboutClubCard() {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         shape = RoundedCornerShape(16.dp)
     ) {
@@ -179,7 +179,7 @@ fun AboutClubCard() {
 @Preview(showBackground = true)
 @Composable
 fun ClubAccountScreenPreview() {
-    CampusAppTheme {
+    CampusAppTheme(userRole = UserRole.ClubManager) {
         ClubAccountScreen(
             onSwitchToStudent = {},
             onLogout = {}
