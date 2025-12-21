@@ -36,6 +36,8 @@ import com.taqsiim.compusconnect.ui.student.ReservationsScreen
 import com.taqsiim.compusconnect.ui.student.NotificationsScreen
 import com.taqsiim.compusconnect.ui.student.EventDetailScreen
 import com.taqsiim.compusconnect.ui.student.ClubProfileScreen
+import com.taqsiim.compusconnect.ui.clubManager.ScheduleEventScreen
+import com.taqsiim.compusconnect.ui.clubManager.AttendeesScreen
 
 @Composable
 fun StudentAppRoot(onSwitchRole: () -> Unit) {
@@ -90,7 +92,7 @@ fun StudentAppRoot(onSwitchRole: () -> Unit) {
         NavHost(
             navController = navController,
             startDestination = "student/home",
-            modifier = Modifier.padding(innerPadding)
+            // modifier = Modifier.padding(innerPadding)
             ) {
             composable("student/home") {
                 val viewModel: StudentViewModel = viewModel()
@@ -201,19 +203,21 @@ fun ManagerAppRoot(onSwitchRole: () -> Unit) {
     // Create dependencies manually for now
     Scaffold(
         bottomBar = {
-            DynamicNavBar(
-                userRole = UserRole.ClubManager,
-                selectedRoute = currentRoute,
-                onNavigate = { route ->
-                    navController.navigate(route) {
-                        popUpTo("manager/home") {
-                            saveState = true
+            if (currentRoute != "manager/schedule_event") {
+                DynamicNavBar(
+                    userRole = UserRole.ClubManager,
+                    selectedRoute = currentRoute,
+                    onNavigate = { route ->
+                        navController.navigate(route) {
+                            popUpTo("manager/home") {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
                         }
-                        launchSingleTop = true
-                        restoreState = true
                     }
-                }
-            )
+                )
+            }
         }
     ) { innerPadding ->
         NavHost(
@@ -221,7 +225,7 @@ fun ManagerAppRoot(onSwitchRole: () -> Unit) {
             startDestination = "manager/home",
             modifier = Modifier.padding(
                 top = innerPadding.calculateTopPadding(),
-                bottom = 0.dp
+                bottom = if (currentRoute == "manager/schedule_event") 0.dp else innerPadding.calculateBottomPadding()
             )
         ) {
             composable("manager/home") {
@@ -229,8 +233,18 @@ fun ManagerAppRoot(onSwitchRole: () -> Unit) {
                 ManagerHomeScreen(
                     viewModel = viewModel,
                     onCreatePost = { /* TODO */ },
-                    onScheduleEvent = { /* TODO */ },
-                    onScheduleSession = { /* TODO */ }
+                    onScheduleEvent = { navController.navigate("manager/schedule_event") },
+                    onScheduleSession = { navController.navigate("manager/schedule_event") }
+                )
+            }
+            composable("manager/schedule_event") {
+                ScheduleEventScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onCancelClick = { navController.popBackStack() },
+                    onCreateClick = {
+                        // TODO: Handle event creation
+                        navController.popBackStack()
+                    }
                 )
             }
             composable("manager/requests") {
@@ -240,7 +254,9 @@ fun ManagerAppRoot(onSwitchRole: () -> Unit) {
                 )
             }
             composable("manager/attendees") {
-                // TODO: Attendees Screen
+                AttendeesScreen(
+                    onScanQrCode = { /* TODO: Implement QR Scanner */ }
+                )
             }
             composable("manager/account") {
                 ClubAccountScreen(

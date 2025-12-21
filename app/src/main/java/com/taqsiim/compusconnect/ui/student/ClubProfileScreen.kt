@@ -1,5 +1,6 @@
 package com.taqsiim.compusconnect.ui.student
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -27,6 +28,7 @@ import coil.compose.AsyncImage
 import com.taqsiim.compusconnect.data.model.Club
 import com.taqsiim.compusconnect.data.model.ClubStatus
 import com.taqsiim.compusconnect.data.model.Post
+import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -309,5 +311,17 @@ fun ClubPostCard(post: Post) {
                 }
             }
         }
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(name = "Light Mode")
+@androidx.compose.ui.tooling.preview.Preview(
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    name = "Dark Mode"
+)
+@Composable
+fun ClubProfileScreenPreview() {
+    CampusAppTheme {
+        ClubProfileScreen(clubId = "1", onNavigateBack = {})
     }
 }

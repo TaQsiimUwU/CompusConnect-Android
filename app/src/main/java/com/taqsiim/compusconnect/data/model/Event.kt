@@ -2,6 +2,12 @@ package com.taqsiim.compusconnect.data.model
 
 import com.google.gson.annotations.SerializedName
 
+enum class EventStatus {
+    PENDING,
+    APPROVED,
+    REJECTED
+}
+
 // Used for BOTH events AND sessions
 data class Event(
     @SerializedName("event_id")
@@ -54,15 +60,6 @@ data class ClubEventResponse(
     val maxRegistrations: Int
 )
 
-enum class EventStatus {
-    @SerializedName("pending")
-    PENDING,
-    @SerializedName("approved")
-    APPROVED,
-    @SerializedName("rejected")
-    REJECTED
-}
-
 data class CreateEventRequest(
     val type: String,
     val title: String,
@@ -80,7 +77,7 @@ data class RegisterEventRequest(
     val studentId: Int
 )
 
-enum class EventType  { 
+enum class EventType  {
     @SerializedName("session")
     SESSION,
     @SerializedName("event")

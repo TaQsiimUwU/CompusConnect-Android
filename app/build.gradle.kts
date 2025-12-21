@@ -60,6 +60,10 @@ dependencies {
     // ViewModel
     implementation(libs.androidx.lifecycle.viewmodel.compose)
 
+    // QR Code Scanner
+    implementation(libs.play.services.code.scanner)
+    implementation(libs.kotlinx.coroutines.play.services)
+
     // Networking
     implementation(libs.retrofit)
     implementation(libs.retrofit.gson)
@@ -73,10 +77,11 @@ dependencies {
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.androidx.ui.tooling.preview)
-    
+
     // Room Database
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.ui)
     ksp(libs.androidx.room.compiler)
 
     // Hilt
@@ -85,7 +90,7 @@ dependencies {
 
     // DataStore
     implementation(libs.androidx.datastore.preferences)
-    
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

@@ -25,6 +25,8 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import kotlinx.coroutines.launch
+import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
+import android.content.res.Configuration
 
 // TODO: Implement EventsScreen composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -405,5 +407,31 @@ fun EventCard(
                 }
             }
         }
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(name = "Light Mode")
+@androidx.compose.ui.tooling.preview.Preview(
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    name = "Dark Mode"
+)
+@Composable
+fun EventCardPreview() {
+    val event = Event(
+        eventId = 1,
+        clubName = "Tech Club",
+        clubLogoUrl = "",
+        clubCoverUrl = "",
+        type = EventType.EVENT,
+        title = "AI & Machine Learning Workshop",
+        description = "Learn the fundamentals of AI...",
+        startTime = "2025-12-05T15:00:00",
+        endTime = "2025-12-05T18:00:00",
+        location = "Engineering Building - Room 201",
+        noOfRegistrations = 46,
+        noOfMaxRegistrations = 60
+    )
+    CampusAppTheme {
+        EventCard(event = event, onRegister = {}, onViewDetails = {})
     }
 }

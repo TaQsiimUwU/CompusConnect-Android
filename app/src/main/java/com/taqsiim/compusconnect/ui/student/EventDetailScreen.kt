@@ -22,6 +22,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.taqsiim.compusconnect.data.model.Event
 import com.taqsiim.compusconnect.data.model.EventType
+import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
+import android.content.res.Configuration
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -294,5 +296,17 @@ private fun DetailRow(
                 fontWeight = FontWeight.Medium
             )
         }
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(name = "Light Mode")
+@androidx.compose.ui.tooling.preview.Preview(
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    name = "Dark Mode"
+)
+@Composable
+fun EventDetailScreenPreview() {
+    CampusAppTheme {
+        EventDetailScreen(eventId = "1", onNavigateBack = {})
     }
 }

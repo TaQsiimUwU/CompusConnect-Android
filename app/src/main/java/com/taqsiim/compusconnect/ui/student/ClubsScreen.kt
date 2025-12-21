@@ -27,6 +27,8 @@ import com.taqsiim.compusconnect.data.model.ClubStatus
 import com.taqsiim.compusconnect.viewmodel.StudentViewModel
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import kotlinx.coroutines.launch
+import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
+import android.content.res.Configuration
 
 // TODO: Implement ClubsScreen composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -424,5 +426,29 @@ private fun StatItem(icon: androidx.compose.ui.graphics.vector.ImageVector, text
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(name = "Light Mode")
+@androidx.compose.ui.tooling.preview.Preview(
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    name = "Dark Mode"
+)
+@Composable
+fun ClubCardPreview() {
+    val club = Club(
+        clubId = 1,
+        name = "Tech Club",
+        description = "Explore cutting-edge technology, coding, and innovation",
+        status = ClubStatus.ACTIVE,
+        isJoined = true,
+        logo = "",
+        cover = "",
+        noOfEvents = 12,
+        clubManagerName = "John Doe",
+        noOfFollowers = 245
+    )
+    CampusAppTheme {
+        ClubCard(club = club, onJoinLeave = {}, onView = {})
     }
 }
