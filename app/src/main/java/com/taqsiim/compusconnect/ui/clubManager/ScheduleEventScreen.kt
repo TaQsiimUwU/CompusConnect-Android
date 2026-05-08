@@ -19,7 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
-import com.taqsiim.compusconnect.ui.theme.UserRole
+import com.taqsiim.compusconnect.data.model.UserRole
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -317,7 +317,7 @@ fun ScheduleEventScreen(
 @Preview(name = "Light Mode")
 @Composable
 fun ScheduleEventScreenPreview() {
-    CampusAppTheme(userRole = UserRole.ClubManager) {
+    CampusAppTheme(userRole = UserRole.CLUB_MANAGER) {
         ScheduleEventScreen(
             onBackClick = {},
             onCancelClick = {},

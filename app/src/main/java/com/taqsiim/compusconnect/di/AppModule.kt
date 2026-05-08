@@ -10,6 +10,9 @@ import com.taqsiim.compusconnect.data.repository.ClubRepository
 import com.taqsiim.compusconnect.data.repository.EventRepository
 import com.taqsiim.compusconnect.data.repository.PostRepository
 import com.taqsiim.compusconnect.data.repository.UserRepository
+import com.taqsiim.compusconnect.data.repository.RoomRepository
+import com.taqsiim.compusconnect.data.repository.FacilityRepository
+import com.taqsiim.compusconnect.data.repository.ReportRepository
 import com.taqsiim.compusconnect.util.Constants
 import dagger.Module
 import dagger.Provides
@@ -35,7 +38,9 @@ object AppModule {
             context,
             CampusDatabase::class.java,
             "campus_connect_db"
-        ).build()
+        )
+        .fallbackToDestructiveMigration()
+        .build()
     }
 
     @Provides
@@ -111,5 +116,23 @@ object AppModule {
     @Singleton
     fun providePostRepository(api: ApiService, dao: CampusDao): PostRepository {
         return PostRepository(api, dao)
+    }
+    
+    @Provides
+    @Singleton
+    fun provideRoomRepository(api: ApiService): RoomRepository {
+        return RoomRepository(api)
+    }
+    
+    @Provides
+    @Singleton
+    fun provideFacilityRepository(api: ApiService): FacilityRepository {
+        return FacilityRepository(api)
+    }
+    
+    @Provides
+    @Singleton
+    fun provideReportRepository(api: ApiService): ReportRepository {
+        return ReportRepository(api)
     }
 }

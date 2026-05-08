@@ -23,6 +23,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.taqsiim.compusconnect.data.model.Post
 import com.taqsiim.compusconnect.data.model.Reservation
@@ -31,6 +32,7 @@ import com.taqsiim.compusconnect.ui.components.PostCard
 import com.taqsiim.compusconnect.ui.components.ReservationCard
 import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 import com.taqsiim.compusconnect.viewmodel.StudentViewModel
+import com.taqsiim.compusconnect.viewmodel.UiState
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.foundation.lazy.rememberLazyListState
 import kotlinx.coroutines.delay
@@ -45,7 +47,7 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    viewModel: StudentViewModel,
+    viewModel: StudentViewModel = hiltViewModel(),
     onNavigateToEventDetail: (String) -> Unit,
     onNavigateToReservations: () -> Unit = {},
     onNavigateToRoomForm: () -> Unit = {},
@@ -56,10 +58,9 @@ fun HomeScreen(
     scrollToTop: Boolean = false,
     onScrollToTopComplete: () -> Unit = {}
 ) {
-    // TODO: Collect state from ViewModel
-    // val posts by viewModel.posts.collectAsState()
-    // val reservations by viewModel.upcomingReservations.collectAsState()
-    // val isLoading by viewModel.isLoading.collectAsState()
+    // Collect state from ViewModel
+    val postsState by viewModel.postsState.collectAsState()
+    val reservationsState by viewModel.reservationsState.collectAsState()
 
     var isRefreshing by remember { mutableStateOf(false) }
     val pullRefreshState = rememberPullToRefreshState()
@@ -68,76 +69,13 @@ fun HomeScreen(
     val onRefresh: () -> Unit = {
         isRefreshing = true
         coroutineScope.launch {
-            // TODO: Trigger refresh in ViewModel
-            delay(3500) // Mock delay
+            viewModel.refresh()
+            delay(1000)
             isRefreshing = false
         }
     }
 
-    // Mock data for now
-    val posts = remember {
-        listOf(
-            Post(
-                postId = 1,
-                clubId = 101,
-                eventId = null,
-                content = "Welcome to the new semester! Join us for the opening ceremony.",
-                imageUrl = "https://picsum.photos/seed/campus1/400/200",
-                createdAt = "2023-10-01T09:00:00Z",
-                likeCount = 42,
-                commentCount = 5,
-                isLiked = false
-            ),
-            Post(
-                postId = 2,
-                clubId = 102,
-                eventId = 201,
-                content = "Hackathon this weekend! Don't miss out on the prizes.",
-                imageUrl = "https://picsum.photos/seed/hackathon/400/200",
-                createdAt = "2023-10-05T14:30:00Z",
-                likeCount = 128,
-                commentCount = 23,
-                isLiked = true
-            ),
-            Post(
-                postId = 3,
-                clubId = 103,
-                eventId = null,
-                content = "Library hours extended for finals week.",
-                imageUrl = null,
-                createdAt = "2023-10-10T08:00:00Z",
-                likeCount = 89,
-                commentCount = 12,
-                isLiked = false
-            )
-        )
-    }
-    val reservations = remember {
-        listOf(
-            Reservation(
-                reservationId = "res_001",
-                title = "Study Room A",
-                startTime = "2023-10-20T10:00:00Z",
-                endTime = "2023-10-20T12:00:00Z",
-                type = ReservationType.STUDY_ROOM
-            ),
-            Reservation(
-                reservationId = "res_002",
-                title = "Basketball Court",
-                startTime = "2023-10-21T16:00:00Z",
-                endTime = "2023-10-21T17:30:00Z",
-                type = ReservationType.SPORT
-            ),
-            Reservation(
-                reservationId = "res_003",
-                title = "Intro to AI Workshop",
-                startTime = "2023-10-22T14:00:00Z",
-                endTime = "2023-10-22T16:00:00Z",
-                type = ReservationType.EVENT
-            )
-        )
-    }
-    val notificationCount = 2 // Mock notification count
+    val notificationCount = 0 // TODO: Get from notifications state
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val listState = rememberLazyListState()
 
@@ -227,30 +165,65 @@ fun HomeScreen(
                     }
 
                     // Upcoming Reservations Section
-                    if (reservations.isNotEmpty()) {
-                        item {
-                            UpcomingReservationsSection(
-                                reservations = reservations,
-                                onViewAll = onNavigateToReservations
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
+                    when (val state = reservationsState) {
+                        is UiState.Success -> {
+                            if (state.data.isNotEmpty()) {
+                                item {
+                                    UpcomingReservationsSection(
+                                        reservations = state.data,
+                                        onViewAll = onNavigateToReservations
+                                    )
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                }
+                            }
                         }
+                        else -> {} // Loading or error - skip section
                     }
 
                     // Posts List
-                    items(posts) { post ->
-                        PostCard(
-                            post = post,
-                            onLike = { /* viewModel.likePost(post.postId) */ },
-                            onViewDetails = { onNavigateToEventDetail(post.eventId?.toString() ?: "") }
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                    }
-
-                    // Empty state
-                    if (posts.isEmpty()) {
-                        item {
-                            EmptyStateCard()
+                    when (val state = postsState) {
+                        is UiState.Loading -> {
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(32.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator()
+                                }
+                            }
+                        }
+                        is UiState.Success -> {
+                            items(state.data) { post ->
+                                PostCard(
+                                    post = post,
+                                    onLike = { 
+                                        if (post.isLiked == true) {
+                                            viewModel.unlikePost(post.postId)
+                                        } else {
+                                            viewModel.likePost(post.postId)
+                                        }
+                                    },
+                                    onViewDetails = { onNavigateToEventDetail(post.eventId?.toString() ?: "") }
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                            }
+                            
+                            // Empty state
+                            if (state.data.isEmpty()) {
+                                item {
+                                    EmptyStateCard()
+                                }
+                            }
+                        }
+                        is UiState.Error -> {
+                            item {
+                                ErrorStateCard(
+                                    message = state.message,
+                                    onRetry = { viewModel.loadPosts() }
+                                )
+                            }
                         }
                     }
                 }
@@ -466,6 +439,58 @@ private fun EmptyStateCard() {
         }
     }
 }
+
+/**
+ * Error State Card
+ */
+@Composable
+private fun ErrorStateCard(
+    message: String,
+    onRetry: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.errorContainer
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                imageVector = Icons.Default.Error,
+                contentDescription = "Error",
+                tint = MaterialTheme.colorScheme.error,
+                modifier = Modifier.size(48.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Oops! Something went wrong",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onErrorContainer
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onErrorContainer,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(onClick = onRetry) {
+                Text("Retry")
+            }
+        }
+    }
+}
+
+// ========== Previews ==========
 
 @Preview(showBackground = true, backgroundColor = 0xFFF2F2F2, name = "Student Home - Light")
 @Composable

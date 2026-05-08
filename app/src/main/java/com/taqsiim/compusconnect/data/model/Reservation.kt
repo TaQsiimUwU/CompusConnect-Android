@@ -23,21 +23,3 @@ enum class ReservationType {
     @SerializedName("sport")
     SPORT
 }
-
-
-
-// TODO: Implement ReservationStatus enum
-enum class ReservationStatus {
-    // TODO: Add status types
-}
-
-// TODO: Implement FacilityBooking data class
-class FacilityBooking
-
-// TODO: Implement FacilityType enum
-enum class FacilityType {
-    // TODO: Add facility types
-}
-
-// TODO: Implement StudyRoomBooking data class
-class StudyRoomBooking

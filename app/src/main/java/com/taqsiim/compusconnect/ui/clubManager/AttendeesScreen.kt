@@ -17,10 +17,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
-import com.taqsiim.compusconnect.ui.theme.UserRole
+import com.taqsiim.compusconnect.data.model.UserRole
+import com.taqsiim.compusconnect.viewmodel.ManagerViewModel
+import com.taqsiim.compusconnect.viewmodel.UiState
 import androidx.compose.ui.platform.LocalContext
 import com.taqsiim.compusconnect.utils.QrScannerUtil
 import kotlinx.coroutines.launch
@@ -39,7 +43,9 @@ data class Attendee(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AttendeesScreen(
-    onScanQrCode: () -> Unit // This callback might be redundant if we handle scanning internally, but keeping it for flexibility
+    onScanQrCode: () -> Unit, // This callback might be redundant if we handle scanning internally, but keeping it for flexibility
+    eventId: Int = 1, // TODO: Pass actual event ID
+    viewModel: ManagerViewModel = hiltViewModel()
 ) {
     var selectedTab by remember { mutableIntStateOf(0) } // 0: Registered, 1: Attended
     var searchQuery by remember { mutableStateOf("") }
@@ -47,14 +53,10 @@ fun AttendeesScreen(
     val scope = rememberCoroutineScope()
     val qrScanner = remember { QrScannerUtil(context) }
     var scannedResult by remember { mutableStateOf<String?>(null) }
-
-    // Mock Data
-    val attendees = remember {
-        listOf(
-            Attendee("1", "Sarah Johnson", "U2021001", "sarah.j@university.edu", "Computer Science", "Nov 25, 2025"),
-            Attendee("2", "Michael Chen", "U2021002", "michael.c@university.edu", "Engineering", "Nov 26, 2025"),
-            Attendee("3", "Emma Williams", "U2021003", "emma.w@university.edu", "Business", "Nov 27, 2025")
-        )
+    val attendeesState by viewModel.attendeesState.collectAsState()
+    
+    LaunchedEffect(eventId) {
+        viewModel.loadEventAttendees(eventId)
     }
 
     Scaffold(
@@ -101,10 +103,63 @@ fun AttendeesScreen(
             )
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
+        when (val state = attendeesState) {
+            is UiState.Loading -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+            is UiState.Error -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = state.message,
+                        color = MaterialTheme.colorScheme.error,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+            }
+            is UiState.Success -> {
+                val attendees = state.data
+                AttendeeContent(
+                    attendees = attendees,
+                    paddingValues = paddingValues,
+                    searchQuery = searchQuery,
+                    onSearchQueryChange = { searchQuery = it },
+                    onCheckIn = { studentId -> viewModel.checkInStudent(eventId, studentId) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AttendeeContent(
+    attendees: List<com.taqsiim.compusconnect.data.model.RegisteredStudentResponse>,
+    paddingValues: PaddingValues,
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit,
+    onCheckIn: (Int) -> Unit
+) {
+    var selectedTab by remember { mutableIntStateOf(0) } // 0: Registered, 1: Attended
+    
+    val registeredCount = attendees.size
+    val attendedCount = attendees.count { it.isAttending }
+    
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues)
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -137,14 +192,14 @@ fun AttendeesScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 AttendeeTabButton(
-                    text = "Registered (4)",
+                    text = "Registered ($registeredCount)",
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
                     modifier = Modifier.weight(1f),
                     icon = Icons.Default.AccessTime
                 )
                 AttendeeTabButton(
-                    text = "Attended (3)",
+                    text = "Attended ($attendedCount)",
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
                     modifier = Modifier.weight(1f),
@@ -155,7 +210,7 @@ fun AttendeesScreen(
             // Search Bar
             OutlinedTextField(
                 value = searchQuery,
-                onValueChange = { searchQuery = it },
+                onValueChange = onSearchQueryChange,
                 placeholder = { Text("Search attendees...") },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 modifier = Modifier.fillMaxWidth(),
@@ -167,18 +222,99 @@ fun AttendeesScreen(
             )
 
             Text(
-                text = "Registered Attendees",
+                text = if (selectedTab == 0) "Registered Attendees" else "Attended Attendees",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             // List
+            val filteredAttendees = if (selectedTab == 0) {
+                attendees
+            } else {
+                attendees.filter { it.isAttending }
+            }.filter {
+                searchQuery.isBlank() || 
+                it.firstName.contains(searchQuery, ignoreCase = true) || 
+                it.lastName.contains(searchQuery, ignoreCase = true)
+            }
+            
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 contentPadding = PaddingValues(bottom = 16.dp)
             ) {
-                items(attendees) { attendee ->
-                    AttendeeCard(attendee = attendee)
+                if (filteredAttendees.isEmpty()) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(32.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "No attendees found",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+                items(filteredAttendees) { attendee ->
+                    RegisteredStudentCard(
+                        attendee = attendee,
+                        onCheckIn = { onCheckIn(attendee.userId) }
+                    )
+                }
+            }
+        }
+    }
+
+@Composable
+fun RegisteredStudentCard(
+    attendee: com.taqsiim.compusconnect.data.model.RegisteredStudentResponse,
+    onCheckIn: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "${attendee.firstName} ${attendee.lastName}",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = attendee.email,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = "${attendee.faculty} - Level ${attendee.level}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            if (attendee.isAttending) {
+                Icon(
+                    imageVector = Icons.Default.CheckCircleOutline,
+                    contentDescription = "Checked In",
+                    tint = Color(0xFF4CAF50)
+                )
+            } else {
+                FilledTonalButton(
+                    onClick = onCheckIn,
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text("Check In")
                 }
             }
         }
@@ -211,84 +347,10 @@ fun AttendeeTabButton(
     }
 }
 
-@Composable
-fun AttendeeCard(attendee: Attendee) {
-    var isChecked by remember { mutableStateOf(attendee.isCheckedIn) }
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-        shape = RoundedCornerShape(12.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Top
-        ) {
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(
-                    text = attendee.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Text(
-                    text = "ID: ${attendee.studentId}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Icon(
-                        imageVector = Icons.Outlined.Email,
-                        contentDescription = null,
-                        modifier = Modifier.size(14.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = attendee.email,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                Spacer(modifier = Modifier.height(4.dp))
-                Surface(
-                    color = Color(0xFFE3F2FD),
-                    shape = RoundedCornerShape(4.dp)
-                ) {
-                    Text(
-                        text = attendee.major,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color(0xFF1976D2)
-                    )
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Registered: ${attendee.registeredDate}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            Checkbox(
-                checked = isChecked,
-                onCheckedChange = { isChecked = it }
-            )
-        }
-    }
-}
-
 @Preview(name = "Light Mode")
 @Composable
 fun AttendeesScreenPreview() {
-    CampusAppTheme(userRole = UserRole.ClubManager) {
-        AttendeesScreen(onScanQrCode = {})
+    CampusAppTheme(userRole = UserRole.CLUB_MANAGER) {
+        AttendeesScreen(onScanQrCode = {}, eventId = 1)
     }
 }

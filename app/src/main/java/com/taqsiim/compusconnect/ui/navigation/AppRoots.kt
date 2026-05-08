@@ -27,8 +27,8 @@ import com.taqsiim.compusconnect.ui.clubManager.ManagerHomeScreen
 import com.taqsiim.compusconnect.ui.clubManager.RequestsScreen
 import com.taqsiim.compusconnect.viewmodel.ManagerViewModel
 import com.taqsiim.compusconnect.viewmodel.StudentViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.taqsiim.compusconnect.ui.theme.UserRole
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.taqsiim.compusconnect.data.model.UserRole
 import com.taqsiim.compusconnect.ui.clubManager.ClubAccountScreen
 import com.taqsiim.compusconnect.ui.student.ReportIssueScreen
 import com.taqsiim.compusconnect.ui.student.ReserveSport
@@ -38,9 +38,10 @@ import com.taqsiim.compusconnect.ui.student.EventDetailScreen
 import com.taqsiim.compusconnect.ui.student.ClubProfileScreen
 import com.taqsiim.compusconnect.ui.clubManager.ScheduleEventScreen
 import com.taqsiim.compusconnect.ui.clubManager.AttendeesScreen
+import com.taqsiim.compusconnect.viewmodel.AuthViewModel
 
 @Composable
-fun StudentAppRoot(onSwitchRole: () -> Unit) {
+fun StudentAppRoot(onSwitchRole: () -> Unit, onLogout: () -> Unit) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: "student/home"
@@ -64,7 +65,7 @@ fun StudentAppRoot(onSwitchRole: () -> Unit) {
                 exit = slideOutVertically(targetOffsetY = { it })
             ) {
                 DynamicNavBar(
-                    userRole = UserRole.Student,
+                    userRole = UserRole.STUDENT,
                     selectedRoute = currentRoute,
                     onNavigate = { route ->
                         if (route == currentRoute && route == "student/home") {
@@ -95,7 +96,7 @@ fun StudentAppRoot(onSwitchRole: () -> Unit) {
             // modifier = Modifier.padding(innerPadding)
             ) {
             composable("student/home") {
-                val viewModel: StudentViewModel = viewModel()
+                val viewModel: StudentViewModel = hiltViewModel()
                 HomeScreen(
                     viewModel = viewModel,
                     onNavigateToEventDetail = { eventId -> navController.navigate("student/event/$eventId") },
@@ -145,7 +146,7 @@ fun StudentAppRoot(onSwitchRole: () -> Unit) {
                 )
             }
             composable("student/events") {
-                val viewModel: StudentViewModel = viewModel()
+                val viewModel: StudentViewModel = hiltViewModel()
                 EventsScreen(
                     viewModel = viewModel,
                     onNavigateToEventDetail = { eventId -> navController.navigate("student/event/$eventId") },
@@ -165,7 +166,7 @@ fun StudentAppRoot(onSwitchRole: () -> Unit) {
                 )
             }
             composable("student/clubs") {
-                val viewModel: StudentViewModel = viewModel()
+                val viewModel: StudentViewModel = hiltViewModel()
                 ClubsScreen(
                     viewModel = viewModel,
                     onNavigateToClubProfile = { clubId -> navController.navigate("student/club/$clubId") },
@@ -187,7 +188,7 @@ fun StudentAppRoot(onSwitchRole: () -> Unit) {
             composable("student/profile") {
                 ProfileScreen(
                     onSwitchToManager = onSwitchRole,
-                    onLogout = { /* TODO */ }
+                    onLogout = onLogout
                 )
             }
         }
@@ -195,7 +196,7 @@ fun StudentAppRoot(onSwitchRole: () -> Unit) {
 }
 
 @Composable
-fun ManagerAppRoot(onSwitchRole: () -> Unit) {
+fun ManagerAppRoot(onSwitchRole: () -> Unit, onLogout: () -> Unit) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: "manager/home"
@@ -205,7 +206,7 @@ fun ManagerAppRoot(onSwitchRole: () -> Unit) {
         bottomBar = {
             if (currentRoute != "manager/schedule_event") {
                 DynamicNavBar(
-                    userRole = UserRole.ClubManager,
+                    userRole = UserRole.CLUB_MANAGER,
                     selectedRoute = currentRoute,
                     onNavigate = { route ->
                         navController.navigate(route) {
@@ -229,7 +230,7 @@ fun ManagerAppRoot(onSwitchRole: () -> Unit) {
             )
         ) {
             composable("manager/home") {
-                val viewModel: ManagerViewModel = viewModel()
+                val viewModel: ManagerViewModel = hiltViewModel()
                 ManagerHomeScreen(
                     viewModel = viewModel,
                     onCreatePost = { /* TODO */ },
@@ -248,7 +249,7 @@ fun ManagerAppRoot(onSwitchRole: () -> Unit) {
                 )
             }
             composable("manager/requests") {
-                val viewModel: ManagerViewModel = viewModel()
+                val viewModel: ManagerViewModel = hiltViewModel()
                 RequestsScreen(
                     viewModel = viewModel
                 )
@@ -261,7 +262,7 @@ fun ManagerAppRoot(onSwitchRole: () -> Unit) {
             composable("manager/account") {
                 ClubAccountScreen(
                     onSwitchToStudent = onSwitchRole,
-                    onLogout = { /* TODO */ }
+                    onLogout = onLogout
                 )
             }
         }

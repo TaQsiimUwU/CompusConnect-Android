@@ -38,107 +38,8 @@ fun ClubsScreen(
     onNavigateToClubProfile: (String) -> Unit,
     isScrolling: (Boolean) -> Unit = {}
 ) {
-    // Mock Data
-    val clubs = remember {
-        listOf(
-            Club(
-                clubId = 1,
-                name = "Tech Club",
-                description = "Explore cutting-edge technology, coding, and innovation",
-                status = ClubStatus.ACTIVE,
-                isJoined = true,
-                logo = "",
-                cover = "",
-                noOfEvents = 12,
-                clubManagerName = "John Doe",
-                noOfFollowers = 245
-            ),
-            Club(
-                clubId = 2,
-                name = "Arts Club",
-                description = "Express creativity through various art forms",
-                status = ClubStatus.ACTIVE,
-                isJoined = false,
-                logo = "",
-                cover = "",
-                noOfEvents = 8,
-                clubManagerName = "Jane Smith",
-                noOfFollowers = 180
-            ),
-            Club(
-                clubId = 3,
-                name = "Entrepreneurship Club",
-                description = "Business",
-                status = ClubStatus.ACTIVE,
-                isJoined = false,
-                logo = "",
-                cover = "",
-                noOfEvents = 5,
-                clubManagerName = "Mike Johnson",
-                noOfFollowers = 120
-            ),
-            Club(
-                clubId = 4,
-                name = "Music Club",
-                description = "For all music lovers and performers. Join our band or choir!",
-                status = ClubStatus.ACTIVE,
-                isJoined = true,
-                logo = "",
-                cover = "",
-                noOfEvents = 15,
-                clubManagerName = "Sarah Connor",
-                noOfFollowers = 300
-            ),
-            Club(
-                clubId = 5,
-                name = "Sports Club",
-                description = "Promoting health and fitness through various sports activities.",
-                status = ClubStatus.ACTIVE,
-                isJoined = false,
-                logo = "",
-                cover = "",
-                noOfEvents = 20,
-                clubManagerName = "Tom Brady",
-                noOfFollowers = 500
-            ),
-            Club(
-                clubId = 6,
-                name = "Debate Club",
-                description = "Sharpen your public speaking and critical thinking skills.",
-                status = ClubStatus.ACTIVE,
-                isJoined = false,
-                logo = "",
-                cover = "",
-                noOfEvents = 10,
-                clubManagerName = "Sherlock Holmes",
-                noOfFollowers = 90
-            ),
-            Club(
-                clubId = 7,
-                name = "Photography Club",
-                description = "Capture the world through your lens. Workshops and photo walks.",
-                status = ClubStatus.ACTIVE,
-                isJoined = true,
-                logo = "",
-                cover = "",
-                noOfEvents = 7,
-                clubManagerName = "Peter Parker",
-                noOfFollowers = 150
-            ),
-            Club(
-                clubId = 8,
-                name = "Robotics Club",
-                description = "Build and program robots. Participate in competitions.",
-                status = ClubStatus.ACTIVE,
-                isJoined = false,
-                logo = "",
-                cover = "",
-                noOfEvents = 6,
-                clubManagerName = "Tony Stark",
-                noOfFollowers = 210
-            )
-        )
-    }
+    // Observe real clubs data from ViewModel
+    val clubsState by viewModel.clubsState.collectAsState()
 
     var searchQuery by remember { mutableStateOf("") }
     val pagerState = rememberPagerState(pageCount = { 2 })
@@ -234,14 +135,30 @@ fun ClubsScreen(
                     )
                 }
 
-                val filteredClubs = if (page == 0) clubs else clubs.filter { it.isJoined }
-
-                items(filteredClubs) { club ->
-                    ClubCard(
-                        club = club,
-                        onJoinLeave = { /* TODO */ },
-                        onView = { onNavigateToClubProfile(club.clubId.toString()) }
-                    )
+                when (val state = clubsState) {
+                    is com.taqsiim.compusconnect.viewmodel.UiState.Loading -> {
+                        item { CircularProgressIndicator() }
+                    }
+                    is com.taqsiim.compusconnect.viewmodel.UiState.Error -> {
+                        item { Text(state.message) }
+                    }
+                    is com.taqsiim.compusconnect.viewmodel.UiState.Success -> {
+                        val allClubs = state.data
+                        val filteredClubs = if (page == 0) allClubs else allClubs.filter { it.isJoined }
+                        items(filteredClubs) { club ->
+                            ClubCard(
+                                club = club,
+                                onJoinLeave = {
+                                    if (club.isJoined) {
+                                        viewModel.leaveClub(club.id)
+                                    } else {
+                                        viewModel.joinClub(club.id)
+                                    }
+                                },
+                                onView = { onNavigateToClubProfile(club.id.toString()) }
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -279,7 +196,7 @@ fun ClubCard(
     onJoinLeave: () -> Unit,
     onView: () -> Unit
 ) {
-    val cardColor = when (club.clubId % 5) {
+    val cardColor = when (club.id % 5) {
         1 -> Color(0xFF2196F3) // Blue
         2 -> Color(0xFFE91E63) // Pink
         3 -> Color(0xFF00C853) // Green
@@ -329,7 +246,7 @@ fun ClubCard(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = club.description,
+                            text = club.description ?: "No description available",
                             style = MaterialTheme.typography.bodySmall,
                             color = Color.White.copy(alpha = 0.9f),
                             maxLines = 2
@@ -346,8 +263,8 @@ fun ClubCard(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    StatItem(icon = Icons.Outlined.Group, text = "${club.noOfFollowers} members")
-                    StatItem(icon = Icons.Outlined.CalendarToday, text = "${club.noOfEvents} events")
+                    StatItem(icon = Icons.Outlined.Group, text = "${club.followersCount} members")
+                    StatItem(icon = Icons.Outlined.CalendarToday, text = "${club.eventNumber} events")
                     StatItem(icon = Icons.Outlined.TrendingUp, text = "Active")
                 }
 
@@ -437,16 +354,20 @@ private fun StatItem(icon: androidx.compose.ui.graphics.vector.ImageVector, text
 @Composable
 fun ClubCardPreview() {
     val club = Club(
-        clubId = 1,
+        id = 1,
         name = "Tech Club",
         description = "Explore cutting-edge technology, coding, and innovation",
+        email = "tech@example.com",
+        logo = null,
+        cover = null,
+        followersCount = 245,
+        members = 200,
+        eventNumber = 12,
+        sessionsNumber = 8,
+        postsNumber = 50,
+        clubAdminName = "John Doe",
         status = ClubStatus.ACTIVE,
-        isJoined = true,
-        logo = "",
-        cover = "",
-        noOfEvents = 12,
-        clubManagerName = "John Doe",
-        noOfFollowers = 245
+        isJoined = true
     )
     CampusAppTheme {
         ClubCard(club = club, onJoinLeave = {}, onView = {})

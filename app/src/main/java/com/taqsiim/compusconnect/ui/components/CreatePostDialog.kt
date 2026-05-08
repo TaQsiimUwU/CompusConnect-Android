@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
-import com.taqsiim.compusconnect.ui.theme.UserRole
+import com.taqsiim.compusconnect.data.model.UserRole
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -247,7 +247,7 @@ fun CreatePostDialog(
 )
 @Composable
 fun CreatePostDialogPreview() {
-    CampusAppTheme(userRole = UserRole.ClubManager) {
+    CampusAppTheme(userRole = UserRole.CLUB_MANAGER) {
         CreatePostDialog(
             onDismissRequest = {},
             onPublish = { _, _, _, _ -> }

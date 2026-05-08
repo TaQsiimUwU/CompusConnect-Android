@@ -1,3 +1,5 @@
+package com.taqsiim.compusconnect.data.model
+
 import com.google.gson.annotations.SerializedName
 
 data class Comment(
@@ -8,7 +10,6 @@ data class Comment(
     val content: String
 )
 
-// this for add comment
 data class CommentRequest(
     val content: String
 )

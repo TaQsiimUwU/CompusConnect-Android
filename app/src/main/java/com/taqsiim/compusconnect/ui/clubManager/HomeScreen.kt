@@ -25,6 +25,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.taqsiim.compusconnect.data.model.Post
@@ -33,7 +34,7 @@ import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 import android.content.res.Configuration
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.taqsiim.compusconnect.ui.theme.UserRole
+import com.taqsiim.compusconnect.data.model.UserRole
 import com.taqsiim.compusconnect.viewmodel.ManagerViewModel
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButtonMenu
@@ -48,33 +49,7 @@ fun ManagerHomeScreen(
     onScheduleEvent: () -> Unit,
     onScheduleSession: () -> Unit
 ) {
-    // Mock Data
-    val posts = remember {
-        listOf(
-            Post(
-                postId = 1,
-                clubId = 1,
-                eventId = 101,
-                content = "Excited to announce our AI workshop! Registration is now open. Don't miss this opportunity to learn from industry experts! 🚀",
-                imageUrl = null,
-                createdAt = "2 hours ago",
-                likeCount = 45,
-                commentCount = 12,
-                isLiked = false
-            ),
-            Post(
-                postId = 2,
-                clubId = 1,
-                eventId = null,
-                content = "Thank you to everyone who attended last week's coding session! Your participation and enthusiasm made it a huge success. See you at the next one! 💻",
-                imageUrl = null,
-                createdAt = "1 day ago",
-                likeCount = 32,
-                commentCount = 5,
-                isLiked = true
-            )
-        )
-    }
+    val postsState by viewModel.postsState.collectAsState()
 
     var isFabExpanded by remember { mutableStateOf(false) }
     val fabRotation by animateFloatAsState(targetValue = if (isFabExpanded) 45f else 0f, label = "fabRotation")
@@ -143,10 +118,34 @@ fun ManagerHomeScreen(
                 .padding(paddingValues)
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(bottom = 80.dp) // Space for FAB
+            contentPadding = PaddingValues(bottom = 80.dp)
         ) {
-            items(posts) { post ->
-                AnnouncementCard(post = post)
+            when (val state = postsState) {
+                is com.taqsiim.compusconnect.viewmodel.UiState.Loading -> {
+                    item {
+                        Box(
+                            modifier = Modifier.fillMaxWidth().padding(32.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
+                }
+                is com.taqsiim.compusconnect.viewmodel.UiState.Error -> {
+                    item {
+                        Text(
+                            text = state.message,
+                            modifier = Modifier.fillMaxWidth().padding(32.dp),
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+                is com.taqsiim.compusconnect.viewmodel.UiState.Success -> {
+                    items(state.data) { post ->
+                        AnnouncementCard(post = post)
+                    }
+                }
             }
         }
     }
@@ -314,7 +313,7 @@ fun AnnouncementCard(post: Post) {
 )
 @Composable
 fun ManagerHomeScreenPreview() {
-    CampusAppTheme(userRole = UserRole.ClubManager) {
+    CampusAppTheme(userRole = UserRole.CLUB_MANAGER) {
         ManagerHomeScreen(
             viewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
             onCreatePost = {},

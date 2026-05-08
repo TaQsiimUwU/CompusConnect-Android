@@ -13,40 +13,37 @@ import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.taqsiim.compusconnect.data.model.Event
 import com.taqsiim.compusconnect.data.model.EventType
 import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
+import com.taqsiim.compusconnect.viewmodel.StudentViewModel
+import com.taqsiim.compusconnect.viewmodel.UiState
 import android.content.res.Configuration
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventDetailScreen(
     eventId: String,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    viewModel: StudentViewModel = hiltViewModel()
 ) {
-    // Mock Data for the specific event
-    val event = Event(
-        eventId = eventId.toIntOrNull() ?: 1,
-        clubName = "Tech Club",
-        clubLogoUrl = "",
-        clubCoverUrl = "",
-        type = EventType.EVENT,
-        title = "AI & Machine Learning Workshop",
-        description = "Learn the fundamentals of AI and build your first ML model. Join us for an exciting and informative session that will provide valuable insights and hands-on experience. This event is perfect for anyone interested in learning more about the topic and connecting with like-minded individuals.",
-        startTime = "2025-12-05T15:00:00",
-        endTime = "2025-12-05T18:00:00",
-        location = "Engineering Building - Room 201",
-        noOfRegistrations = 46,
-        noOfMaxRegistrations = 60
-    )
-    val isRegistered = true // Mock state
+    val eventDetailState by viewModel.eventDetailState.collectAsState()
+    
+    LaunchedEffect(eventId) {
+        viewModel.loadEventDetail(eventId.toIntOrNull() ?: 0)
+    }
 
     Scaffold(
         topBar = {
@@ -65,42 +62,90 @@ fun EventDetailScreen(
             )
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-        ) {
-            // Header Section
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color(0xFF2196F3))
-                    .padding(16.dp)
-            ) {
-                Column {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        // Placeholder for Club Logo
-                        Surface(
-                            modifier = Modifier.size(24.dp),
-                            shape = RoundedCornerShape(4.dp),
-                            color = Color.White.copy(alpha = 0.2f)
-                        ) {
-                            // Icon or Image
-                        }
+        when (val state = eventDetailState) {
+            is UiState.Loading -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+            is UiState.Error -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = state.message,
+                        color = MaterialTheme.colorScheme.error,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+            }
+            is UiState.Success -> {
+                val event = state.data
+                EventDetailContent(
+                    event = event,
+                    paddingValues = paddingValues,
+                    onRegister = { viewModel.registerForEvent(event.eventId) },
+                    onUnregister = { viewModel.unregisterFromEvent(event.eventId) }
+                )
+            }
+        }
+    }
+}
 
-                        if (isRegistered) {
-                            Surface(
-                                color = Color.White.copy(alpha = 0.2f),
-                                shape = RoundedCornerShape(16.dp)
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+@Composable
+private fun EventDetailContent(
+    event: Event,
+    paddingValues: PaddingValues,
+    onRegister: () -> Unit,
+    onUnregister: () -> Unit
+) {
+    val isRegistered = event.isRegistered == true // TODO: Get from event model
+    
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues)
+            .verticalScroll(rememberScrollState())
+    ) {
+        // Header Section
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xFF2196F3))
+                .padding(16.dp)
+        ) {
+            Column {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // Placeholder for Club Logo
+                    Surface(
+                        modifier = Modifier.size(24.dp),
+                        shape = RoundedCornerShape(4.dp),
+                        color = Color.White.copy(alpha = 0.2f)
+                    ) {
+                        // Icon or Image
+                    }
+
+                    if (isRegistered) {
+                        Surface(
+                            color = Color.White.copy(alpha = 0.2f),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
                                 ) {
                                     Text(
                                         text = "✓ Registered",
@@ -240,7 +285,7 @@ fun EventDetailScreen(
                 // Action Button
                 if (isRegistered) {
                     OutlinedButton(
-                        onClick = { /* TODO: Cancel registration */ },
+                        onClick = onUnregister,
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.outlinedButtonColors(
                             contentColor = MaterialTheme.colorScheme.error
@@ -251,7 +296,7 @@ fun EventDetailScreen(
                     }
                 } else {
                     Button(
-                        onClick = { /* TODO: Register */ },
+                        onClick = onRegister,
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFF2196F3)
@@ -265,7 +310,6 @@ fun EventDetailScreen(
             }
         }
     }
-}
 
 @Composable
 private fun DetailRow(

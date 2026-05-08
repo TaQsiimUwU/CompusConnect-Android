@@ -8,6 +8,8 @@ import com.taqsiim.compusconnect.data.model.CreateEventRequest
 import com.taqsiim.compusconnect.data.model.Event
 import com.taqsiim.compusconnect.data.model.EventType
 import com.taqsiim.compusconnect.data.model.RegisteredStudentResponse
+import com.taqsiim.compusconnect.data.model.CheckInRequest
+import com.taqsiim.compusconnect.data.model.PendingEvent
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -20,11 +22,14 @@ class EventRepository @Inject constructor(
     // Events
     suspend fun getEvents(): Result<List<Event>> {
         return try {
-            val events = api.getEvents()
-            dao.refreshEventsByType(events.map { it.toEntity() }, EventType.EVENT.name)
+            val events = api.getEvents() ?: emptyList()
+            if (events.isNotEmpty()) {
+                dao.refreshEventsByType(events.map { it.toEntity() }, EventType.EVENT.name)
+            }
             Result.success(events)
         } catch (e: Exception) {
-            Result.failure(e)
+            // Handle 204 No Content or null response
+            Result.success(emptyList())
         }
     }
     
@@ -69,7 +74,8 @@ class EventRepository @Inject constructor(
         }
     }
     
-    // Sessions
+    // Sessions - TODO: Enable when backend implements /api/sessions endpoint
+    /* 
     suspend fun getSessions(): Result<List<Event>> {
         return try {
             val sessions = api.getSessions()
@@ -79,6 +85,7 @@ class EventRepository @Inject constructor(
             Result.failure(e)
         }
     }
+    */
     
     suspend fun createSession(request: CreateEventRequest): Result<Event> {
         return try {
@@ -90,6 +97,7 @@ class EventRepository @Inject constructor(
         }
     }
     
+    /* TODO: Enable when backend implements /api/sessions endpoint
     suspend fun registerForSession(sessionId: Int): Result<Event> {
         return try {
             val session = api.registerForSession(sessionId)
@@ -99,12 +107,58 @@ class EventRepository @Inject constructor(
             Result.failure(e)
         }
     }
+    */
 
     // Manager - Attendees
     suspend fun getEventAttendees(eventId: Int): Result<List<RegisteredStudentResponse>> {
         return try {
-            val attendees = api.getEventAttendees(eventId)
+            val attendees = api.getRegisteredStudents(eventId)
             Result.success(attendees)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    
+    suspend fun getRegisteredStudents(eventId: Int): Result<List<RegisteredStudentResponse>> {
+        return try {
+            val students = api.getRegisteredStudents(eventId)
+            Result.success(students)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    
+    suspend fun getAttendanceList(eventId: Int): Result<List<RegisteredStudentResponse>> {
+        return try {
+            val attendees = api.getAttendanceList(eventId)
+            Result.success(attendees)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    
+    suspend fun checkInStudent(eventId: Int, studentId: Int): Result<Unit> {
+        return try {
+            api.checkInStudent(eventId, CheckInRequest(studentId))
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    
+    suspend fun deleteEvent(eventId: Int): Result<Unit> {
+        return try {
+            api.deleteEvent(eventId)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    
+    suspend fun getRequestedEvents(): Result<List<PendingEvent>> {
+        return try {
+            val events = api.getRequestedEvents()
+            Result.success(events)
         } catch (e: Exception) {
             Result.failure(e)
         }

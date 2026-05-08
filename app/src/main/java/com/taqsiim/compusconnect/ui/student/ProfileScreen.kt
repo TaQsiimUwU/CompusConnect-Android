@@ -34,7 +34,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.taqsiim.compusconnect.viewmodel.AuthViewModel
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -51,12 +55,16 @@ import com.taqsiim.compusconnect.R
 import com.taqsiim.compusconnect.ui.components.AccountActionsSection
 import com.taqsiim.compusconnect.ui.components.ActionItem
 import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
+import com.taqsiim.compusconnect.data.model.UserRole
 
 @Composable
 fun ProfileScreen(
     onSwitchToManager: () -> Unit,
     onLogout: () -> Unit
 ) {
+    val viewModel: AuthViewModel = hiltViewModel()
+    val currentUser by viewModel.currentUser.collectAsState()
+    
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -64,15 +72,15 @@ fun ProfileScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        ProfileHeaderCard()
-        QRCodeCard()
+        ProfileHeaderCard(user = currentUser)
+        QRCodeCard(userId = currentUser?.userId?.toString() ?: "")
         AccountActionsSection(onSwitchToManager, onLogout)
         Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
 @Composable
-fun ProfileHeaderCard() {
+fun ProfileHeaderCard(user: com.taqsiim.compusconnect.data.model.User?) {
     val gradient = Brush.linearGradient(
         colors = listOf(
             MaterialTheme.colorScheme.primary,
@@ -112,27 +120,29 @@ fun ProfileHeaderCard() {
                     Spacer(modifier = Modifier.width(16.dp))
                     Column {
                         Text(
-                            text = "Sarah Johnson",
+                            text = "${user?.firstName ?: ""} ${user?.lastName ?: ""}",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onPrimary
                         )
                         Text(
-                            text = "Computer Science • Junior",
+                            text = "${user?.faculty ?: "Unknown"} • ${user?.level ?: "Student"}",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f)
                         )
                         Text(
-                            text = "ID: CS2023-1234",
+                            text = "ID: ${user?.userId ?: "N/A"}",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f)
                         )
                     }
                 }
                 Spacer(modifier = Modifier.height(24.dp))
-                ContactInfoRow(icon = Icons.Default.Email, text = "sarah.johnson@university.edu")
+                ContactInfoRow(icon = Icons.Default.Email, text = user?.email ?: "")
                 Spacer(modifier = Modifier.height(8.dp))
-                ContactInfoRow(icon = Icons.Default.Phone, text = "+1 (555) 123-4567")
+                if (user?.phone != null) {
+                    ContactInfoRow(icon = Icons.Default.Phone, text = user.phone)
+                }
             }
         }
     }
@@ -157,7 +167,7 @@ fun ContactInfoRow(icon: ImageVector, text: String) {
 }
 
 @Composable
-fun QRCodeCard() {
+fun QRCodeCard(userId: String) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),

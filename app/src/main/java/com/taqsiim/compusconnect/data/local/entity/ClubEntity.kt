@@ -6,14 +6,18 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "clubs")
 data class ClubEntity(
     @PrimaryKey
-    val clubId: Int,
+    val id: Int,
     val name: String,
-    val description: String,
+    val description: String?,
+    val email: String,
+    val logo: String?,
+    val cover: String?,
+    val followersCount: Int,
+    val members: Int,
+    val eventNumber: Int,
+    val sessionsNumber: Int,
+    val postsNumber: Int,
+    val clubAdminName: String,
     val status: String, // Store enum as String
-    val isJoined: Boolean,
-    val logo: String,
-    val cover: String,
-    val noOfEvents: Int,
-    val clubManagerName: String,
-    val noOfFollowers: Int
+    val isJoined: Boolean
 )

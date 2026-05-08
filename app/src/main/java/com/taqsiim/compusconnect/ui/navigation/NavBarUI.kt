@@ -27,7 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
-import com.taqsiim.compusconnect.ui.theme.UserRole
+import com.taqsiim.compusconnect.data.model.UserRole
 
 /**
  * Dynamic Navigation Bar that changes content based on user role
@@ -63,12 +63,17 @@ fun DynamicNavBar(
         )
     ) {
         when (userRole) {
-            UserRole.Student -> StudentNavBar(
+            UserRole.STUDENT -> StudentNavBar(
                 selectedRoute = selectedRoute,
                 onNavigate = onNavigate,
                 modifier = modifier
             )
-            UserRole.ClubManager -> ManagerNavBar(
+            UserRole.CLUB_MANAGER -> ManagerNavBar(
+                selectedRoute = selectedRoute,
+                onNavigate = onNavigate,
+                modifier = modifier
+            )
+            UserRole.STUDENT_MANAGER -> StudentNavBar(
                 selectedRoute = selectedRoute,
                 onNavigate = onNavigate,
                 modifier = modifier
@@ -209,9 +214,9 @@ private fun NavBarContent(
 @Preview(showBackground = true, name = "Student Navigation Bar - Light")
 @Composable
 fun StudentNavBarPreviewLight() {
-    CampusAppTheme(userRole = UserRole.Student, darkTheme = false) {
+    CampusAppTheme(userRole = UserRole.STUDENT, darkTheme = false) {
         DynamicNavBar(
-            userRole = UserRole.Student,
+            userRole = UserRole.STUDENT,
             selectedRoute = "student/home",
             onNavigate = {}
         )
@@ -221,9 +226,9 @@ fun StudentNavBarPreviewLight() {
 @Preview(showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, name = "Student Navigation Bar - Dark")
 @Composable
 fun StudentNavBarPreviewDark() {
-    CampusAppTheme(userRole = UserRole.Student, darkTheme = true) {
+    CampusAppTheme(userRole = UserRole.STUDENT, darkTheme = true) {
         DynamicNavBar(
-            userRole = UserRole.Student,
+            userRole = UserRole.STUDENT,
             selectedRoute = "student/home",
             onNavigate = {}
         )
@@ -233,9 +238,9 @@ fun StudentNavBarPreviewDark() {
 @Preview(showBackground = true, name = "Manager Navigation Bar - Light")
 @Composable
 fun ManagerNavBarPreviewLight() {
-    CampusAppTheme(userRole = UserRole.ClubManager, darkTheme = false) {
+    CampusAppTheme(userRole = UserRole.CLUB_MANAGER, darkTheme = false) {
         DynamicNavBar(
-            userRole = UserRole.ClubManager,
+            userRole = UserRole.CLUB_MANAGER,
             selectedRoute = "manager/home",
             onNavigate = {}
         )
@@ -245,9 +250,9 @@ fun ManagerNavBarPreviewLight() {
 @Preview(showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, name = "Manager Navigation Bar - Dark")
 @Composable
 fun ManagerNavBarPreviewDark() {
-    CampusAppTheme(userRole = UserRole.ClubManager, darkTheme = true) {
+    CampusAppTheme(userRole = UserRole.CLUB_MANAGER, darkTheme = true) {
         DynamicNavBar(
-            userRole = UserRole.ClubManager,
+            userRole = UserRole.CLUB_MANAGER,
             selectedRoute = "manager/home",
             onNavigate = {}
         )

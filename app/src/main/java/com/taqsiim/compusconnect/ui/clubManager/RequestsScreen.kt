@@ -13,8 +13,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,7 +23,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.taqsiim.compusconnect.data.model.EventStatus
 import com.taqsiim.compusconnect.data.model.EventType
 import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
-import com.taqsiim.compusconnect.ui.theme.UserRole
+import com.taqsiim.compusconnect.data.model.UserRole
 import com.taqsiim.compusconnect.viewmodel.ManagerViewModel
 
 // Mock Data Class for Request (since Event model might not have all fields yet)
@@ -46,45 +45,10 @@ data class EventRequest(
 fun RequestsScreen(
     viewModel: ManagerViewModel
 ) {
-    // Mock Data
-    val requests = remember {
-        listOf(
-            EventRequest(
-                id = 1,
-                title = "React Workshop 2024",
-                description = "Introduction to React and modern web development",
-                type = EventType.EVENT,
-                status = EventStatus.PENDING,
-                date = "2024-12-15",
-                time = "14:00 - 17:00",
-                expectedRegistrations = 50,
-                submittedDate = "Dec 1, 2024"
-            ),
-            EventRequest(
-                id = 2,
-                title = "Python Basics",
-                description = "Learn Python programming fundamentals",
-                type = EventType.SESSION,
-                status = EventStatus.APPROVED,
-                date = "2024-12-10",
-                time = "10:00 - 12:00",
-                expectedRegistrations = 30,
-                submittedDate = "Nov 28, 2024",
-                statusDate = "Nov 29, 2024"
-            ),
-            EventRequest(
-                id = 3,
-                title = "Annual Tech Fest",
-                description = "Full day technology festival with workshops and competitions",
-                type = EventType.EVENT,
-                status = EventStatus.REJECTED,
-                date = "2024-12-20",
-                time = "09:00 - 18:00",
-                expectedRegistrations = 200,
-                submittedDate = "Nov 25, 2024",
-                statusDate = "Nov 26, 2024"
-            )
-        )
+    val requestedEventsState by viewModel.requestedEventsState.collectAsState()
+    
+    LaunchedEffect(Unit) {
+        viewModel.loadRequestedEvents()
     }
 
     Scaffold(
@@ -97,31 +61,76 @@ fun RequestsScreen(
             )
         }
     ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(bottom = 16.dp)
-        ) {
-            item {
-                Text(
-                    text = "All Requests",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
+        when (val state = requestedEventsState) {
+            is com.taqsiim.compusconnect.viewmodel.UiState.Loading -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
             }
-            items(requests) { request ->
-                RequestCard(request = request)
+            is com.taqsiim.compusconnect.viewmodel.UiState.Error -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = state.message,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+            }
+            is com.taqsiim.compusconnect.viewmodel.UiState.Success<*> -> {
+                val requests = state.data as List<com.taqsiim.compusconnect.data.model.PendingEvent>
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    contentPadding = PaddingValues(bottom = 16.dp)
+                ) {
+                    item {
+                        Text(
+                            text = "All Requests",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                    }
+                    if (requests.isEmpty()) {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(32.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "No pending requests",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                    items(requests.size) { index ->
+                        PendingEventCard(request = requests[index])
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-fun RequestCard(request: EventRequest) {
+fun PendingEventCard(request: com.taqsiim.compusconnect.data.model.PendingEvent) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -138,27 +147,11 @@ fun RequestCard(request: EventRequest) {
                 verticalAlignment = Alignment.Top
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            text = request.title,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Surface(
-                            color = if (request.type == EventType.EVENT) Color(0xFFE3F2FD) else Color(0xFFF3E5F5),
-                            shape = RoundedCornerShape(4.dp)
-                        ) {
-                            Text(
-                                text = if (request.type == EventType.EVENT) "event" else "session",
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = if (request.type == EventType.EVENT) Color(0xFF1976D2) else Color(0xFF7B1FA2)
-                            )
-                        }
-                    }
+                    Text(
+                        text = request.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
                     Text(
                         text = request.description,
                         style = MaterialTheme.typography.bodyMedium,
@@ -182,7 +175,7 @@ fun RequestCard(request: EventRequest) {
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "${request.date} • ${request.time}",
+                        text = "${request.startTime} - ${request.endTime}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -196,62 +189,10 @@ fun RequestCard(request: EventRequest) {
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Expected: ${request.expectedRegistrations} registrations",
+                        text = "Club: ${request.clubName}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                }
-                if (request.status == EventStatus.APPROVED && request.type == EventType.SESSION) {
-                    Surface(
-                        color = Color(0xFFE8EAF6),
-                        shape = RoundedCornerShape(4.dp)
-                    ) {
-                        Text(
-                            text = "Online",
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color(0xFF3F51B5)
-                        )
-                    }
-                }
-            }
-
-            Divider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-
-            // Footer
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    text = "Submitted: ${request.submittedDate}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                if (request.statusDate != null) {
-                    val statusText = if (request.status == EventStatus.APPROVED) "Approved" else "Rejected"
-                    val statusColor = if (request.status == EventStatus.APPROVED) Color(0xFF2E7D32) else Color(0xFFC62828)
-                    Text(
-                        text = "$statusText: ${request.statusDate}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = statusColor
-                    )
-                }
-
-                if (request.status == EventStatus.APPROVED) {
-                    Button(
-                        onClick = { /* TODO: Publish Announcement */ },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFD81B60) // Pinkish color from screenshot
-                        ),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Send,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Publish Announcement")
-                    }
                 }
             }
         }
@@ -312,7 +253,7 @@ data class Quadruple<A, B, C, D>(val first: A, val second: B, val third: C, val 
 @Preview(name = "Light Mode")
 @Composable
 fun RequestsScreenPreview() {
-    CampusAppTheme(userRole = UserRole.ClubManager) {
+    CampusAppTheme(userRole = UserRole.CLUB_MANAGER) {
         RequestsScreen(
             viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
         )

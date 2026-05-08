@@ -3,11 +3,10 @@ package com.taqsiim.compusconnect.data.mapper
 import com.taqsiim.compusconnect.data.local.entity.*
 import com.taqsiim.compusconnect.data.model.*
 
-// --- User Mappers ---
 fun User.toEntity(): UserEntity {
     return UserEntity(
         userId = userId,
-        role = role.name,
+        role = role?.name ?: UserRole.STUDENT.name,
         userName = userName,
         email = email,
         firstName = firstName,
@@ -15,8 +14,8 @@ fun User.toEntity(): UserEntity {
         faculty = faculty,
         major = major,
         level = level,
-        phone = phone,
-        pictureUrl = pictureUrl
+        phone = phone ?: "",
+        pictureUrl = pictureUrl ?: ""
     )
 }
 
@@ -36,38 +35,44 @@ fun UserEntity.toDomainModel(): User {
     )
 }
 
-// --- Club Mappers ---
 fun Club.toEntity(): ClubEntity {
     return ClubEntity(
-        clubId = clubId,
+        id = id,
         name = name,
         description = description,
-        status = status.name,
-        isJoined = isJoined,
+        email = email,
         logo = logo,
         cover = cover,
-        noOfEvents = noOfEvents,
-        clubManagerName = clubManagerName,
-        noOfFollowers = noOfFollowers
+        followersCount = followersCount,
+        members = members,
+        eventNumber = eventNumber,
+        sessionsNumber = sessionsNumber,
+        postsNumber = postsNumber,
+        clubAdminName = clubAdminName,
+        status = status.name,
+        isJoined = isJoined
     )
 }
 
 fun ClubEntity.toDomainModel(): Club {
     return Club(
-        clubId = clubId,
+        id = id,
         name = name,
         description = description,
-        status = ClubStatus.valueOf(status),
-        isJoined = isJoined,
+        email = email,
         logo = logo,
         cover = cover,
-        noOfEvents = noOfEvents,
-        clubManagerName = clubManagerName,
-        noOfFollowers = noOfFollowers
+        followersCount = followersCount,
+        members = members,
+        eventNumber = eventNumber,
+        sessionsNumber = sessionsNumber,
+        postsNumber = postsNumber,
+        clubAdminName = clubAdminName,
+        status = ClubStatus.valueOf(status),
+        isJoined = isJoined
     )
 }
 
-// --- Event Mappers ---
 fun Event.toEntity(): EventEntity {
     return EventEntity(
         eventId = eventId,
@@ -102,7 +107,6 @@ fun EventEntity.toDomainModel(): Event {
     )
 }
 
-// --- Post Mappers ---
 fun Post.toEntity(): PostEntity {
     return PostEntity(
         postId = postId,

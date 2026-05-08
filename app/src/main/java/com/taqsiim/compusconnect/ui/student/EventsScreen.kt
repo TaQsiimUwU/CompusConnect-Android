@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.taqsiim.compusconnect.data.model.Event
 import com.taqsiim.compusconnect.data.model.EventType
@@ -27,6 +28,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import kotlinx.coroutines.launch
 import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 import android.content.res.Configuration
+import androidx.hilt.navigation.compose.hiltViewModel
 
 // TODO: Implement EventsScreen composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -36,128 +38,8 @@ fun EventsScreen(
     onNavigateToEventDetail: (String) -> Unit,
     isScrolling: (Boolean) -> Unit = {}
 ) {
-    // Mock Data
-    val events = remember {
-        listOf(
-            Event(
-                eventId = 1,
-                clubName = "Tech Club",
-                clubLogoUrl = "",
-                clubCoverUrl = "",
-                type = EventType.EVENT,
-                title = "AI & Machine Learning Workshop",
-                description = "Learn the fundamentals of AI...",
-                startTime = "2025-12-05T15:00:00",
-                endTime = "2025-12-05T18:00:00",
-                location = "Engineering Building - Room 201",
-                noOfRegistrations = 20,
-                noOfMaxRegistrations = 60
-            ),
-            Event(
-                eventId = 2,
-                clubName = "University Events",
-                clubLogoUrl = "",
-                clubCoverUrl = "",
-                type = EventType.EVENT,
-                title = "Annual Cultural Festival",
-                description = "Celebrate diversity with performances...",
-                startTime = "2025-12-10T10:00:00",
-                endTime = "2025-12-10T20:00:00",
-                location = "Main Campus Plaza",
-                noOfRegistrations = 120,
-                noOfMaxRegistrations = 500
-            ),
-            Event(
-                eventId = 3,
-                clubName = "Music Club",
-                clubLogoUrl = "",
-                clubCoverUrl = "",
-                type = EventType.EVENT,
-                title = "Winter Concert",
-                description = "Join us for a night of classical and modern music performances by our talented students.",
-                startTime = "2025-12-15T18:00:00",
-                endTime = "2025-12-15T21:00:00",
-                location = "Auditorium",
-                noOfRegistrations = 200,
-                noOfMaxRegistrations = 300
-            ),
-            Event(
-                eventId = 4,
-                clubName = "Art Society",
-                clubLogoUrl = "",
-                clubCoverUrl = "",
-                type = EventType.EVENT,
-                title = "Modern Art Exhibition",
-                description = "Showcasing the best artwork from our student body. Paintings, sculptures, and digital art.",
-                startTime = "2025-12-20T10:00:00",
-                endTime = "2025-12-22T18:00:00",
-                location = "Art Gallery",
-                noOfRegistrations = 85,
-                noOfMaxRegistrations = 150
-            )
-        )
-    }
-
-    val sessions = remember {
-        listOf(
-            Event(
-                eventId = 101,
-                clubName = "CS Department",
-                clubLogoUrl = "",
-                clubCoverUrl = "",
-                type = EventType.SESSION,
-                title = "Study Session: Algorithms",
-                description = "Group study for the upcoming Algorithms midterm. We will cover dynamic programming and graph algorithms.",
-                startTime = "2025-12-06T14:00:00",
-                endTime = "2025-12-06T16:00:00",
-                location = "Library Room 3B",
-                noOfRegistrations = 5,
-                noOfMaxRegistrations = 10
-            ),
-            Event(
-                eventId = 102,
-                clubName = "Math Club",
-                clubLogoUrl = "",
-                clubCoverUrl = "",
-                type = EventType.SESSION,
-                title = "Calculus II Review",
-                description = "Reviewing integration techniques and series. Bring your questions!",
-                startTime = "2025-12-08T16:00:00",
-                endTime = "2025-12-08T18:00:00",
-                location = "Science Hall 101",
-                noOfRegistrations = 15,
-                noOfMaxRegistrations = 20
-            ),
-            Event(
-                eventId = 103,
-                clubName = "Physics Society",
-                clubLogoUrl = "",
-                clubCoverUrl = "",
-                type = EventType.SESSION,
-                title = "Quantum Mechanics Discussion",
-                description = "Open discussion on the principles of quantum mechanics and recent discoveries.",
-                startTime = "2025-12-12T15:00:00",
-                endTime = "2025-12-12T17:00:00",
-                location = "Physics Lab 2",
-                noOfRegistrations = 8,
-                noOfMaxRegistrations = 12
-            ),
-            Event(
-                eventId = 104,
-                clubName = "Language Exchange",
-                clubLogoUrl = "",
-                clubCoverUrl = "",
-                type = EventType.SESSION,
-                title = "English-Spanish Conversation",
-                description = "Practice your language skills with native speakers. All levels welcome.",
-                startTime = "2025-12-14T17:00:00",
-                endTime = "2025-12-14T19:00:00",
-                location = "Student Center Cafe",
-                noOfRegistrations = 12,
-                noOfMaxRegistrations = 20
-            )
-        )
-    }
+    val eventsState by viewModel.eventsState.collectAsState()
+    val sessionsState by viewModel.sessionsState.collectAsState()
 
     var selectedTab by remember { mutableIntStateOf(0) }
     val tabs = listOf("Events", "Sessions")
@@ -226,13 +108,37 @@ fun EventsScreen(
                 contentPadding = PaddingValues(vertical = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                val items = if (page == 0) events else sessions
-                items(items) { event ->
-                    EventCard(
-                        event = event,
-                        onRegister = { /* TODO */ },
-                        onViewDetails = { onNavigateToEventDetail(event.eventId.toString()) }
-                    )
+                val state = if (page == 0) eventsState else sessionsState
+                when (state) {
+                    is com.taqsiim.compusconnect.viewmodel.UiState.Loading -> {
+                        item {
+                            Box(
+                                modifier = Modifier.fillMaxWidth().padding(32.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
+                        }
+                    }
+                    is com.taqsiim.compusconnect.viewmodel.UiState.Error -> {
+                        item {
+                            Text(
+                                text = state.message,
+                                modifier = Modifier.fillMaxWidth().padding(32.dp),
+                                textAlign = TextAlign.Center,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
+                    is com.taqsiim.compusconnect.viewmodel.UiState.Success -> {
+                        items(state.data) { event ->
+                            EventCard(
+                                event = event,
+                                onRegister = { /* TODO */ },
+                                onViewDetails = { onNavigateToEventDetail(event.eventId.toString()) }
+                            )
+                        }
+                    }
                 }
             }
         }

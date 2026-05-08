@@ -5,6 +5,7 @@ import com.taqsiim.compusconnect.data.local.dao.CampusDao
 import com.taqsiim.compusconnect.data.mapper.toDomainModel
 import com.taqsiim.compusconnect.data.mapper.toEntity
 import com.taqsiim.compusconnect.data.model.Club
+import com.taqsiim.compusconnect.data.model.UpdateClubRequest
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -24,10 +25,37 @@ class ClubRepository @Inject constructor(
         }
     }
     
-    suspend fun joinClub(clubId: Int): Result<Club> {
+    suspend fun joinClub(clubId: Int): Result<Unit> {
         return try {
-            val club = api.joinClub(clubId)
-            // Update local cache
+            api.followClub(clubId)
+            // Refresh clubs to get updated isJoined status
+            getClubs()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            // Handle 409 Conflict (already following) as success
+            if (e.message?.contains("409") == true) {
+                getClubs()
+                Result.success(Unit)
+            } else {
+                Result.failure(e)
+            }
+        }
+    }
+    
+    suspend fun leaveClub(clubId: Int): Result<Unit> {
+        return try {
+            api.unfollowClub(clubId)
+            // Refresh clubs to get updated isJoined status
+            getClubs()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    
+    suspend fun getClubDetails(clubId: Int): Result<Club> {
+        return try {
+            val club = api.getClubById(clubId)
             dao.insertClubs(listOf(club.toEntity()))
             Result.success(club)
         } catch (e: Exception) {
@@ -35,10 +63,9 @@ class ClubRepository @Inject constructor(
         }
     }
     
-    suspend fun leaveClub(clubId: Int): Result<Club> {
+    suspend fun updateClub(clubId: Int, request: UpdateClubRequest): Result<Club> {
         return try {
-            val club = api.leaveClub(clubId)
-            // Update local cache
+            val club = api.updateClub(clubId, request)
             dao.insertClubs(listOf(club.toEntity()))
             Result.success(club)
         } catch (e: Exception) {

@@ -32,52 +32,9 @@ import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 fun NotificationsScreen(
     onNavigateBack: () -> Unit
 ) {
-    // Mock Data
+    // TODO: Fetch real notifications from ViewModel
     var notifications by remember {
-        mutableStateOf(
-            listOf(
-                Notification(
-                    id = "1",
-                    title = "Room Reservation Confirmed",
-                    message = "Your reservation for Study Room A has been confirmed for Oct 20, 10:00 AM.",
-                    timestamp = "2 mins ago",
-                    type = NotificationType.SUCCESS,
-                    isRead = false
-                ),
-                Notification(
-                    id = "2",
-                    title = "Event Reminder",
-                    message = "The 'Intro to AI Workshop' is starting in 1 hour. Don't forget to check in!",
-                    timestamp = "1 hour ago",
-                    type = NotificationType.INFO,
-                    isRead = false
-                ),
-                Notification(
-                    id = "3",
-                    title = "Maintenance Alert",
-                    message = "The basketball court will be closed for maintenance on Oct 25.",
-                    timestamp = "5 hours ago",
-                    type = NotificationType.WARNING,
-                    isRead = true
-                ),
-                Notification(
-                    id = "4",
-                    title = "New Club Request",
-                    message = "Your request to join the 'Robotics Club' has been approved.",
-                    timestamp = "1 day ago",
-                    type = NotificationType.SUCCESS,
-                    isRead = true
-                ),
-                Notification(
-                    id = "5",
-                    title = "System Update",
-                    message = "Campus Connect will undergo scheduled maintenance tonight at 2:00 AM.",
-                    timestamp = "2 days ago",
-                    type = NotificationType.ALERT,
-                    isRead = true
-                )
-            )
-        )
+        mutableStateOf(emptyList<Notification>())
     }
 
     Scaffold(
@@ -155,17 +112,19 @@ fun NotificationsScreen(
 @Composable
 fun NotificationItem(notification: Notification) {
     val icon = when (notification.type) {
-        NotificationType.INFO -> Icons.Default.Info
-        NotificationType.WARNING -> Icons.Default.Warning
-        NotificationType.SUCCESS -> Icons.Default.CheckCircle
-        NotificationType.ALERT -> Icons.Default.Error
+        NotificationType.EVENT -> Icons.Default.Info
+        NotificationType.CLUB -> Icons.Default.Info
+        NotificationType.ROOM -> Icons.Default.Info
+        NotificationType.SYSTEM -> Icons.Default.Info
+        NotificationType.ANNOUNCEMENT -> Icons.Default.Notifications
     }
 
     val iconColor = when (notification.type) {
-        NotificationType.INFO -> Color(0xFF2196F3)
-        NotificationType.WARNING -> Color(0xFFFF9800)
-        NotificationType.SUCCESS -> Color(0xFF4CAF50)
-        NotificationType.ALERT -> Color(0xFFF44336)
+        NotificationType.EVENT -> Color(0xFF2196F3)
+        NotificationType.CLUB -> Color(0xFF9C27B0)
+        NotificationType.ROOM -> Color(0xFF4CAF50)
+        NotificationType.SYSTEM -> Color(0xFFFF9800)
+        NotificationType.ANNOUNCEMENT -> Color(0xFFF44336)
     }
 
     val backgroundColor = if (notification.isRead) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f)

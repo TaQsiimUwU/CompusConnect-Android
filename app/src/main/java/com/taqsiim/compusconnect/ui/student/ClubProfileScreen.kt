@@ -36,35 +36,10 @@ fun ClubProfileScreen(
     clubId: String,
     onNavigateBack: () -> Unit
 ) {
-    // Mock Data
-    val club = Club(
-        clubId = clubId.toIntOrNull() ?: 1,
-        name = "Tech Club",
-        description = "Explore cutting-edge technology, coding, and innovation. Join us to learn, build, and connect with fellow tech enthusiasts.",
-        status = ClubStatus.ACTIVE,
-        isJoined = true,
-        logo = "",
-        cover = "",
-        noOfEvents = 12,
-        clubManagerName = "John Doe",
-        noOfFollowers = 245
-    )
-
-    val posts = remember {
-        listOf(
-            Post(
-                postId = 1,
-                clubId = 1,
-                eventId = 1,
-                content = "Excited to announce our upcoming AI & Machine Learning Workshop! 🚀 Join us to learn the fundamentals and build your first ML model. Limited seats available!",
-                imageUrl = "https://picsum.photos/seed/ai/400/200",
-                createdAt = "2 hours ago",
-                likeCount = 46,
-                commentCount = 2,
-                isLiked = true
-            )
-        )
-    }
+    // Use Hilt-injected StudentViewModel to get club details
+    val viewModel: com.taqsiim.compusconnect.viewmodel.StudentViewModel = androidx.hilt.navigation.compose.hiltViewModel()
+    val clubsState by viewModel.clubsState.collectAsState()
+    val clubIdInt = clubId.toIntOrNull()
 
     var selectedTab by remember { mutableIntStateOf(0) }
     val tabs = listOf("Posts", "Sessions")
@@ -121,7 +96,7 @@ fun ClubProfileScreen(
                         Spacer(modifier = Modifier.height(12.dp))
 
                         Text(
-                            text = club.name,
+                            text = (clubsState as? com.taqsiim.compusconnect.viewmodel.UiState.Success)?.data?.firstOrNull { it.id == clubIdInt }?.name ?: "",
                             style = MaterialTheme.typography.headlineMedium,
                             color = Color.White,
                             fontWeight = FontWeight.Bold
@@ -140,7 +115,7 @@ fun ClubProfileScreen(
                                 modifier = Modifier.size(16.dp)
                             )
                             Text(
-                                text = "${club.noOfFollowers} members",
+                                text = "${(clubsState as? com.taqsiim.compusconnect.viewmodel.UiState.Success)?.data?.firstOrNull { it.id == clubIdInt }?.followersCount ?: 0} members",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = Color.White.copy(alpha = 0.8f)
                             )
@@ -149,7 +124,7 @@ fun ClubProfileScreen(
                         Spacer(modifier = Modifier.height(12.dp))
 
                         Text(
-                            text = club.description,
+                            text = (clubsState as? com.taqsiim.compusconnect.viewmodel.UiState.Success)?.data?.firstOrNull { it.id == clubIdInt }?.description ?: "",
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.White.copy(alpha = 0.9f),
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -177,8 +152,15 @@ fun ClubProfileScreen(
 
             // Content
             if (selectedTab == 0) {
-                items(posts) { post ->
-                    ClubPostCard(post = post)
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("Posts feature coming soon")
+                    }
                 }
             } else {
                 item {

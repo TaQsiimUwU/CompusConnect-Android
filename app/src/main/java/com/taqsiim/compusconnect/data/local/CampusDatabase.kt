@@ -12,7 +12,7 @@ import com.taqsiim.compusconnect.data.local.entity.*
         EventEntity::class,
         PostEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class CampusDatabase : RoomDatabase() {

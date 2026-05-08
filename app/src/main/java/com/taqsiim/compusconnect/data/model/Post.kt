@@ -2,6 +2,11 @@ package com.taqsiim.compusconnect.data.model
 
 import com.google.gson.annotations.SerializedName
 
+data class PostsResponse(
+    @SerializedName("newsFeed")
+    val newsFeed: List<Post>
+)
+
 data class Post(
     @SerializedName("post_id")
     val postId: Int,
@@ -28,4 +33,9 @@ data class CreatePostRequest(
     val content: String,
     @SerializedName("image_url")
     val imageUrl: String?
+)
+
+data class UpdatePostRequest(
+    @SerializedName("new_content")
+    val newContent: String
 )

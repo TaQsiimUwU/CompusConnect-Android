@@ -12,15 +12,8 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import com.taqsiim.compusconnect.data.model.UserRole
 
-// Define your roles
-enum class UserRole {
-    Student,
-    ClubManager
-}
-
-// --- Student Schemes ---
-// Note: "Expressive" colors are just standard ColorSchemes used inside an Expressive Theme.
 private val StudentDarkScheme = darkColorScheme(
     primary = StudentDarkPrimary,
     onPrimary = StudentDarkBackground,
@@ -47,7 +40,6 @@ private val StudentLightScheme = lightColorScheme(
     onSurface = StudentLightText
 )
 
-// --- Manager Schemes ---
 private val ClubManagerDarkScheme = darkColorScheme(
     primary = ClubManagerDarkPrimary,
     onPrimary = ClubManagerDarkBackground,
@@ -78,17 +70,17 @@ private val ClubManagerLightScheme = lightColorScheme(
 @Composable
 fun CampusAppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    userRole: UserRole = UserRole.Student,
-    useExpressive: Boolean = true, // Enable Expressive by default
+    userRole: UserRole? = null,
+    useExpressive: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    // 1. Determine the correct Color Scheme based on Role and Dark Mode
     val colorScheme = when (userRole) {
-        UserRole.Student -> if (darkTheme) StudentDarkScheme else StudentLightScheme
-        UserRole.ClubManager -> if (darkTheme) ClubManagerDarkScheme else ClubManagerLightScheme
+        UserRole.STUDENT -> if (darkTheme) StudentDarkScheme else StudentLightScheme
+        UserRole.CLUB_MANAGER -> if (darkTheme) ClubManagerDarkScheme else ClubManagerLightScheme
+        UserRole.STUDENT_MANAGER -> if (darkTheme) StudentDarkScheme else StudentLightScheme
+        null -> if (darkTheme) StudentDarkScheme else StudentLightScheme
     }
 
-    // 2. Set Status Bar Colors
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {

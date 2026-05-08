@@ -19,7 +19,6 @@ class QrScannerUtil(private val context: Context) {
 
     suspend fun scanQrCode(): String? {
         return try {
-            // Ensure the module is installed
             val moduleInstallRequest = ModuleInstallRequest.newBuilder()
                 .addApi(scanner)
                 .build()
