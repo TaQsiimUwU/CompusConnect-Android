@@ -1,5 +1,6 @@
 package com.taqsiim.compusconnect.data.repository
 
+import android.util.Log
 import com.taqsiim.compusconnect.data.api.ApiService
 import com.taqsiim.compusconnect.data.local.dao.CampusDao
 import com.taqsiim.compusconnect.data.mapper.toDomainModel
@@ -23,6 +24,7 @@ class PostRepository @Inject constructor(
         return try {
             val response = api.getPosts()
             val posts = response.newsFeed
+            Log.d(TAG , "Post: ${posts[0]}")
             dao.refreshPosts(posts.map { it.toEntity() })
             Result.success(posts)
         } catch (e: Exception) {
@@ -99,5 +101,8 @@ class PostRepository @Inject constructor(
         return dao.getPosts().map { entities ->
             entities.map { it.toDomainModel() }
         }
+    }
+    companion object {
+        private const val TAG =  "PostRepository"
     }
 }

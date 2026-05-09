@@ -35,9 +35,10 @@ import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 @Composable
 fun ReservationCard(
     reservation: Reservation,
-    modifier: Modifier = Modifier.width(280.dp),
+    modifier: Modifier = Modifier,
     onCancelClick: () -> Unit = {}
 ) {
+    // the colors need to be from the theme
     val borderColor = when (reservation.type) {
         ReservationType.STUDY_ROOM -> Color(0xFF2196F3)
         ReservationType.SPORT -> Color(0xFF4CAF50)
@@ -49,7 +50,7 @@ fun ReservationCard(
         modifier = modifier
             .padding(vertical = 4.dp),
         shape = RoundedCornerShape(12.dp),
-        border = androidx.compose.foundation.BorderStroke(2.dp, borderColor),
+        border = BorderStroke(2.dp, borderColor),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         )

@@ -8,9 +8,6 @@ object Constants {
 
         // Users
         const val USER_PROFILE = "api/users/me"
-        const val STUDENTS = "api/users/students"
-        const val USERS = "api/users"
-
         // Clubs
         const val CLUBS = "api/clubs"
         const val CLUB_BY_ID = "api/clubs/{id}"
@@ -19,11 +16,11 @@ object Constants {
 
         // Events & Sessions (using events endpoint)
         const val EVENTS = "api/events"
-        const val EVENTS_REQUESTED = "api/events/requested"
+        const val EVENTS_REQUESTED = "api/events/requested" // this just for the club manager
         const val EVENT_BY_ID = "api/events/{event_id}"
         const val EVENT_REGISTER = "api/events/{event_id}/register"
-        const val EVENT_REGISTERED_STUDENTS = "api/events/{event_id}/registered_students"
-        const val EVENT_ATTENDANCE = "api/events/{event_id}/attendance_list"
+        const val EVENT_REGISTERED_STUDENTS = "api/events/{event_id}/registered_students" // this for club manager
+        const val EVENT_ATTENDANCE = "api/events/{event_id}/attendance_list" // this for club manager
         const val EVENT_POSTS = "api/events/{id}/posts"
         const val EVENT_REPORT = "api/events/report"
 
@@ -46,6 +43,6 @@ object Constants {
         const val FACILITY_REPORT = "api/facilities/report"
 
         // User specific
-        const val USER_RESERVATIONS = "api/users/me/reservations"
+        const val USER_RESERVATIONS = "api/reservations"
     }
 }

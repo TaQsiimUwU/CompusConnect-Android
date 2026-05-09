@@ -3,7 +3,6 @@ package com.taqsiim.compusconnect.ui.student
 import android.content.res.Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,7 +20,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
@@ -31,18 +29,16 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
-import androidx.hilt.navigation.compose.hiltViewModel
-import com.taqsiim.compusconnect.viewmodel.AuthViewModel
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -50,12 +46,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.taqsiim.compusconnect.R
+import com.taqsiim.compusconnect.data.model.User
+import com.taqsiim.compusconnect.data.model.UserRole
 import com.taqsiim.compusconnect.ui.components.AccountActionsSection
 import com.taqsiim.compusconnect.ui.components.ActionItem
 import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
-import com.taqsiim.compusconnect.data.model.UserRole
+import com.taqsiim.compusconnect.viewmodel.AuthViewModel
 
 @Composable
 fun ProfileScreen(
@@ -64,23 +62,39 @@ fun ProfileScreen(
 ) {
     val viewModel: AuthViewModel = hiltViewModel()
     val currentUser by viewModel.currentUser.collectAsState()
-    
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        ProfileHeaderCard(user = currentUser)
-        QRCodeCard(userId = currentUser?.userId?.toString() ?: "")
-        AccountActionsSection(onSwitchToManager, onLogout)
-        Spacer(modifier = Modifier.height(16.dp))
+
+    ProfileScreenContent(
+        user = currentUser,
+        onSwitchToManager = onSwitchToManager,
+        onLogout = onLogout
+    )
+}
+
+@Composable
+private fun ProfileScreenContent(
+    user: User?,
+    onSwitchToManager: () -> Unit,
+    onLogout: () -> Unit
+) {
+    Scaffold() { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            ProfileHeaderCard(user = user)
+            QRCodeCard(userId = user?.userId?.toString() ?: "")
+            AccountActionsSection(onSwitchToManager, onLogout)
+            Spacer(modifier = Modifier.height(16.dp))
+        }
     }
 }
 
 @Composable
-fun ProfileHeaderCard(user: com.taqsiim.compusconnect.data.model.User?) {
+fun ProfileHeaderCard(user: User?) {
     val gradient = Brush.linearGradient(
         colors = listOf(
             MaterialTheme.colorScheme.primary,
@@ -170,7 +184,7 @@ fun ContactInfoRow(icon: ImageVector, text: String) {
 fun QRCodeCard(userId: String) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onPrimary),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         shape = RoundedCornerShape(16.dp)
     ) {
@@ -199,7 +213,7 @@ fun QRCodeCard(userId: String) {
 
             Spacer(modifier = Modifier.height(24.dp))
             Text(
-                text = "Student ID: CS2023-1234",
+                text = "Student ID: ${userId.ifBlank { "CS2023-1234" }}",
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Medium
             )
@@ -250,19 +264,47 @@ fun ActionsCard(
 @Preview(showBackground = true)
 @Composable
 fun ProfileScreenPreview() {
+    val mockUser = User(
+        userId = 1234,
+        role = UserRole.STUDENT,
+        userName = "noura.ahmed",
+        email = "noura.ahmed@university.edu",
+        firstName = "Noura",
+        lastName = "Ahmed",
+        faculty = "Engineering",
+        major = "Computer Science",
+        level = "3",
+        phone = "+20 10 1234 5678"
+    )
+
     CampusAppTheme {
-        ProfileScreen(
+        ProfileScreenContent(
+            user = mockUser,
             onSwitchToManager = {},
             onLogout = {}
         )
     }
 }
 
-@Preview(showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, name = "Student profile - Dark")
+@Preview(showBackground = true , uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun ProfileScreenDarkPreview() {
+    val mockUser = User(
+        userId = 1234,
+        role = UserRole.STUDENT,
+        userName = "noura.ahmed",
+        email = "noura.ahmed@university.edu",
+        firstName = "Noura",
+        lastName = "Ahmed",
+        faculty = "Engineering",
+        major = "Computer Science",
+        level = "3",
+        phone = "+20 10 1234 5678"
+    )
+
     CampusAppTheme(darkTheme = true) {
-        ProfileScreen(
+        ProfileScreenContent(
+            user = mockUser,
             onSwitchToManager = {},
             onLogout = {}
         )

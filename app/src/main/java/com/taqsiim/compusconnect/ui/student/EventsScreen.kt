@@ -28,7 +28,9 @@ import androidx.compose.foundation.pager.rememberPagerState
 import kotlinx.coroutines.launch
 import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 import android.content.res.Configuration
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.taqsiim.compusconnect.viewmodel.UiState
 
 // TODO: Implement EventsScreen composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -41,6 +43,22 @@ fun EventsScreen(
     val eventsState by viewModel.eventsState.collectAsState()
     val sessionsState by viewModel.sessionsState.collectAsState()
 
+    EventsScreenContent(
+        eventsState = eventsState,
+        sessionsState = sessionsState,
+        onNavigateToEventDetail = onNavigateToEventDetail,
+        isScrolling = isScrolling
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun EventsScreenContent(
+    eventsState: UiState<List<Event>>,
+    sessionsState: UiState<List<Event>>,
+    onNavigateToEventDetail: (String) -> Unit,
+    isScrolling: (Boolean) -> Unit = {}
+) {
     var selectedTab by remember { mutableIntStateOf(0) }
     val tabs = listOf("Events", "Sessions")
     val pagerState = rememberPagerState(pageCount = { tabs.size })
@@ -110,7 +128,7 @@ fun EventsScreen(
             ) {
                 val state = if (page == 0) eventsState else sessionsState
                 when (state) {
-                    is com.taqsiim.compusconnect.viewmodel.UiState.Loading -> {
+                    is UiState.Loading -> {
                         item {
                             Box(
                                 modifier = Modifier.fillMaxWidth().padding(32.dp),
@@ -120,7 +138,7 @@ fun EventsScreen(
                             }
                         }
                     }
-                    is com.taqsiim.compusconnect.viewmodel.UiState.Error -> {
+                    is UiState.Error -> {
                         item {
                             Text(
                                 text = state.message,
@@ -130,7 +148,7 @@ fun EventsScreen(
                             )
                         }
                     }
-                    is com.taqsiim.compusconnect.viewmodel.UiState.Success -> {
+                    is UiState.Success -> {
                         items(state.data) { event ->
                             EventCard(
                                 event = event,
@@ -339,5 +357,72 @@ fun EventCardPreview() {
     )
     CampusAppTheme {
         EventCard(event = event, onRegister = {}, onViewDetails = {})
+    }
+}
+
+@Preview(name = "Events Screen - Light", showBackground = true)
+@Preview(
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    name = "Events Screen - Dark",
+    showBackground = true
+)
+@Composable
+fun EventsScreenPreview() {
+    val sampleEvents = listOf(
+        Event(
+            eventId = 1,
+            clubName = "Tech Club",
+            clubLogoUrl = "",
+            clubCoverUrl = "",
+            type = EventType.EVENT,
+            title = "AI Workshop",
+            description = "Intro to machine learning basics.",
+            startTime = "2025-12-05T15:00:00",
+            endTime = "2025-12-05T18:00:00",
+            location = "Engineering Building - Room 201",
+            noOfRegistrations = 46,
+            noOfMaxRegistrations = 60,
+            isRegistered = true
+        ),
+        Event(
+            eventId = 2,
+            clubName = "Design Club",
+            clubLogoUrl = "",
+            clubCoverUrl = "",
+            type = EventType.EVENT,
+            title = "UX Sprint",
+            description = "Hands-on UX design sprint.",
+            startTime = "2025-12-06T10:00:00",
+            endTime = "2025-12-06T13:00:00",
+            location = "Design Lab",
+            noOfRegistrations = 28,
+            noOfMaxRegistrations = 40,
+            isRegistered = false
+        )
+    )
+    val sampleSessions = listOf(
+        Event(
+            eventId = 3,
+            clubName = "Robotics Club",
+            clubLogoUrl = "",
+            clubCoverUrl = "",
+            type = EventType.SESSION,
+            title = "Robotics Lab Session",
+            description = "Bring your kits and build.",
+            startTime = "2025-12-07T09:00:00",
+            endTime = "2025-12-07T11:00:00",
+            location = "Lab A",
+            noOfRegistrations = 12,
+            noOfMaxRegistrations = 20,
+            isRegistered = false
+        )
+    )
+
+    CampusAppTheme {
+        EventsScreenContent(
+            eventsState = UiState.Success(sampleEvents),
+            sessionsState = UiState.Success(sampleSessions),
+            onNavigateToEventDetail = {}
+        )
     }
 }

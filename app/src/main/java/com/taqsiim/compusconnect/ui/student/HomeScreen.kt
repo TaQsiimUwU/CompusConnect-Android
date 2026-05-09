@@ -4,41 +4,75 @@ package com.taqsiim.compusconnect.ui.student
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Feed
 import androidx.compose.material.icons.automirrored.filled.MenuBook
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Report
+import androidx.compose.material.icons.filled.SportsBasketball
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.AsyncImage
-import com.taqsiim.compusconnect.data.model.Post
 import com.taqsiim.compusconnect.data.model.Reservation
-import com.taqsiim.compusconnect.data.model.ReservationType
 import com.taqsiim.compusconnect.ui.components.PostCard
 import com.taqsiim.compusconnect.ui.components.ReservationCard
 import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 import com.taqsiim.compusconnect.viewmodel.StudentViewModel
 import com.taqsiim.compusconnect.viewmodel.UiState
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.foundation.lazy.rememberLazyListState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 
 /**
  * Student Home Screen
@@ -70,7 +104,6 @@ fun HomeScreen(
         isRefreshing = true
         coroutineScope.launch {
             viewModel.refresh()
-            delay(1000)
             isRefreshing = false
         }
     }
@@ -199,7 +232,7 @@ fun HomeScreen(
                                 PostCard(
                                     post = post,
                                     onLike = { 
-                                        if (post.isLiked == true) {
+                                        if (post.isLiked) {
                                             viewModel.unlikePost(post.postId)
                                         } else {
                                             viewModel.likePost(post.postId)
@@ -416,12 +449,12 @@ private fun EmptyStateCard() {
                 .padding(32.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-//            Icon(
-//                imageVector = Icons.Default.Feed,
-//                contentDescription = null,
-//                modifier = Modifier.size(64.dp),
-//                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-//            )
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.Feed,
+                contentDescription = null,
+                modifier = Modifier.size(64.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+            )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = "No updates Yet",
@@ -513,15 +546,15 @@ private fun HomeScreenPreviewLight() {
                                     containerColor = MaterialTheme.colorScheme.error,
                                     contentColor = Color.White
                                 ) {
-//                                    Text(text = "3", fontSize = 12.sp)
+                                    Text(text = "3", fontSize = 12.sp)
                                 }
                             }
                         ) {
                             IconButton(onClick = { /* preview only */ }) {
-//                                Icon(
-//                                    imageVector = Icons.Default.Notifications,
-//                                    contentDescription = "Notifications"
-//                                )
+                                Icon(
+                                    imageVector = Icons.Default.Notifications,
+                                    contentDescription = "Notifications"
+                                )
                             }
                         }
                     },
@@ -575,15 +608,15 @@ private fun HomeScreenPreviewDark() {
                                     containerColor = MaterialTheme.colorScheme.error,
                                     contentColor = Color.White
                                 ) {
-//                                    Text(text = "3", fontSize = 12.sp)
+                                    Text(text = "3", fontSize = 12.sp)
                                 }
                             }
                         ) {
                             IconButton(onClick = { /* preview only */ }) {
-//                                Icon(
-//                                    imageVector = Icons.Default.Notifications,
-//                                    contentDescription = "Notifications"
-//                                )
+                                Icon(
+                                    imageVector = Icons.Default.Notifications,
+                                    contentDescription = "Notifications"
+                                )
                             }
                         }
                     },

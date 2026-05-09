@@ -46,15 +46,11 @@ class StudentViewModel @Inject constructor(
 
     init {
         Log.d(TAG, "StudentViewModel initialized")
-        loadAllData()
+        loadData()
     }
 
-    private fun loadAllData() {
+    private fun loadData() {
         loadPosts()
-        loadEvents()
-        // loadSessions() // TODO: Enable when backend implements /api/sessions endpoint
-        loadClubs()
-        loadReservations()
     }
 
     fun loadPosts() {
@@ -81,16 +77,9 @@ class StudentViewModel @Inject constructor(
             Log.d(TAG, "Liking post: $postId")
             val result = postRepository.likePost(postId)
             result.fold(
-                onSuccess = { updatedPost ->
+                onSuccess = {
                     Log.d(TAG, "Post liked successfully")
-                    // Update the post in the list
-                    val currentState = _postsState.value
-                    if (currentState is UiState.Success) {
-                        val updatedPosts = currentState.data.map { 
-                            if (it.postId == updatedPost.postId) updatedPost else it 
-                        }
-                        _postsState.value = UiState.Success(updatedPosts)
-                    }
+                    loadPosts()
                 },
                 onFailure = { error ->
                     Log.e(TAG, "Failed to like post: ${error.message}")
@@ -104,15 +93,9 @@ class StudentViewModel @Inject constructor(
             Log.d(TAG, "Unliking post: $postId")
             val result = postRepository.unlikePost(postId)
             result.fold(
-                onSuccess = { updatedPost ->
+                onSuccess = {
                     Log.d(TAG, "Post unliked successfully")
-                    val currentState = _postsState.value
-                    if (currentState is UiState.Success) {
-                        val updatedPosts = currentState.data.map { 
-                            if (it.postId == updatedPost.postId) updatedPost else it 
-                        }
-                        _postsState.value = UiState.Success(updatedPosts)
-                    }
+                    loadPosts()
                 },
                 onFailure = { error ->
                     Log.e(TAG, "Failed to unlike post: ${error.message}")
@@ -356,7 +339,7 @@ class StudentViewModel @Inject constructor(
 
     fun refresh() {
         Log.d(TAG, "Refreshing all data...")
-        loadAllData()
+        loadData()
     }
 
     companion object {

@@ -3,6 +3,7 @@ package com.taqsiim.compusconnect.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.taqsiim.compusconnect.data.model.LoginUser
 import com.taqsiim.compusconnect.data.model.User
 import com.taqsiim.compusconnect.data.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel

@@ -66,7 +66,7 @@ class ManagerViewModel @Inject constructor(
             val request = CreatePostRequest(content = content, eventId = eventId, imageUrl = imageUrl)
             val result = postRepository.createPost(request)
             result.fold(
-                onSuccess = { post ->
+                onSuccess = {
                     Log.d(TAG, "Post created successfully")
                     loadPosts() // Refresh posts
                 },

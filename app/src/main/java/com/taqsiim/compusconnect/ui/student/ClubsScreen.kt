@@ -29,6 +29,8 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import kotlinx.coroutines.launch
 import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 import android.content.res.Configuration
+import androidx.compose.ui.tooling.preview.Preview
+import com.taqsiim.compusconnect.viewmodel.UiState
 
 // TODO: Implement ClubsScreen composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,9 +40,30 @@ fun ClubsScreen(
     onNavigateToClubProfile: (String) -> Unit,
     isScrolling: (Boolean) -> Unit = {}
 ) {
-    // Observe real clubs data from ViewModel
     val clubsState by viewModel.clubsState.collectAsState()
 
+    ClubsScreenContent(
+        clubsState = clubsState,
+        onNavigateToClubProfile = onNavigateToClubProfile,
+        onToggleJoin = { club ->
+            if (club.isJoined) {
+                viewModel.leaveClub(club.id)
+            } else {
+                viewModel.joinClub(club.id)
+            }
+        },
+        isScrolling = isScrolling
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ClubsScreenContent(
+    clubsState: UiState<List<Club>>,
+    onNavigateToClubProfile: (String) -> Unit,
+    onToggleJoin: (Club) -> Unit,
+    isScrolling: (Boolean) -> Unit = {}
+) {
     var searchQuery by remember { mutableStateOf("") }
     val pagerState = rememberPagerState(pageCount = { 2 })
     val coroutineScope = rememberCoroutineScope()
@@ -136,25 +159,19 @@ fun ClubsScreen(
                 }
 
                 when (val state = clubsState) {
-                    is com.taqsiim.compusconnect.viewmodel.UiState.Loading -> {
+                    is UiState.Loading -> {
                         item { CircularProgressIndicator() }
                     }
-                    is com.taqsiim.compusconnect.viewmodel.UiState.Error -> {
+                    is UiState.Error -> {
                         item { Text(state.message) }
                     }
-                    is com.taqsiim.compusconnect.viewmodel.UiState.Success -> {
+                    is UiState.Success -> {
                         val allClubs = state.data
                         val filteredClubs = if (page == 0) allClubs else allClubs.filter { it.isJoined }
                         items(filteredClubs) { club ->
                             ClubCard(
                                 club = club,
-                                onJoinLeave = {
-                                    if (club.isJoined) {
-                                        viewModel.leaveClub(club.id)
-                                    } else {
-                                        viewModel.joinClub(club.id)
-                                    }
-                                },
+                                onJoinLeave = { onToggleJoin(club) },
                                 onView = { onNavigateToClubProfile(club.id.toString()) }
                             )
                         }
@@ -346,8 +363,8 @@ private fun StatItem(icon: androidx.compose.ui.graphics.vector.ImageVector, text
     }
 }
 
-@androidx.compose.ui.tooling.preview.Preview(name = "Light Mode")
-@androidx.compose.ui.tooling.preview.Preview(
+@Preview(name = "Light Mode")
+@Preview(
     uiMode = Configuration.UI_MODE_NIGHT_YES,
     name = "Dark Mode"
 )
@@ -371,5 +388,57 @@ fun ClubCardPreview() {
     )
     CampusAppTheme {
         ClubCard(club = club, onJoinLeave = {}, onView = {})
+    }
+}
+
+@Preview(name = "Clubs Screen - Light", showBackground = true)
+@Preview(
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    name = "Clubs Screen - Dark",
+    showBackground = true
+)
+@Composable
+fun ClubsScreenPreview() {
+    val sampleClubs = listOf(
+        Club(
+            id = 1,
+            name = "Tech Club",
+            description = "Explore cutting-edge technology, coding, and innovation",
+            email = "tech@example.com",
+            logo = null,
+            cover = null,
+            followersCount = 245,
+            members = 200,
+            eventNumber = 12,
+            sessionsNumber = 8,
+            postsNumber = 50,
+            clubAdminName = "John Doe",
+            status = ClubStatus.ACTIVE,
+            isJoined = true
+        ),
+        Club(
+            id = 2,
+            name = "Design Club",
+            description = "Design, UX, and product workshops",
+            email = "design@example.com",
+            logo = null,
+            cover = null,
+            followersCount = 180,
+            members = 120,
+            eventNumber = 6,
+            sessionsNumber = 4,
+            postsNumber = 20,
+            clubAdminName = "Jane Smith",
+            status = ClubStatus.ACTIVE,
+            isJoined = false
+        )
+    )
+
+    CampusAppTheme {
+        ClubsScreenContent(
+            clubsState = UiState.Success(sampleClubs),
+            onNavigateToClubProfile = {},
+            onToggleJoin = {}
+        )
     }
 }

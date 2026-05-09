@@ -20,7 +20,7 @@ data class User(
     @SerializedName("picture")
     val pictureUrl: String? = null,
     @SerializedName("in_dorms")
-    val inDorms: Boolean = false,
+    val inDorms: Int = 0,
     @SerializedName("hasClub")
     val hasClub: Boolean = false
 )

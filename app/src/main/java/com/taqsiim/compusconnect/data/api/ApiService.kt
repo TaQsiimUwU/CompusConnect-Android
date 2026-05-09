@@ -21,9 +21,6 @@ interface ApiService {
     @GET(Endpoints.USER_RESERVATIONS)
     suspend fun getMyReservations(): List<Reservation>
 
-    @POST(Endpoints.USERS)
-    suspend fun searchStudents(@Body request: SearchStudentsRequest): List<StudentSearchResult>
-
     // Clubs
     @GET(Endpoints.CLUBS)
     suspend fun getClubs(): List<Club>
@@ -80,12 +77,8 @@ interface ApiService {
     @POST(Endpoints.EVENT_REPORT)
     suspend fun reportEvent(@Body request: ReportEventRequest): MessageResponse
 
-    // Sessions are created via /api/events with type="session" per contract
     @POST(Endpoints.EVENTS)
     suspend fun createSession(@Body request: CreateEventRequest): CreateEventResponse
-
-    @POST(Endpoints.EVENT_REGISTER)
-    suspend fun registerForSession(@Path("event_id") id: Int)
 
     // Posts
     @GET(Endpoints.POSTS)

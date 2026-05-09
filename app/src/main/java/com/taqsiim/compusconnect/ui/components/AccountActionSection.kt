@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
 
@@ -54,6 +55,7 @@ fun AccountActionsSection(onSwitch: () -> Unit, onLogout: () -> Unit) {
             Column {
                 ActionItem(
                     icon = Icons.Default.Refresh,
+                    // this need to be modified based in the role
                     title = "Switch to Student Mode",
                     subtitle = "View as a student",
                     onClick = onSwitch
@@ -148,6 +150,35 @@ fun ActionItem(
             imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun AccountActionsSectionPreview() {
+    MaterialTheme {
+        AccountActionsSection(onSwitch = {}, onLogout = {})
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun FooterSectionPreview() {
+    MaterialTheme {
+        FooterSection()
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ActionItemPreview() {
+    MaterialTheme {
+        ActionItem(
+            icon = Icons.Default.Refresh,
+            title = "Preview Action",
+            subtitle = "Preview Subtitle",
+            onClick = {}
         )
     }
 }

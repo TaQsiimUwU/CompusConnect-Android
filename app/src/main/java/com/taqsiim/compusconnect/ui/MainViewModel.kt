@@ -10,7 +10,7 @@ class MainViewModel : ViewModel() {
     private val _activeRole = MutableStateFlow(UserRole.STUDENT)
     val activeRole: StateFlow<UserRole> = _activeRole.asStateFlow()
 
-    fun toggeRole() {
+    fun toggleRole() {
         _activeRole.value = if (_activeRole.value == UserRole.STUDENT) {
             UserRole.CLUB_MANAGER
         } else {

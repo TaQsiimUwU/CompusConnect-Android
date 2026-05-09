@@ -31,17 +31,17 @@ class UserRepository @Inject constructor(
             
             tokenManager.saveToken(response.token)
             Log.d(TAG, "Token saved to TokenManager")
-            
+            Log.d(TAG , "${response.user}")
             Log.d(TAG, "Fetching user profile...")
             val userProfile = api.getUserProfile()
             Log.d(TAG, "User profile fetched: userId=${userProfile.userId}, email=${userProfile.email}")
-            
+
             val user = userProfile.copy(role = userRole, userId = response.user.id.toIntOrNull() ?: userProfile.userId)
-            Log.d(TAG, "Combined user data: userId=${user.userId}, role=${user.role}")
-            
+            Log.d(TAG, "Combined user data: userId=${user.userId}, role=${user.role} ,${user.phone}")
+
             dao.refreshUser(user.toEntity())
             Log.d(TAG, "User cached in database")
-            
+
             Log.d(TAG, "Login successful! Returning user with role: ${user.role}")
             Result.success(user)
         } catch (e: Exception) {

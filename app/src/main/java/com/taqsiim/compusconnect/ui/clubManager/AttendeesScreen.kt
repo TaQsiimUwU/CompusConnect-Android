@@ -135,8 +135,7 @@ fun AttendeesScreen(
                     attendees = attendees,
                     paddingValues = paddingValues,
                     searchQuery = searchQuery,
-                    onSearchQueryChange = { searchQuery = it },
-                    onCheckIn = { studentId -> viewModel.checkInStudent(eventId, studentId) }
+                    onSearchQueryChange = { searchQuery = it }
                 )
             }
         }
@@ -148,14 +147,13 @@ private fun AttendeeContent(
     attendees: List<com.taqsiim.compusconnect.data.model.RegisteredStudentResponse>,
     paddingValues: PaddingValues,
     searchQuery: String,
-    onSearchQueryChange: (String) -> Unit,
-    onCheckIn: (Int) -> Unit
+    onSearchQueryChange: (String) -> Unit
 ) {
     var selectedTab by remember { mutableIntStateOf(0) } // 0: Registered, 1: Attended
     
     val registeredCount = attendees.size
-    val attendedCount = attendees.count { it.isAttending }
-    
+    val attendedCount = 0
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -231,13 +229,11 @@ private fun AttendeeContent(
             val filteredAttendees = if (selectedTab == 0) {
                 attendees
             } else {
-                attendees.filter { it.isAttending }
+                emptyList()
             }.filter {
-                searchQuery.isBlank() || 
-                it.firstName.contains(searchQuery, ignoreCase = true) || 
-                it.lastName.contains(searchQuery, ignoreCase = true)
+                searchQuery.isBlank() || it.name.contains(searchQuery, ignoreCase = true)
             }
-            
+
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 contentPadding = PaddingValues(bottom = 16.dp)
@@ -259,10 +255,7 @@ private fun AttendeeContent(
                     }
                 }
                 items(filteredAttendees) { attendee ->
-                    RegisteredStudentCard(
-                        attendee = attendee,
-                        onCheckIn = { onCheckIn(attendee.userId) }
-                    )
+                    RegisteredStudentCard(attendee = attendee)
                 }
             }
         }
@@ -270,8 +263,7 @@ private fun AttendeeContent(
 
 @Composable
 fun RegisteredStudentCard(
-    attendee: com.taqsiim.compusconnect.data.model.RegisteredStudentResponse,
-    onCheckIn: () -> Unit
+    attendee: com.taqsiim.compusconnect.data.model.RegisteredStudentResponse
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -288,7 +280,7 @@ fun RegisteredStudentCard(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "${attendee.firstName} ${attendee.lastName}",
+                    text = attendee.name,
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -298,24 +290,15 @@ fun RegisteredStudentCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = "${attendee.faculty} - Level ${attendee.level}",
+                    text = "Major: ${attendee.major}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-            }
-            if (attendee.isAttending) {
-                Icon(
-                    imageVector = Icons.Default.CheckCircleOutline,
-                    contentDescription = "Checked In",
-                    tint = Color(0xFF4CAF50)
+                Text(
+                    text = "Student ID: ${attendee.studentId}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-            } else {
-                FilledTonalButton(
-                    onClick = onCheckIn,
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text("Check In")
-                }
             }
         }
     }
