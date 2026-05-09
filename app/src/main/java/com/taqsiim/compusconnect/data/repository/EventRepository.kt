@@ -8,7 +8,6 @@ import com.taqsiim.compusconnect.data.model.CreateEventRequest
 import com.taqsiim.compusconnect.data.model.Event
 import com.taqsiim.compusconnect.data.model.EventType
 import com.taqsiim.compusconnect.data.model.RegisteredStudentResponse
-import com.taqsiim.compusconnect.data.model.CheckInRequest
 import com.taqsiim.compusconnect.data.model.PendingEvent
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -92,7 +91,8 @@ class EventRepository @Inject constructor(
     
     suspend fun createSession(request: CreateEventRequest): Result<Event> {
         return try {
-            val session = api.createSession(request)
+            val response = api.createSession(request)
+            val session = api.getEventById(response.eventId)
             dao.insertEvents(listOf(session.toEntity()))
             Result.success(session)
         } catch (e: Exception) {
@@ -141,12 +141,7 @@ class EventRepository @Inject constructor(
     }
     
     suspend fun checkInStudent(eventId: Int, studentId: Int): Result<Unit> {
-        return try {
-            api.checkInStudent(eventId, CheckInRequest(studentId))
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        return Result.failure(UnsupportedOperationException("check-in endpoint is not in the API contract"))
     }
     
     suspend fun deleteEvent(eventId: Int): Result<Unit> {

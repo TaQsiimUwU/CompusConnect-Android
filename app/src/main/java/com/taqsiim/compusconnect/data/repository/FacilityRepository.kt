@@ -17,15 +17,6 @@ class FacilityRepository @Inject constructor(
         }
     }
     
-    suspend fun createFacility(request: CreateFacilityRequest): Result<Facility> {
-        return try {
-            val facility = api.createFacility(request)
-            Result.success(facility)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-    
     suspend fun reportFacility(request: ReportFacilityRequest): Result<MessageResponse> {
         return try {
             val response = api.reportFacility(request)

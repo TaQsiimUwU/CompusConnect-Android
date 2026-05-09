@@ -2,7 +2,7 @@ package com.taqsiim.compusconnect.util
 
 object Constants {
     // API Configuration
-    const val BASE_URL = "https://taryn-ceriferous-siobhan.ngrok-free.dev/"
+    const val BASE_URL = "https://campusconnect-backend-production-81cf.up.railway.app/"
     object Endpoints {
         const val LOGIN = "api/auth/login"
 
@@ -24,11 +24,8 @@ object Constants {
         const val EVENT_REGISTER = "api/events/{event_id}/register"
         const val EVENT_REGISTERED_STUDENTS = "api/events/{event_id}/registered_students"
         const val EVENT_ATTENDANCE = "api/events/{event_id}/attendance_list"
-        const val EVENT_CHECK_IN = "api/events/{event_id}/attendance" // Kept for existing checkInStudent reference
         const val EVENT_POSTS = "api/events/{id}/posts"
         const val EVENT_REPORT = "api/events/report"
-        const val SESSIONS = "api/sessions" // Session creation per ApiService
-        const val SESSION_REGISTER = "api/sessions/{id}/register"
 
         // Posts
         const val POSTS = "api/posts"

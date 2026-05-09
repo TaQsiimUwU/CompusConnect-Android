@@ -35,15 +35,6 @@ class RoomRepository @Inject constructor(
         }
     }
     
-    suspend fun createRoom(request: CreateRoomRequest): Result<Room> {
-        return try {
-            val room = api.createRoom(request)
-            Result.success(room)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-    
     suspend fun getResources(): Result<List<Resource>> {
         return try {
             val resources = api.getResources()
@@ -52,16 +43,7 @@ class RoomRepository @Inject constructor(
             Result.failure(e)
         }
     }
-    
-    suspend fun createResource(name: String): Result<Resource> {
-        return try {
-            val resource = api.createResource(CreateResourceRequest(name))
-            Result.success(resource)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-    
+
     suspend fun reportRoom(request: ReportRoomRequest): Result<MessageResponse> {
         return try {
             val response = api.reportRoom(request)
