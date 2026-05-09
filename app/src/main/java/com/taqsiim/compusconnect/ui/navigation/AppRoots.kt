@@ -48,7 +48,6 @@ fun StudentAppRoot(onSwitchRole: () -> Unit, onLogout: () -> Unit) {
     var isBottomBarVisible by remember { mutableStateOf(true) }
     var scrollToTopHome by remember { mutableStateOf(false) }
 
-    // Create dependencies manually for now (Dependency Injection like Hilt is recommended for larger apps)
     Scaffold(
         bottomBar = {
             val shouldShowBottomBar = currentRoute != "student/book_room" &&

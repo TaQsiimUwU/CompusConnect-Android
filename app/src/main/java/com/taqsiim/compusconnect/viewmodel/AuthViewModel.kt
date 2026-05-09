@@ -3,7 +3,6 @@ package com.taqsiim.compusconnect.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.taqsiim.compusconnect.data.model.LoginUser
 import com.taqsiim.compusconnect.data.model.User
 import com.taqsiim.compusconnect.data.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,16 +22,6 @@ class AuthViewModel @Inject constructor(
 
     private val _currentUser = MutableStateFlow<User?>(null)
     val currentUser: StateFlow<User?> = _currentUser.asStateFlow()
-
-    init {
-        Log.d(TAG, "AuthViewModel initialized")
-        viewModelScope.launch {
-            userRepository.getUser().collect { user ->
-                Log.d(TAG, "Cached user changed: ${user?.email} (role: ${user?.role})")
-                _currentUser.value = user
-            }
-        }
-    }
 
     fun login(email: String, password: String) {
         viewModelScope.launch {

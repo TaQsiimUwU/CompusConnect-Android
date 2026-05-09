@@ -83,7 +83,6 @@ fun LoginScreen(
                 viewModel.resetLoginState()
                 onLoginSuccess(role)
             }
-
             else -> Unit
         }
     }

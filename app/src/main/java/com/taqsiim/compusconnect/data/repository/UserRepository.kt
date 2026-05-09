@@ -2,18 +2,20 @@ package com.taqsiim.compusconnect.data.repository
 
 import android.util.Log
 import com.taqsiim.compusconnect.data.api.ApiService
-import com.taqsiim.compusconnect.data.local.dao.CampusDao
-import com.taqsiim.compusconnect.data.model.*
 import com.taqsiim.compusconnect.data.local.TokenManager
-import com.taqsiim.compusconnect.data.mapper.toDomainModel
-import com.taqsiim.compusconnect.data.mapper.toEntity
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import com.taqsiim.compusconnect.data.model.CancelReservationRequest
+import com.taqsiim.compusconnect.data.model.LoginRequest
+import com.taqsiim.compusconnect.data.model.MessageResponse
+import com.taqsiim.compusconnect.data.model.Notification
+import com.taqsiim.compusconnect.data.model.Reservation
+import com.taqsiim.compusconnect.data.model.ReserveRoomRequest
+import com.taqsiim.compusconnect.data.model.RoomReservationResponse
+import com.taqsiim.compusconnect.data.model.User
+import com.taqsiim.compusconnect.data.model.UserRole
 import javax.inject.Inject
 
 class UserRepository @Inject constructor(
     private val api: ApiService,
-    private val dao: CampusDao,
     private val tokenManager: TokenManager
 ) {
     
@@ -38,10 +40,6 @@ class UserRepository @Inject constructor(
 
             val user = userProfile.copy(role = userRole, userId = response.user.id.toIntOrNull() ?: userProfile.userId)
             Log.d(TAG, "Combined user data: userId=${user.userId}, role=${user.role} ,${user.phone}")
-
-            dao.refreshUser(user.toEntity())
-            Log.d(TAG, "User cached in database")
-
             Log.d(TAG, "Login successful! Returning user with role: ${user.role}")
             Result.success(user)
         } catch (e: Exception) {
@@ -58,7 +56,6 @@ class UserRepository @Inject constructor(
     suspend fun getCurrentUser(): Result<User> {
         return try {
             val user = api.getUserProfile()
-            dao.refreshUser(user.toEntity())
             Result.success(user)
         } catch (e: Exception) {
             Result.failure(e)
@@ -99,18 +96,13 @@ class UserRepository @Inject constructor(
     suspend fun logout(): Result<Unit> {
         return try {
             tokenManager.clearToken()
-            dao.clearUser()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
     
-    // Local Data Access
-    fun getUser(): Flow<User?> {
-        return dao.getUser().map { it?.toDomainModel() }
-    }
-    
+
     companion object {
         private const val TAG = "UserRepository"
     }

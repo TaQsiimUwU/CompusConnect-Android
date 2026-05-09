@@ -29,16 +29,13 @@ enum class UserRole {
     @SerializedName("student")
     STUDENT,
     @SerializedName("club_manager")
-    CLUB_MANAGER,
-    @SerializedName("student_manager")
-    STUDENT_MANAGER;
-    
+    CLUB_MANAGER;
+
     companion object {
         fun fromString(role: String): UserRole {
             return when(role.lowercase()) {
                 "student" -> STUDENT
                 "club_manager", "clubmanager" -> CLUB_MANAGER
-                "student_manager", "studentmanager" -> STUDENT_MANAGER
                 else -> STUDENT
             }
         }

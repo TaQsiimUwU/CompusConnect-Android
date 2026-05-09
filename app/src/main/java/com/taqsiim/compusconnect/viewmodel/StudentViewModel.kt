@@ -46,18 +46,15 @@ class StudentViewModel @Inject constructor(
 
     init {
         Log.d(TAG, "StudentViewModel initialized")
-        loadData()
-    }
-
-    private fun loadData() {
         loadPosts()
+
     }
 
     fun loadPosts() {
         viewModelScope.launch {
             Log.d(TAG, "Loading posts...")
             _postsState.value = UiState.Loading
-            
+
             val result = postRepository.getPosts()
             result.fold(
                 onSuccess = { posts ->
@@ -108,7 +105,7 @@ class StudentViewModel @Inject constructor(
         viewModelScope.launch {
             Log.d(TAG, "Loading events...")
             _eventsState.value = UiState.Loading
-            
+
             val result = eventRepository.getEvents()
             result.fold(
                 onSuccess = { events ->
@@ -127,7 +124,7 @@ class StudentViewModel @Inject constructor(
         viewModelScope.launch {
             Log.d(TAG, "Loading event detail: $eventId")
             _eventDetailState.value = UiState.Loading
-            
+
             val result = eventRepository.getEventById(eventId)
             result.fold(
                 onSuccess = { event ->
@@ -217,7 +214,7 @@ class StudentViewModel @Inject constructor(
         viewModelScope.launch {
             Log.d(TAG, "Loading clubs...")
             _clubsState.value = UiState.Loading
-            
+
             val result = clubRepository.getClubs()
             result.fold(
                 onSuccess = { clubs ->
@@ -268,7 +265,7 @@ class StudentViewModel @Inject constructor(
         viewModelScope.launch {
             Log.d(TAG, "Loading club detail: $clubId")
             _clubDetailState.value = UiState.Loading
-            
+
             val result = clubRepository.getClubDetails(clubId)
             result.fold(
                 onSuccess = { club ->
@@ -287,7 +284,7 @@ class StudentViewModel @Inject constructor(
         viewModelScope.launch {
             Log.d(TAG, "Loading club posts for event: $eventId")
             _clubPostsState.value = UiState.Loading
-            
+
             val result = postRepository.getPostsForEvent(eventId)
             result.fold(
                 onSuccess = { posts ->
@@ -306,16 +303,20 @@ class StudentViewModel @Inject constructor(
         viewModelScope.launch {
             Log.d(TAG, "Loading reservations...")
             _reservationsState.value = UiState.Loading
-            
+
             val result = userRepository.getMyReservations()
             result.fold(
                 onSuccess = { reservations ->
-                    Log.d(TAG, "Reservations loaded successfully: ${reservations.size} reservations")
+                    Log.d(
+                        TAG,
+                        "Reservations loaded successfully: ${reservations.size} reservations"
+                    )
                     _reservationsState.value = UiState.Success(reservations)
                 },
                 onFailure = { error ->
                     Log.e(TAG, "Failed to load reservations: ${error.message}")
-                    _reservationsState.value = UiState.Error(error.message ?: "Failed to load reservations")
+                    _reservationsState.value =
+                        UiState.Error(error.message ?: "Failed to load reservations")
                 }
             )
         }
@@ -339,7 +340,7 @@ class StudentViewModel @Inject constructor(
 
     fun refresh() {
         Log.d(TAG, "Refreshing all data...")
-        loadData()
+        loadPosts()
     }
 
     companion object {

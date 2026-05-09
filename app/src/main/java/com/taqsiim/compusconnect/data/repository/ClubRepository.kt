@@ -13,13 +13,11 @@ import javax.inject.Inject
 
 class ClubRepository @Inject constructor(
     private val api: ApiService,
-    private val dao: CampusDao
 ) {
     
     suspend fun getClubs(): Result<List<Club>> {
         return try {
             val clubs = api.getClubs()
-            dao.refreshClubs(clubs.map { it.toEntity() })
             Result.success(clubs)
         } catch (e: Exception) {
             Result.failure(e)
@@ -29,13 +27,9 @@ class ClubRepository @Inject constructor(
     suspend fun joinClub(clubId: Int): Result<Unit> {
         return try {
             api.followClub(clubId)
-            // Refresh clubs to get updated isJoined status
-            getClubs()
             Result.success(Unit)
         } catch (e: Exception) {
-            // Handle 409 Conflict (already following) as success
             if (e.message?.contains("409") == true) {
-                getClubs()
                 Result.success(Unit)
             } else {
                 Result.failure(e)
@@ -46,8 +40,6 @@ class ClubRepository @Inject constructor(
     suspend fun leaveClub(clubId: Int): Result<Unit> {
         return try {
             api.unfollowClub(clubId)
-            // Refresh clubs to get updated isJoined status
-            getClubs()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -57,7 +49,6 @@ class ClubRepository @Inject constructor(
     suspend fun getClubDetails(clubId: Int): Result<Club> {
         return try {
             val club = api.getClubById(clubId)
-            dao.insertClubs(listOf(club.toEntity()))
             Result.success(club)
         } catch (e: Exception) {
             Result.failure(e)
@@ -73,10 +64,4 @@ class ClubRepository @Inject constructor(
         }
     }
 
-    // Local Data Access
-    fun getClubsLocal(): Flow<List<Club>> {
-        return dao.getClubs().map { entities ->
-            entities.map { it.toDomainModel() }
-        }
-    }
 }

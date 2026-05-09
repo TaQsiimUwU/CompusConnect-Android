@@ -9,8 +9,8 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Home
@@ -20,7 +20,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -29,14 +28,6 @@ import androidx.compose.ui.unit.sp
 import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 import com.taqsiim.compusconnect.data.model.UserRole
 
-/**
- * Dynamic Navigation Bar that changes content based on user role
- *
- * @param userRole Current user role (Student or ClubManager)
- * @param selectedRoute Currently selected route
- * @param onNavigate Callback for navigation with route
- * @param modifier Optional modifier
- */
 private data class NavBarItem(
     val route: String,
     val icon: ImageVector,
@@ -69,11 +60,6 @@ fun DynamicNavBar(
                 modifier = modifier
             )
             UserRole.CLUB_MANAGER -> ManagerNavBar(
-                selectedRoute = selectedRoute,
-                onNavigate = onNavigate,
-                modifier = modifier
-            )
-            UserRole.STUDENT_MANAGER -> StudentNavBar(
                 selectedRoute = selectedRoute,
                 onNavigate = onNavigate,
                 modifier = modifier
@@ -141,7 +127,7 @@ private fun ManagerNavBar(
         ),
         NavBarItem(
             route = "manager/requests",
-            icon = Icons.Default.Assignment,
+            icon = Icons.AutoMirrored.Filled.Assignment,
             label = "Requests"
         ),
         NavBarItem(

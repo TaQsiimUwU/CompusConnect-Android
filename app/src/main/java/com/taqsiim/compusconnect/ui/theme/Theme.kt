@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.taqsiim.compusconnect.ui.theme
 
 import android.app.Activity
@@ -77,7 +79,6 @@ fun CampusAppTheme(
     val colorScheme = when (userRole) {
         UserRole.STUDENT -> if (darkTheme) StudentDarkScheme else StudentLightScheme
         UserRole.CLUB_MANAGER -> if (darkTheme) ClubManagerDarkScheme else ClubManagerLightScheme
-        UserRole.STUDENT_MANAGER -> if (darkTheme) StudentDarkScheme else StudentLightScheme
         null -> if (darkTheme) StudentDarkScheme else StudentLightScheme
     }
 

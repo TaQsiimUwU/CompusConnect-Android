@@ -21,7 +21,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.taqsiim.compusconnect.data.model.UserRole
 import com.taqsiim.compusconnect.ui.auth.LoginScreen
-import com.taqsiim.compusconnect.ui.navigation.ManagerAppRoot
 import com.taqsiim.compusconnect.ui.navigation.StudentAppRoot
 import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 import com.taqsiim.compusconnect.viewmodel.AuthViewModel
@@ -86,20 +85,10 @@ fun MainContent(
                 }
                 UserRole.CLUB_MANAGER -> {
                     Log.d(TAG, "Displaying ManagerAppRoot")
-                    ManagerAppRoot(
+                    StudentAppRoot(
                         onSwitchRole = {
                             Log.d(TAG, "Switching to STUDENT")
-                            currentUserRole = UserRole.STUDENT
-                        },
-                        onLogout = handleLogout
-                    )
-                }
-                UserRole.STUDENT_MANAGER -> {
-                    Log.d(TAG, "Displaying StudentAppRoot for STUDENT_MANAGER")
-                    StudentAppRoot(
-                        onSwitchRole = { 
-                            Log.d(TAG, "STUDENT_MANAGER switching to CLUB_MANAGER view")
-                            currentUserRole = UserRole.CLUB_MANAGER
+//                            currentUserRole = UserRole.STUDENT
                         },
                         onLogout = handleLogout
                     )

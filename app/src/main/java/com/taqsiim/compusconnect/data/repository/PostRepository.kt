@@ -17,7 +17,6 @@ import javax.inject.Inject
 
 class PostRepository @Inject constructor(
     private val api: ApiService,
-    private val dao: CampusDao
 ) {
     
     suspend fun getPosts(): Result<List<Post>> {
@@ -25,7 +24,6 @@ class PostRepository @Inject constructor(
             val response = api.getPosts()
             val posts = response.newsFeed
             Log.d(TAG , "Post: ${posts[0]}")
-            dao.refreshPosts(posts.map { it.toEntity() })
             Result.success(posts)
         } catch (e: Exception) {
             Result.failure(e)
@@ -93,13 +91,6 @@ class PostRepository @Inject constructor(
             Result.success(response.comments)
         } catch (e: Exception) {
             Result.failure(e)
-        }
-    }
-
-    // Local Data Access
-    fun getPostsLocal(): Flow<List<Post>> {
-        return dao.getPosts().map { entities ->
-            entities.map { it.toDomainModel() }
         }
     }
     companion object {

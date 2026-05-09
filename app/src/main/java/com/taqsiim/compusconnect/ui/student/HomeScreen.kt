@@ -71,7 +71,6 @@ import com.taqsiim.compusconnect.ui.components.ReservationCard
 import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 import com.taqsiim.compusconnect.viewmodel.StudentViewModel
 import com.taqsiim.compusconnect.viewmodel.UiState
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**

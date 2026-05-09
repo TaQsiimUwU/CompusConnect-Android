@@ -6,8 +6,6 @@ import com.taqsiim.compusconnect.data.api.ApiService
 import com.taqsiim.compusconnect.data.local.CampusDatabase
 import com.taqsiim.compusconnect.data.local.TokenManager
 import com.taqsiim.compusconnect.data.local.dao.CampusDao
-import com.taqsiim.compusconnect.data.repository.ClubRepository
-import com.taqsiim.compusconnect.data.repository.EventRepository
 import com.taqsiim.compusconnect.data.repository.PostRepository
 import com.taqsiim.compusconnect.data.repository.UserRepository
 import com.taqsiim.compusconnect.data.repository.RoomRepository
@@ -95,28 +93,16 @@ object AppModule {
     @Singleton
     fun provideUserRepository(
         api: ApiService, 
-        dao: CampusDao,
         tokenManager: TokenManager
     ): UserRepository {
-        return UserRepository(api, dao, tokenManager)
+        return UserRepository(api,  tokenManager)
     }
+
 
     @Provides
     @Singleton
-    fun provideClubRepository(api: ApiService, dao: CampusDao): ClubRepository {
-        return ClubRepository(api, dao)
-    }
-
-    @Provides
-    @Singleton
-    fun provideEventRepository(api: ApiService, dao: CampusDao): EventRepository {
-        return EventRepository(api, dao)
-    }
-
-    @Provides
-    @Singleton
-    fun providePostRepository(api: ApiService, dao: CampusDao): PostRepository {
-        return PostRepository(api, dao)
+    fun providePostRepository(api: ApiService): PostRepository {
+        return PostRepository(api)
     }
     
     @Provides
