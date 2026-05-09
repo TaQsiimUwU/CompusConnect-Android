@@ -17,6 +17,6 @@ data class UserEntity(
     val level: String,
     val phone: String,
     val pictureUrl: String,
-    val inDorms: Boolean,
+    val inDorms: Int,
     val hasClub: Boolean
 )

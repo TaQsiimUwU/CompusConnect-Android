@@ -39,7 +39,7 @@ object AppModule {
             CampusDatabase::class.java,
             "campus_connect_db"
         )
-        .addMigrations(CampusDatabase.MIGRATION_2_3)
+        .addMigrations(CampusDatabase.MIGRATION_2_3, CampusDatabase.MIGRATION_3_4)
         .fallbackToDestructiveMigration()
         .build()
     }
