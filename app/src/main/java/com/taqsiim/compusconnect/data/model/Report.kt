@@ -68,3 +68,7 @@ data class ReportClubRequest(
     val reason: String,
     val details: String
 )
+
+data class MessageResponse(
+    val message: String
+)

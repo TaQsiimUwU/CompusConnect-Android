@@ -3,30 +3,27 @@ package com.taqsiim.compusconnect.data.model
 import com.google.gson.annotations.SerializedName
 
 data class Room(
-    @SerializedName("room_id")
-    val roomId: Int,
+    val id: Int,
+    val name: Int,
     @SerializedName("room_number")
-    val roomNumber: String,
+    val roomNumber: Int,
     @SerializedName("building_name")
     val buildingName: String,
     val capacity: Int,
-    val type: RoomType,
-    @SerializedName("is_available")
-    val isAvailable: Boolean,
-    val resources: List<Resource>
+    val type: String,
+    val status: RoomStatus,
+    @SerializedName("start_time")
+    val startTime: Int,
+    @SerializedName("end_time")
+    val endTime: Int,
+    val resources: List<String>
 )
 
-enum class RoomType {
-    @SerializedName("classroom")
-    CLASSROOM,
-    @SerializedName("lab")
-    LAB,
-    @SerializedName("study_room")
-    STUDY_ROOM,
-    @SerializedName("meeting_room")
-    MEETING_ROOM,
-    @SerializedName("auditorium")
-    AUDITORIUM
+enum class RoomStatus {
+    @SerializedName("available")
+    AVAILABLE,
+    @SerializedName("maintenance")
+    MAINTENANCE
 }
 
 data class Resource(
@@ -70,4 +67,13 @@ data class CancelReservationRequest(
 
 data class CreateResourceRequest(
     val name: String
+)
+
+data class RoomReservationResponse(
+    @SerializedName("room_id")
+    val roomId: Int,
+    @SerializedName("room_number")
+    val roomNumber: Int,
+    @SerializedName("building_name")
+    val buildingName: String
 )

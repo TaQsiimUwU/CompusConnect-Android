@@ -5,6 +5,7 @@ import com.taqsiim.compusconnect.data.local.dao.CampusDao
 import com.taqsiim.compusconnect.data.mapper.toDomainModel
 import com.taqsiim.compusconnect.data.mapper.toEntity
 import com.taqsiim.compusconnect.data.model.Club
+import com.taqsiim.compusconnect.data.model.MessageResponse
 import com.taqsiim.compusconnect.data.model.UpdateClubRequest
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -63,11 +64,10 @@ class ClubRepository @Inject constructor(
         }
     }
     
-    suspend fun updateClub(clubId: Int, request: UpdateClubRequest): Result<Club> {
+    suspend fun updateClub(clubId: Int, request: UpdateClubRequest): Result<MessageResponse> {
         return try {
-            val club = api.updateClub(clubId, request)
-            dao.insertClubs(listOf(club.toEntity()))
-            Result.success(club)
+            val response = api.updateClub(clubId, request)
+            Result.success(response)
         } catch (e: Exception) {
             Result.failure(e)
         }

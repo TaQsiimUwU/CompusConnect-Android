@@ -46,7 +46,8 @@ class EventRepository @Inject constructor(
     
     suspend fun createEvent(request: CreateEventRequest): Result<Event> {
         return try {
-            val event = api.createEvent(request)
+            val response = api.createEvent(request)
+            val event = api.getEventById(response.eventId)
             dao.insertEvents(listOf(event.toEntity()))
             Result.success(event)
         } catch (e: Exception) {
@@ -56,7 +57,8 @@ class EventRepository @Inject constructor(
     
     suspend fun registerForEvent(eventId: Int): Result<Event> {
         return try {
-            val event = api.registerForEvent(eventId)
+            api.registerForEvent(eventId)
+            val event = api.getEventById(eventId)
             dao.insertEvents(listOf(event.toEntity()))
             Result.success(event)
         } catch (e: Exception) {
@@ -66,7 +68,8 @@ class EventRepository @Inject constructor(
     
     suspend fun unregisterFromEvent(eventId: Int): Result<Event> {
         return try {
-            val event = api.unregisterFromEvent(eventId)
+            api.unregisterFromEvent(eventId)
+            val event = api.getEventById(eventId)
             dao.insertEvents(listOf(event.toEntity()))
             Result.success(event)
         } catch (e: Exception) {

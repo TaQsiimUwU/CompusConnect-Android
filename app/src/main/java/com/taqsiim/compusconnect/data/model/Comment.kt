@@ -7,9 +7,16 @@ data class Comment(
     val studentName: String,
     @SerializedName("student_image_url")
     val studentImageUrl: String,
-    val content: String
+    val content: String,
+    @SerializedName("created_at")
+    val createdAt: String
 )
 
 data class CommentRequest(
-    val content: String
+    @SerializedName("comment")
+    val comment: String
+)
+
+data class CommentsResponse(
+    val comments: List<Comment>
 )

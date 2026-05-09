@@ -3,7 +3,7 @@ package com.taqsiim.compusconnect.data.model
 import com.google.gson.annotations.SerializedName
 
 data class User(
-    @SerializedName("id")
+    @SerializedName("student_id")
     val userId: Int = 0,
     val role: UserRole? = null,
     @SerializedName("user_name")
@@ -15,10 +15,14 @@ data class User(
     val lastName: String = "",
     val faculty: String = "",
     val major: String = "",
-    val level: Int = 0,
+    val level: String = "",
     val phone: String? = null,
     @SerializedName("picture")
-    val pictureUrl: String? = null
+    val pictureUrl: String? = null,
+    @SerializedName("in_dorms")
+    val inDorms: Boolean = false,
+    @SerializedName("hasClub")
+    val hasClub: Boolean = false
 )
 
 enum class UserRole {
@@ -57,5 +61,9 @@ data class LoginUser(
     val email: String,
     val role: String,
     @SerializedName("first_name")
-    val firstName: String? = null
+    val firstName: String? = null,
+    @SerializedName("last_name")
+    val lastName: String? = null,
+    @SerializedName("user_name")
+    val userName: String? = null
 )

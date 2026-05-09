@@ -8,37 +8,37 @@ class ReportRepository @Inject constructor(
     private val api: ApiService
 ) {
     
-    suspend fun reportEvent(eventId: Int, reason: String, details: String): Result<Report> {
+    suspend fun reportEvent(eventId: Int, reason: String, details: String): Result<MessageResponse> {
         return try {
-            val report = api.reportEvent(ReportEventRequest(eventId, reason, details))
-            Result.success(report)
+            val response = api.reportEvent(ReportEventRequest(eventId, reason, details))
+            Result.success(response)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
     
-    suspend fun reportRoom(roomId: Int, reason: String, details: String): Result<Report> {
+    suspend fun reportRoom(roomId: Int, reason: String, details: String): Result<MessageResponse> {
         return try {
-            val report = api.reportRoom(ReportRoomRequest(roomId, reason, details))
-            Result.success(report)
+            val response = api.reportRoom(ReportRoomRequest(roomId, reason, details))
+            Result.success(response)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
     
-    suspend fun reportFacility(facilityId: Int, reason: String, details: String): Result<Report> {
+    suspend fun reportFacility(facilityId: Int, reason: String, details: String): Result<MessageResponse> {
         return try {
-            val report = api.reportFacility(ReportFacilityRequest(facilityId, reason, details))
-            Result.success(report)
+            val response = api.reportFacility(ReportFacilityRequest(facilityId, reason, details))
+            Result.success(response)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
     
-    suspend fun reportClub(clubId: Int, reason: String, details: String): Result<Report> {
+    suspend fun reportClub(clubId: Int, reason: String, details: String): Result<MessageResponse> {
         return try {
-            val report = api.reportClub(ReportClubRequest(clubId, reason, details))
-            Result.success(report)
+            val response = api.reportClub(ReportClubRequest(clubId, reason, details))
+            Result.success(response)
         } catch (e: Exception) {
             Result.failure(e)
         }

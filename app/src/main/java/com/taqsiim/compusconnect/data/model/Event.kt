@@ -3,8 +3,11 @@ package com.taqsiim.compusconnect.data.model
 import com.google.gson.annotations.SerializedName
 
 enum class EventStatus {
+    @SerializedName("pending")
     PENDING,
+    @SerializedName(value = "scheduled", alternate = ["approved"])
     APPROVED,
+    @SerializedName(value = "cancelled", alternate = ["rejected"])
     REJECTED
 }
 
@@ -39,21 +42,17 @@ val Event.isEvent: Boolean get() = type == EventType.EVENT
 val Event.isSession: Boolean get() = type == EventType.SESSION
 
 data class RegisteredStudentResponse(
-    @SerializedName("user_id")
-    val userId: Int,
     @SerializedName("student_id")
-    val studentId: String,
-    @SerializedName("first_name")
-    val firstName: String,
-    @SerializedName("last_name")
-    val lastName: String,
+    val studentId: Int,
+    val name: String,
     val email: String,
-    val faculty: String,
-    val major: String,
-    val level: Int,
-    @SerializedName("is_attending")
-    val isAttending: Boolean = false
-)
+    val major: String
+) {
+    val firstName: String
+        get() = name.substringBefore(" ")
+    val lastName: String
+        get() = name.substringAfter(" ", "")
+}
 
 // this response is for the club manager
 data class ClubEventResponse(
@@ -98,15 +97,18 @@ data class CheckInRequest(
 data class PendingEvent(
     @SerializedName("event_id")
     val eventId: Int,
+    val type: EventType,
     val title: String,
     val description: String,
-    @SerializedName("club_name")
-    val clubName: String,
     @SerializedName("start_time")
     val startTime: String,
     @SerializedName("end_time")
     val endTime: String,
-    val status: EventStatus
+    val status: EventStatus,
+    @SerializedName("max_regestrations")
+    val maxRegistrations: Int,
+    @SerializedName("club_name")
+    val clubName: String = ""
 )
 
 data class StudentSearchResult(
@@ -129,3 +131,8 @@ enum class EventType  {
     @SerializedName("event")
     EVENT
 }
+
+data class CreateEventResponse(
+    @SerializedName("event_id")
+    val eventId: Int
+)

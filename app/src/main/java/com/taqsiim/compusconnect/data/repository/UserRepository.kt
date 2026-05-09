@@ -74,16 +74,16 @@ class UserRepository @Inject constructor(
         }
     }
     
-    suspend fun cancelReservation(reservationId: String): Result<Unit> {
+    suspend fun cancelReservation(reservationId: String, startTime: String = ""): Result<MessageResponse> {
         return try {
-            api.cancelRoomReservation(reservationId.toInt(), CancelReservationRequest(""))
-            Result.success(Unit)
+            val response = api.cancelRoomReservation(reservationId.toInt(), CancelReservationRequest(startTime))
+            Result.success(response)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    suspend fun reserveRoom(request: ReserveRoomRequest): Result<Reservation> {
+    suspend fun reserveRoom(request: ReserveRoomRequest): Result<RoomReservationResponse> {
         return try {
             val reservation = api.reserveRoom(request)
             Result.success(reservation)

@@ -21,13 +21,13 @@ interface ApiService {
     suspend fun getEventById(@Path("event_id") id: Int): Event
 
     @POST(Endpoints.EVENTS)
-    suspend fun createEvent(@Body request: CreateEventRequest): Event
-    
+    suspend fun createEvent(@Body request: CreateEventRequest): CreateEventResponse
+
     @POST(Endpoints.EVENT_REGISTER)
-    suspend fun registerForEvent(@Path("event_id") id: Int): Event
+    suspend fun registerForEvent(@Path("event_id") id: Int)
 
     @DELETE(Endpoints.EVENT_REGISTER)
-    suspend fun unregisterFromEvent(@Path("event_id") id: Int): Event
+    suspend fun unregisterFromEvent(@Path("event_id") id: Int): MessageResponse
 
     // Registered students and attendance list per API docs
     @GET(Endpoints.EVENT_REGISTERED_STUDENTS)
@@ -54,38 +54,38 @@ interface ApiService {
     suspend fun getClubById(@Path("id") id: Int): Club
     
     @POST(Endpoints.CLUB_FOLLOW)
-    suspend fun followClub(@Path("id") id: Int): Club
-    
+    suspend fun followClub(@Path("id") id: Int): MessageResponse
+
     @DELETE(Endpoints.CLUB_FOLLOW)
-    suspend fun unfollowClub(@Path("id") id: Int): Club
-    
+    suspend fun unfollowClub(@Path("id") id: Int): MessageResponse
+
     @GET(Endpoints.POSTS)
     suspend fun getPosts(): PostsResponse
     
     @POST(Endpoints.POSTS)
-    suspend fun createPost(@Body request: CreatePostRequest): Post
-    
+    suspend fun createPost(@Body request: CreatePostRequest): MessageResponse
+
     @POST(Endpoints.POST_LIKE)
-    suspend fun likePost(@Path("id") id: Int): Post
-    
+    suspend fun likePost(@Path("id") id: Int): MessageResponse
+
     @DELETE(Endpoints.POST_LIKE)
-    suspend fun unlikePost(@Path("id") id: Int): Post
-    
+    suspend fun unlikePost(@Path("id") id: Int): MessageResponse
+
     @GET(Endpoints.EVENT_POSTS)
     suspend fun getPostsForEvent(@Path("id") eventId: Int): List<Post>
     
     @PUT(Endpoints.POST_BY_ID)
-    suspend fun updatePost(@Path("id") postId: Int, @Body content: UpdatePostRequest): Post
-    
+    suspend fun updatePost(@Path("id") postId: Int, @Body content: UpdatePostRequest): MessageResponse
+
     @POST(Endpoints.POST_COMMENTS)
-    suspend fun addComment(@Path("id") postId: Int, @Body request: CommentRequest): Comment
-    
+    suspend fun addComment(@Path("id") postId: Int, @Body request: CommentRequest): MessageResponse
+
     @GET(Endpoints.POST_COMMENTS)
-    suspend fun getComments(@Path("id") postId: Int): List<Comment>
-    
+    suspend fun getComments(@Path("id") postId: Int): CommentsResponse
+
     @PUT(Endpoints.CLUB_BY_ID)
-    suspend fun updateClub(@Path("id") clubId: Int, @Body request: UpdateClubRequest): Club
-    
+    suspend fun updateClub(@Path("id") clubId: Int, @Body request: UpdateClubRequest): MessageResponse
+
     @DELETE(Endpoints.EVENT_BY_ID)
     suspend fun deleteEvent(@Path("event_id") eventId: Int)
 
@@ -96,11 +96,11 @@ interface ApiService {
     suspend fun checkInStudent(@Path("event_id") eventId: Int, @Body request: CheckInRequest)
     
     @POST(Endpoints.ROOMS_RESERVE)
-    suspend fun reserveRoom(@Body request: ReserveRoomRequest): Reservation
-    
+    suspend fun reserveRoom(@Body request: ReserveRoomRequest): RoomReservationResponse
+
     @PATCH(Endpoints.ROOMS_CANCEL)
-    suspend fun cancelRoomReservation(@Path("id") reservationId: Int, @Body request: CancelReservationRequest)
-    
+    suspend fun cancelRoomReservation(@Path("id") reservationId: Int, @Body request: CancelReservationRequest): MessageResponse
+
     @GET(Endpoints.ROOMS)
     suspend fun getRooms(): List<Room>
     
@@ -129,14 +129,17 @@ interface ApiService {
     suspend fun searchStudents(@Body request: SearchStudentsRequest): List<StudentSearchResult>
 
     @POST(Endpoints.EVENT_REPORT)
-    suspend fun reportEvent(@Body request: ReportEventRequest): Report
-    
+    suspend fun reportEvent(@Body request: ReportEventRequest): MessageResponse
+
     @POST(Endpoints.ROOM_REPORT)
-    suspend fun reportRoom(@Body request: ReportRoomRequest): Report
-    
+    suspend fun reportRoom(@Body request: ReportRoomRequest): MessageResponse
+
     @POST(Endpoints.FACILITY_REPORT)
-    suspend fun reportFacility(@Body request: ReportFacilityRequest): Report
-    
+    suspend fun reportFacility(@Body request: ReportFacilityRequest): MessageResponse
+
     @POST(Endpoints.CLUB_REPORT)
-    suspend fun reportClub(@Body request: ReportClubRequest): Report
+    suspend fun reportClub(@Body request: ReportClubRequest): MessageResponse
+
+    @POST(Endpoints.FACILITIES_RESERVE)
+    suspend fun reserveFacility(@Path("id") facilityId: Int, @Body request: ReserveFacilityRequest): FacilityReservationResponse
 }

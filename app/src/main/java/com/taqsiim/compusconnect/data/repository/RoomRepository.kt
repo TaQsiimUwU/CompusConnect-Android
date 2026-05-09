@@ -17,7 +17,7 @@ class RoomRepository @Inject constructor(
         }
     }
     
-    suspend fun reserveRoom(request: ReserveRoomRequest): Result<Reservation> {
+    suspend fun reserveRoom(request: ReserveRoomRequest): Result<RoomReservationResponse> {
         return try {
             val reservation = api.reserveRoom(request)
             Result.success(reservation)
@@ -26,10 +26,10 @@ class RoomRepository @Inject constructor(
         }
     }
     
-    suspend fun cancelReservation(roomId: Int, startTime: String): Result<Unit> {
+    suspend fun cancelReservation(roomId: Int, startTime: String): Result<MessageResponse> {
         return try {
-            api.cancelRoomReservation(roomId, CancelReservationRequest(startTime))
-            Result.success(Unit)
+            val response = api.cancelRoomReservation(roomId, CancelReservationRequest(startTime))
+            Result.success(response)
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -62,10 +62,10 @@ class RoomRepository @Inject constructor(
         }
     }
     
-    suspend fun reportRoom(request: ReportRoomRequest): Result<Report> {
+    suspend fun reportRoom(request: ReportRoomRequest): Result<MessageResponse> {
         return try {
-            val report = api.reportRoom(request)
-            Result.success(report)
+            val response = api.reportRoom(request)
+            Result.success(response)
         } catch (e: Exception) {
             Result.failure(e)
         }

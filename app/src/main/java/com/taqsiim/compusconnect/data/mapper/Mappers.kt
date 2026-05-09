@@ -15,7 +15,9 @@ fun User.toEntity(): UserEntity {
         major = major,
         level = level,
         phone = phone ?: "",
-        pictureUrl = pictureUrl ?: ""
+        pictureUrl = pictureUrl ?: "",
+        inDorms = inDorms,
+        hasClub = hasClub
     )
 }
 
@@ -31,7 +33,9 @@ fun UserEntity.toDomainModel(): User {
         major = major,
         level = level,
         phone = phone,
-        pictureUrl = pictureUrl
+        pictureUrl = pictureUrl,
+        inDorms = inDorms,
+        hasClub = hasClub
     )
 }
 

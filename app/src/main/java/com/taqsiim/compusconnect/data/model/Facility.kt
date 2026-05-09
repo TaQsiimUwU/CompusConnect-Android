@@ -6,7 +6,8 @@ data class Facility(
     @SerializedName("facility_id")
     val facilityId: Int,
     val name: String,
-    val location: String,
+    @SerializedName("location_description")
+    val locationDescription: String,
     @SerializedName("min_capacity")
     val minCapacity: Int,
     @SerializedName("max_capacity")
@@ -35,21 +36,46 @@ enum class FacilityType {
 enum class FacilityStatus {
     @SerializedName("available")
     AVAILABLE,
-    @SerializedName("occupied")
-    OCCUPIED,
-    @SerializedName("maintenance")
-    MAINTENANCE,
     @SerializedName("closed")
-    CLOSED
+    CLOSED,
+    @SerializedName("under_maintenance")
+    UNDER_MAINTENANCE
 }
 
 data class CreateFacilityRequest(
     val name: String,
-    val location: String,
+    @SerializedName("location_description")
+    val locationDescription: String,
     @SerializedName("min_capacity")
     val minCapacity: Int,
     @SerializedName("max_capacity")
     val maxCapacity: Int,
     val type: String,
     val status: String
+)
+
+data class FacilityReservation(
+    @SerializedName("facility_id")
+    val facilityId: Int,
+    @SerializedName("team_size")
+    val teamSize: Int,
+    @SerializedName("start_time")
+    val startTime: String,
+    @SerializedName("end_time")
+    val endTime: String,
+    val status: String
+)
+
+data class FacilityReservationResponse(
+    val message: String,
+    val reservation: FacilityReservation
+)
+
+data class ReserveFacilityRequest(
+    @SerializedName("start_time")
+    val startTime: String,
+    @SerializedName("end_time")
+    val endTime: String,
+    @SerializedName("team_ids")
+    val teamIds: List<Int>
 )

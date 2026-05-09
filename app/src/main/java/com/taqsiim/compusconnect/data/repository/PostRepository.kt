@@ -9,6 +9,7 @@ import com.taqsiim.compusconnect.data.model.Post
 import com.taqsiim.compusconnect.data.model.UpdatePostRequest
 import com.taqsiim.compusconnect.data.model.Comment
 import com.taqsiim.compusconnect.data.model.CommentRequest
+import com.taqsiim.compusconnect.data.model.MessageResponse
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -30,31 +31,28 @@ class PostRepository @Inject constructor(
     }
     
     // Note: This should only be called by Club Managers
-    suspend fun createPost(request: CreatePostRequest): Result<Post> {
+    suspend fun createPost(request: CreatePostRequest): Result<MessageResponse> {
         return try {
-            val post = api.createPost(request)
-            dao.insertPosts(listOf(post.toEntity()))
-            Result.success(post)
+            val response = api.createPost(request)
+            Result.success(response)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
     
-    suspend fun likePost(postId: Int): Result<Post> {
+    suspend fun likePost(postId: Int): Result<MessageResponse> {
         return try {
-            val post = api.likePost(postId)
-            dao.insertPosts(listOf(post.toEntity()))
-            Result.success(post)
+            val response = api.likePost(postId)
+            Result.success(response)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
     
-    suspend fun unlikePost(postId: Int): Result<Post> {
+    suspend fun unlikePost(postId: Int): Result<MessageResponse> {
         return try {
-            val post = api.unlikePost(postId)
-            dao.insertPosts(listOf(post.toEntity()))
-            Result.success(post)
+            val response = api.unlikePost(postId)
+            Result.success(response)
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -69,20 +67,19 @@ class PostRepository @Inject constructor(
         }
     }
     
-    suspend fun updatePost(postId: Int, newContent: String): Result<Post> {
+    suspend fun updatePost(postId: Int, newContent: String): Result<MessageResponse> {
         return try {
-            val post = api.updatePost(postId, UpdatePostRequest(newContent))
-            dao.insertPosts(listOf(post.toEntity()))
-            Result.success(post)
+            val response = api.updatePost(postId, UpdatePostRequest(newContent))
+            Result.success(response)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
     
-    suspend fun addComment(postId: Int, content: String): Result<Comment> {
+    suspend fun addComment(postId: Int, content: String): Result<MessageResponse> {
         return try {
-            val comment = api.addComment(postId, CommentRequest(content))
-            Result.success(comment)
+            val response = api.addComment(postId, CommentRequest(content))
+            Result.success(response)
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -90,8 +87,8 @@ class PostRepository @Inject constructor(
     
     suspend fun getComments(postId: Int): Result<List<Comment>> {
         return try {
-            val comments = api.getComments(postId)
-            Result.success(comments)
+            val response = api.getComments(postId)
+            Result.success(response.comments)
         } catch (e: Exception) {
             Result.failure(e)
         }
