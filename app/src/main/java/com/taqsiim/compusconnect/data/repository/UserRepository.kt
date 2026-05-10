@@ -50,9 +50,8 @@ class UserRepository @Inject constructor(
         }
     }
 
-    suspend fun switchRole(role: UserRole): Result<User> {
-        TODO("Implement role switching")
-    }
+
+
 
     suspend fun getCurrentUser(): Result<User> {
         return try {

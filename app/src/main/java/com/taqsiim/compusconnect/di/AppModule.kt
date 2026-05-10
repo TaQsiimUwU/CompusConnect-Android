@@ -11,7 +11,7 @@ import com.taqsiim.compusconnect.data.repository.UserRepository
 import com.taqsiim.compusconnect.data.repository.RoomRepository
 import com.taqsiim.compusconnect.data.repository.FacilityRepository
 import com.taqsiim.compusconnect.data.repository.ReportRepository
-import com.taqsiim.compusconnect.util.Constants
+import com.taqsiim.compusconnect.utils.Constants
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

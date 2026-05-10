@@ -10,7 +10,7 @@ data class Reservation(
     val startTime: String, // ISO format
     @SerializedName("end_time")
     val endTime: String,   // ISO format
-    val type: ReservationType
+    val type: ReservationType? = null
 )
 
 enum class ReservationType {
@@ -18,8 +18,8 @@ enum class ReservationType {
     EVENT,
     @SerializedName("session")
     SESSION,
-    @SerializedName("studyRoom")
+    @SerializedName(value = "studyRoom", alternate = ["study_room", "room"])
     STUDY_ROOM,
-    @SerializedName("sport")
+    @SerializedName(value = "sport", alternate = ["sports", "facility"])
     SPORT
 }

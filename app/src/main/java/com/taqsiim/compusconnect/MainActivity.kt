@@ -24,7 +24,8 @@ import com.taqsiim.compusconnect.ui.auth.LoginScreen
 import com.taqsiim.compusconnect.ui.navigation.ManagerAppRoot
 import com.taqsiim.compusconnect.ui.navigation.StudentAppRoot
 import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
-import com.taqsiim.compusconnect.viewmodel.AuthViewModel
+import com.taqsiim.compusconnect.ui.auth.AuthViewModel
+import com.taqsiim.compusconnect.ui.auth.AuthIntent
 import dagger.hilt.android.AndroidEntryPoint
 
 private const val TAG = "MainActivity"
@@ -47,7 +48,8 @@ fun MainContent(
     authViewModel: AuthViewModel = hiltViewModel()
 ) {
     var currentUserRole by remember { mutableStateOf<UserRole?>(null) }
-    val currentUser by authViewModel.currentUser.collectAsState()
+    val authState by authViewModel.state.collectAsState()
+    val currentUser = authState.currentUser
 
     LaunchedEffect(currentUser) {
         Log.d(TAG, "CurrentUser changed: ${currentUser?.email}, role: ${currentUser?.role}")
@@ -57,7 +59,7 @@ fun MainContent(
     
     val handleLogout: () -> Unit = {
         Log.d(TAG, "Logging out...")
-        authViewModel.logout()
+        authViewModel.processIntent(AuthIntent.Logout)
         currentUserRole = null
         Log.d(TAG, "Logout complete, currentUserRole set to null")
     }
@@ -98,13 +100,5 @@ fun MainContent(
                 }
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun MainActivityPreview() {
-    CampusAppTheme {
-        StudentAppRoot(onSwitchRole = {}, onLogout = {})
     }
 }

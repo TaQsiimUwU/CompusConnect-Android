@@ -24,7 +24,12 @@ data class Post(
     @SerializedName("comment_count")
     val commentCount: Int,
     @SerializedName("is_liked")
-    val isLiked: Boolean
+    val isLiked: Boolean,
+    // Enriched client-side from clubs data (not from API)
+    @Transient
+    val clubName: String? = null,
+    @Transient
+    val clubLogoUrl: String? = null
 )
 
 data class CreatePostRequest(

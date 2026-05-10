@@ -2,7 +2,7 @@ package com.taqsiim.compusconnect.data.api
 
 import com.taqsiim.compusconnect.data.model.*
 import retrofit2.http.*
-import com.taqsiim.compusconnect.util.Constants.Endpoints
+import com.taqsiim.compusconnect.utils.Constants.Endpoints
 
 
 interface ApiService {
@@ -79,6 +79,9 @@ interface ApiService {
     // Posts
     @GET(Endpoints.POSTS)
     suspend fun getPosts(): PostsResponse
+
+    @GET(Endpoints.POST_BY_ID)
+    suspend fun getPostById(@Path("id") postId: Int): Post
 
     @POST(Endpoints.POSTS)
     suspend fun createPost(@Body request: CreatePostRequest): MessageResponse

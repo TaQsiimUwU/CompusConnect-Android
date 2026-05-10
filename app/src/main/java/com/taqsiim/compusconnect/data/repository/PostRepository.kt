@@ -28,6 +28,15 @@ class PostRepository @Inject constructor(
         }
     }
 
+    suspend fun getPostById(postId: Int): Result<Post> {
+        return try {
+            val post = api.getPostById(postId).formatDates()
+            Result.success(post)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     // Note: This should only be called by Club Managers
     suspend fun createPost(request: CreatePostRequest): Result<MessageResponse> {
         return try {
