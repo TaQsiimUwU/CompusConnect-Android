@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.taqsiim.compusconnect.data.model.UserRole
 
 
 
@@ -37,14 +38,12 @@ import androidx.compose.ui.unit.dp
 
 
 @Composable
-fun AccountActionsSection(onSwitch: () -> Unit, onLogout: () -> Unit) {
+fun AccountActionsSection(
+    userRole: UserRole,
+    onSwitch: () -> Unit,
+    onLogout: () -> Unit
+) {
     Column {
-        Text(
-            text = "Account Actions",
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = 12.dp)
-        )
 
         Card(
             modifier = Modifier.fillMaxWidth(),
@@ -53,18 +52,20 @@ fun AccountActionsSection(onSwitch: () -> Unit, onLogout: () -> Unit) {
             shape = RoundedCornerShape(16.dp)
         ) {
             Column {
-                ActionItem(
-                    icon = Icons.Default.Refresh,
-                    // this need to be modified based in the role
-                    title = "Switch to Student Mode",
-                    subtitle = "View as a student",
-                    onClick = onSwitch
-                )
+                // Show switch button only for managers
+                if (userRole == UserRole.CLUB_MANAGER) {
+                    ActionItem(
+                        icon = Icons.Default.Refresh,
+                        title = "Switch to Student Mode",
+                        subtitle = "View as a student",
+                        onClick = onSwitch
+                    )
 
-                androidx.compose.material3.HorizontalDivider(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                )
+                    androidx.compose.material3.HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                    )
+                }
 
                 ActionItem(
                     icon = Icons.AutoMirrored.Filled.ExitToApp,
@@ -158,7 +159,11 @@ fun ActionItem(
 @Composable
 fun AccountActionsSectionPreview() {
     MaterialTheme {
-        AccountActionsSection(onSwitch = {}, onLogout = {})
+        AccountActionsSection(
+            userRole = UserRole.CLUB_MANAGER,
+            onSwitch = {},
+            onLogout = {}
+        )
     }
 }
 

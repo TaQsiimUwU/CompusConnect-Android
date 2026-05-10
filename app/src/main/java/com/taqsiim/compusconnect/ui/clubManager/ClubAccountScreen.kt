@@ -60,7 +60,11 @@ fun ClubAccountScreen(
     ) {
         ClubHeaderCard()
         AboutClubCard()
-        AccountActionsSection(onSwitch = onSwitchToStudent, onLogout = onLogout)
+        AccountActionsSection(
+            userRole = currentUser?.role ?: UserRole.CLUB_MANAGER,
+            onSwitch = onSwitchToStudent,
+            onLogout = onLogout
+        )
     }
 }
 

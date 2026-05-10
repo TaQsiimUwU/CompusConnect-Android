@@ -93,7 +93,11 @@ private fun ProfileScreenContent(
         ) {
             ProfileHeaderCard(user = user)
             QRCodeCard(userId = user?.userId?.toString() ?: "")
-            AccountActionsSection(onSwitchToManager, onLogout)
+            AccountActionsSection(
+                userRole = user?.role ?: UserRole.STUDENT,
+                onSwitch = onSwitchToManager,
+                onLogout = onLogout
+            )
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
@@ -133,7 +137,7 @@ fun ProfileHeaderCard(user: User?) {
                                 model = user?.pictureUrl,
                                 contentDescription = user?.firstName,
                                 modifier = Modifier
-                                    .size(36.dp)
+                                    .fillMaxSize()
                                     .clip(CircleShape),
                                 contentScale = ContentScale.Crop
                             )
@@ -162,9 +166,7 @@ fun ProfileHeaderCard(user: User?) {
                 Spacer(modifier = Modifier.height(24.dp))
                 ContactInfoRow(icon = Icons.Default.Email, text = user?.email ?: "")
                 Spacer(modifier = Modifier.height(8.dp))
-                if (user?.phone != null) {
-                    ContactInfoRow(icon = Icons.Default.Phone, text = user.phone)
-                }
+
             }
         }
     }

@@ -239,7 +239,8 @@ fun HomeScreen(
                                         }
                                     },
                                     onViewDetails = { clickedPost -> onNavigateToPostDetail(clickedPost.postId.toString()) },
-                                    onEventClick = { eventId -> onNavigateToEventDetail(eventId.toString()) }
+                                    onEventClick = { eventId -> onNavigateToEventDetail(eventId.toString()) },
+                                    onCommentClick = { onNavigateToPostDetail(post.postId.toString()) }
                                 )
                                 Spacer(modifier = Modifier.height(12.dp))
                             }

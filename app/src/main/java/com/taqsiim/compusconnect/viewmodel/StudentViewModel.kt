@@ -50,7 +50,8 @@ class StudentViewModel @Inject constructor(
     init {
         Log.d(TAG, "StudentViewModel initialized")
         loadPosts()
-
+        loadEvents()
+        loadClubs()
     }
 
     fun loadPosts() {
@@ -315,6 +316,22 @@ class StudentViewModel @Inject constructor(
                 },
                 onFailure = { error ->
                     Log.e(TAG, "Failed to cancel reservation: ${error.message}")
+                }
+            )
+        }
+    }
+
+    fun addComment(postId: Int, content: String) {
+        viewModelScope.launch {
+            Log.d(TAG, "Adding comment to post: $postId")
+            val result = postRepository.addComment(postId, content)
+            result.fold(
+                onSuccess = {
+                    Log.d(TAG, "Comment added successfully")
+                    loadPostComments(postId) // Refresh comments
+                },
+                onFailure = { error ->
+                    Log.e(TAG, "Failed to add comment: ${error.message}")
                 }
             )
         }

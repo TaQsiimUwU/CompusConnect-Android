@@ -10,10 +10,19 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,11 +42,14 @@ fun PostDetailScreen(
     postId: String,
     onNavigateToEventDetail: (String) -> Unit,
     onNavigateBack: () -> Unit,
-    viewModel: StudentViewModel
+    viewModel: StudentViewModel,
+    shouldFocusComment: Boolean = false
 ) {
 
     val postsState by viewModel.postsState.collectAsState()
     val commentsState by viewModel.postCommentsState.collectAsState()
+    var commentText by remember { mutableStateOf("") }
+    var isSubmittingComment by remember { mutableStateOf(false) }
 
     LaunchedEffect(postId) {
         postId.toIntOrNull()?.let { viewModel.loadPostComments(it) }
@@ -49,15 +61,53 @@ fun PostDetailScreen(
     }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(text = "Post") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
+        bottomBar = {
+            // Comment input box
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 8.dp
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    TextField(
+                        value = commentText,
+                        onValueChange = { commentText = it },
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(4.dp),
+                        placeholder = { Text("Add a comment...") },
+                        singleLine = true,
+                        shape = RoundedCornerShape(20.dp),
+                        colors = TextFieldDefaults.colors(
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
+                    )
+                    IconButton(
+                        onClick = {
+                            if (commentText.isNotBlank() && post != null && !isSubmittingComment) {
+                                isSubmittingComment = true
+                                viewModel.addComment(post.postId, commentText)
+                                commentText = ""
+                                isSubmittingComment = false
+                            }
+                        },
+                        enabled = commentText.isNotBlank() && !isSubmittingComment
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Send,
+                            contentDescription = "Send comment",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
                     }
                 }
-            )
+            }
         }
     ) { paddingValues ->
         LazyColumn(
@@ -65,7 +115,8 @@ fun PostDetailScreen(
                 .padding(paddingValues)
                 .padding(16.dp)
                 .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(bottom = 16.dp)
         ) {
             item {
                 if (post == null) {
