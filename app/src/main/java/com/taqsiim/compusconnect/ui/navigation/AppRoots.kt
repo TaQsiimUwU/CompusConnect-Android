@@ -41,7 +41,11 @@ import com.taqsiim.compusconnect.ui.clubManager.AttendeesScreen
 import com.taqsiim.compusconnect.viewmodel.AuthViewModel
 
 @Composable
-fun StudentAppRoot(onSwitchRole: () -> Unit, onLogout: () -> Unit) {
+fun StudentAppRoot(
+    onSwitchRole: () -> Unit,
+    onLogout: () -> Unit,
+    authViewModel: AuthViewModel = hiltViewModel()
+) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: "student/home"
@@ -186,6 +190,7 @@ fun StudentAppRoot(onSwitchRole: () -> Unit, onLogout: () -> Unit) {
             }
             composable("student/profile") {
                 ProfileScreen(
+                    viewModel = authViewModel,
                     onSwitchToManager = onSwitchRole,
                     onLogout = onLogout
                 )

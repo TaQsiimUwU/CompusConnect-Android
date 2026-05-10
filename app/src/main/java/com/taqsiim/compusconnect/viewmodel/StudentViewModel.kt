@@ -171,45 +171,6 @@ class StudentViewModel @Inject constructor(
         }
     }
 
-    /* TODO: Enable when backend implements /api/sessions endpoint
-    fun loadSessions() {
-        viewModelScope.launch {
-            Log.d(TAG, "Loading sessions...")
-            _sessionsState.value = UiState.Loading
-            
-            val result = eventRepository.getSessions()
-            result.fold(
-                onSuccess = { sessions ->
-                    Log.d(TAG, "Sessions loaded successfully: ${sessions.size} sessions")
-                    _sessionsState.value = UiState.Success(sessions)
-                },
-                onFailure = { error ->
-                    Log.e(TAG, "Failed to load sessions: ${error.message}")
-                    _sessionsState.value = UiState.Error(error.message ?: "Failed to load sessions")
-                }
-            )
-        }
-    }
-    */
-
-    /* TODO: Enable when backend implements /api/sessions endpoint
-    fun registerForSession(sessionId: Int) {
-        viewModelScope.launch {
-            Log.d(TAG, "Registering for session: $sessionId")
-            val result = eventRepository.registerForSession(sessionId)
-            result.fold(
-                onSuccess = { session ->
-                    Log.d(TAG, "Registered for session successfully")
-                    loadSessions() // Refresh sessions
-                },
-                onFailure = { error ->
-                    Log.e(TAG, "Failed to register for session: ${error.message}")
-                }
-            )
-        }
-    }
-    */
-
     fun loadClubs() {
         viewModelScope.launch {
             Log.d(TAG, "Loading clubs...")

@@ -80,7 +80,8 @@ fun MainContent(
                         onSwitchRole = { 
                             Log.d(TAG, "Switching to CLUB_MANAGER")
                         },
-                        onLogout = handleLogout
+                        onLogout = handleLogout,
+                        authViewModel = authViewModel
                     )
                 }
                 UserRole.CLUB_MANAGER -> {
@@ -90,7 +91,8 @@ fun MainContent(
                             Log.d(TAG, "Switching to STUDENT")
 //                            currentUserRole = UserRole.STUDENT
                         },
-                        onLogout = handleLogout
+                        onLogout = handleLogout,
+                        authViewModel = authViewModel
                     )
                 }
             }
