@@ -38,13 +38,15 @@ import com.taqsiim.compusconnect.ui.student.EventDetailScreen
 import com.taqsiim.compusconnect.ui.student.ClubProfileScreen
 import com.taqsiim.compusconnect.ui.clubManager.ScheduleEventScreen
 import com.taqsiim.compusconnect.ui.clubManager.AttendeesScreen
+import com.taqsiim.compusconnect.ui.student.PostDetailScreen
 import com.taqsiim.compusconnect.viewmodel.AuthViewModel
 
 @Composable
 fun StudentAppRoot(
     onSwitchRole: () -> Unit,
     onLogout: () -> Unit,
-    authViewModel: AuthViewModel = hiltViewModel()
+    authViewModel: AuthViewModel = hiltViewModel(),
+    studentViewModel: StudentViewModel = hiltViewModel()
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -103,6 +105,7 @@ fun StudentAppRoot(
                 HomeScreen(
                     viewModel = viewModel,
                     onNavigateToEventDetail = { eventId -> navController.navigate("student/event/$eventId") },
+                    onNavigateToPostDetail = { postId -> navController.navigate("student/post/$postId") },
                     onNavigateToReservations = { navController.navigate("student/reservations") },
                     onNavigateToRoomForm = { navController.navigate("student/book_room") },
                     onNavigateToSportForm = { navController.navigate("student/reserve_sport") },
@@ -166,6 +169,18 @@ fun StudentAppRoot(
                 EventDetailScreen(
                     eventId = eventId,
                     onNavigateBack = { navController.popBackStack() }
+                )
+            }
+            composable(
+                route = "student/post/{postId}",
+                arguments = listOf(navArgument("postId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val postId = backStackEntry.arguments?.getString("postId") ?: ""
+                PostDetailScreen(
+                    postId = postId,
+                    onNavigateToEventDetail = { eventId -> navController.navigate("student/event/$eventId") },
+                    onNavigateBack = { navController.popBackStack()},
+                    viewModel = studentViewModel
                 )
             }
             composable("student/clubs") {

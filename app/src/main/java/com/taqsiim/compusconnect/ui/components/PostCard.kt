@@ -31,13 +31,14 @@ import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 fun PostCard(
     post: Post,
     onLike: () -> Unit,
-    onViewDetails: () -> Unit
+    onViewDetails: (Post) -> Unit,
+    onEventClick: (Int) -> Unit = {}
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .clickable(onClick = onViewDetails),
+            .clickable { onViewDetails(post) },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
@@ -102,6 +103,13 @@ fun PostCard(
                 color = MaterialTheme.colorScheme.onSurface
             )
 
+            // Event button
+            if (post.eventId != null) {
+                TextButton(onClick = { onEventClick(post.eventId) }) {
+                    Text(text = "View Event", color = MaterialTheme.colorScheme.primary)
+                }
+            }
+
             // Post Image
             if (!post.imageUrl.isNullOrEmpty()) {
                 Spacer(modifier = Modifier.height(12.dp))
@@ -159,6 +167,7 @@ fun PostCard(
                         )
                     }
                 }
+
             }
         }
     }
@@ -181,7 +190,8 @@ fun PostCardPreviewLight() {
                 isLiked = false
             ),
             onLike = {},
-            onViewDetails = {}
+            onViewDetails = { _ -> },
+            onEventClick = {}
         )
     }
 }
@@ -203,7 +213,8 @@ fun PostCardPreviewDark() {
                 isLiked = true
             ),
             onLike = {},
-            onViewDetails = {}
+            onViewDetails = { _ -> },
+            onEventClick = {}
         )
     }
 }

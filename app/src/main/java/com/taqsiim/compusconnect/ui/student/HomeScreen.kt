@@ -82,6 +82,7 @@ import kotlinx.coroutines.launch
 fun HomeScreen(
     viewModel: StudentViewModel = hiltViewModel(),
     onNavigateToEventDetail: (String) -> Unit,
+    onNavigateToPostDetail: (String) -> Unit,
     onNavigateToReservations: () -> Unit = {},
     onNavigateToRoomForm: () -> Unit = {},
     onNavigateToSportForm: () -> Unit = {},
@@ -230,18 +231,19 @@ fun HomeScreen(
                             items(state.data) { post ->
                                 PostCard(
                                     post = post,
-                                    onLike = { 
+                                    onLike = {
                                         if (post.isLiked) {
                                             viewModel.unlikePost(post.postId)
                                         } else {
                                             viewModel.likePost(post.postId)
                                         }
                                     },
-                                    onViewDetails = { onNavigateToEventDetail(post.eventId?.toString() ?: "") }
+                                    onViewDetails = { clickedPost -> onNavigateToPostDetail(clickedPost.postId.toString()) },
+                                    onEventClick = { eventId -> onNavigateToEventDetail(eventId.toString()) }
                                 )
                                 Spacer(modifier = Modifier.height(12.dp))
                             }
-                            
+
                             // Empty state
                             if (state.data.isEmpty()) {
                                 item {
