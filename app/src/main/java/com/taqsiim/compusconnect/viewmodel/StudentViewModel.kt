@@ -57,7 +57,6 @@ class StudentViewModel @Inject constructor(
         viewModelScope.launch {
             Log.d(TAG, "Loading posts...")
             _postsState.value = UiState.Loading
-
             val result = postRepository.getPosts()
             result.fold(
                 onSuccess = { posts ->

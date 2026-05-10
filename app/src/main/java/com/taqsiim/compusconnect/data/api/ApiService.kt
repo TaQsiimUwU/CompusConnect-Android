@@ -4,11 +4,7 @@ import com.taqsiim.compusconnect.data.model.*
 import retrofit2.http.*
 import com.taqsiim.compusconnect.util.Constants.Endpoints
 
-/**
- * API Service for all network calls
- * TODO: Replace BASE_URL with your actual API endpoint
- * TODO: Implement all API endpoints
- */
+
 interface ApiService {
     // Auth
     @POST(Endpoints.LOGIN)
