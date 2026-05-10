@@ -48,6 +48,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.taqsiim.compusconnect.R
 import com.taqsiim.compusconnect.data.model.User
 import com.taqsiim.compusconnect.data.model.UserRole
@@ -128,11 +129,13 @@ fun ProfileHeaderCard(user: User?) {
                         color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = "Profile Picture",
-                                modifier = Modifier.size(48.dp),
-                                tint = MaterialTheme.colorScheme.onPrimary
+                            AsyncImage(
+                                model = user?.pictureUrl,
+                                contentDescription = user?.firstName,
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clip(CircleShape),
+                                contentScale = ContentScale.Crop
                             )
                         }
                     }

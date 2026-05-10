@@ -44,6 +44,9 @@ class StudentViewModel @Inject constructor(
     private val _clubPostsState = MutableStateFlow<UiState<List<Post>>>(UiState.Loading)
     val clubPostsState: StateFlow<UiState<List<Post>>> = _clubPostsState.asStateFlow()
 
+    private val _postCommentsState = MutableStateFlow<UiState<List<Comment>>>(UiState.Loading)
+    val postCommentsState: StateFlow<UiState<List<Comment>>> = _postCommentsState.asStateFlow()
+
     init {
         Log.d(TAG, "StudentViewModel initialized")
         loadPosts()
@@ -278,6 +281,25 @@ class StudentViewModel @Inject constructor(
                     Log.e(TAG, "Failed to load reservations: ${error.message}")
                     _reservationsState.value =
                         UiState.Error(error.message ?: "Failed to load reservations")
+                }
+            )
+        }
+    }
+
+    fun loadPostComments(postId: Int) {
+        viewModelScope.launch {
+            Log.d(TAG, "Loading comments for post: $postId")
+            _postCommentsState.value = UiState.Loading
+
+            val result = postRepository.getComments(postId)
+            result.fold(
+                onSuccess = { comments ->
+                    Log.d(TAG, "Comments loaded successfully: ${comments.size} comments")
+                    _postCommentsState.value = UiState.Success(comments)
+                },
+                onFailure = { error ->
+                    Log.e(TAG, "Failed to load comments: ${error.message}")
+                    _postCommentsState.value = UiState.Error(error.message ?: "Failed to load comments")
                 }
             )
         }

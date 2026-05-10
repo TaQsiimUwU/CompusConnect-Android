@@ -215,7 +215,7 @@ fun StudentAppRoot(
 }
 
 @Composable
-fun ManagerAppRoot(onSwitchRole: () -> Unit, onLogout: () -> Unit) {
+fun ManagerAppRoot(onSwitchRole: () -> Unit, onLogout: () -> Unit, authViewModel: AuthViewModel) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: "manager/home"

@@ -86,7 +86,7 @@ fun PostCard(
                         }
 
                         Text(
-                            text = post.createdAt, // TODO: Format date
+                            text = post.createdAt, // Date is formatted in data layer
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
