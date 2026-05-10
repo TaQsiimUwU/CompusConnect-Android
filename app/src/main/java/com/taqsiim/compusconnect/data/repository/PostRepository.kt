@@ -18,14 +18,10 @@ class PostRepository @Inject constructor(
     suspend fun getPosts(): Result<List<Post>> {
         return try {
             val response = api.getPosts()
-<<<<<<< HEAD
             val posts = response.newsFeed.map { it.formatDates() }
             if (posts.isNotEmpty()) {
                 Log.d(TAG , "Post: ${posts[0]}")
             }
-=======
-            val posts = response.newsFeed
->>>>>>> 66afcfc (idk)
             Result.success(posts)
         } catch (e: Exception) {
             Result.failure(e)
