@@ -20,24 +20,22 @@ import com.taqsiim.compusconnect.data.model.Reservation
 import com.taqsiim.compusconnect.data.model.ReservationType
 import com.taqsiim.compusconnect.ui.components.ReservationCard
 import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
-import com.taqsiim.compusconnect.viewmodel.StudentViewModel
-import com.taqsiim.compusconnect.viewmodel.UiState
+import com.taqsiim.compusconnect.ui.student.reservations.ReservationsViewModel
+import com.taqsiim.compusconnect.ui.student.reservations.ReservationsIntent
+import com.taqsiim.compusconnect.mvi.UiState
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReservationsScreen(
     onNavigateBack: () -> Unit,
-    viewModel: StudentViewModel = hiltViewModel()
+    viewModel: ReservationsViewModel = hiltViewModel()
 ) {
     val filters = ReservationFilter.entries.toTypedArray()
     val pagerState = rememberPagerState(pageCount = { filters.size })
     val coroutineScope = rememberCoroutineScope()
-    val reservationsState by viewModel.reservationsState.collectAsState()
-    
-    LaunchedEffect(Unit) {
-        viewModel.loadReservations()
-    }
+    val reservationsScreenState by viewModel.state.collectAsState()
+    val reservationsState = reservationsScreenState.reservations
 
     Scaffold(
         topBar = {
@@ -140,7 +138,10 @@ fun ReservationsScreen(
                             items(filteredReservations) { reservation ->
                                 ReservationCard(
                                     reservation = reservation,
-                                    modifier = Modifier.fillMaxWidth()
+                                    modifier = Modifier.fillMaxWidth(),
+                                    onCancelClick = {
+                                        viewModel.processIntent(ReservationsIntent.CancelReservation(reservation.reservationId))
+                                    }
                                 )
                             }
 
@@ -163,6 +164,7 @@ fun ReservationsScreen(
                         }
                     }
                 }
+                is UiState.Idle -> { }
             }
         }
     }

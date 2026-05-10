@@ -55,7 +55,9 @@ import com.taqsiim.compusconnect.data.model.UserRole
 import com.taqsiim.compusconnect.ui.components.AccountActionsSection
 import com.taqsiim.compusconnect.ui.components.ActionItem
 import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
-import com.taqsiim.compusconnect.viewmodel.AuthViewModel
+import com.taqsiim.compusconnect.ui.auth.AuthViewModel
+import com.taqsiim.compusconnect.ui.auth.AuthState
+import com.taqsiim.compusconnect.ui.auth.AuthIntent
 
 @Composable
 fun ProfileScreen(
@@ -63,10 +65,11 @@ fun ProfileScreen(
     onSwitchToManager: () -> Unit,
     onLogout: () -> Unit
 ) {
-    val currentUser by viewModel.currentUser.collectAsState()
+    val authState by viewModel.state.collectAsState()
+    val currentUser = authState.currentUser
     LaunchedEffect(currentUser) {
         if (currentUser == null) {
-            viewModel.refreshCurrentUser()
+            viewModel.processIntent(AuthIntent.RefreshUser)
         }
     }
     ProfileScreenContent(

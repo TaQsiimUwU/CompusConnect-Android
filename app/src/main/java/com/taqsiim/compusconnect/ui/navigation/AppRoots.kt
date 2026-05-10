@@ -12,41 +12,48 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.taqsiim.compusconnect.ui.student.BookRoomForm
-import com.taqsiim.compusconnect.ui.student.ClubsScreen
-import com.taqsiim.compusconnect.ui.student.EventsScreen
-import com.taqsiim.compusconnect.ui.student.HomeScreen
-import com.taqsiim.compusconnect.ui.student.ProfileScreen
+import com.taqsiim.compusconnect.data.model.UserRole
+import com.taqsiim.compusconnect.ui.clubManager.AttendeesScreen
+import com.taqsiim.compusconnect.ui.clubManager.ClubAccountScreen
 import com.taqsiim.compusconnect.ui.clubManager.ManagerHomeScreen
 import com.taqsiim.compusconnect.ui.clubManager.RequestsScreen
-import com.taqsiim.compusconnect.viewmodel.ManagerViewModel
-import com.taqsiim.compusconnect.viewmodel.StudentViewModel
-import androidx.hilt.navigation.compose.hiltViewModel
-import com.taqsiim.compusconnect.data.model.UserRole
-import com.taqsiim.compusconnect.ui.clubManager.ClubAccountScreen
-import com.taqsiim.compusconnect.ui.student.ReportIssueScreen
-import com.taqsiim.compusconnect.ui.student.ReserveSport
-import com.taqsiim.compusconnect.ui.student.ReservationsScreen
-import com.taqsiim.compusconnect.ui.student.NotificationsScreen
-import com.taqsiim.compusconnect.ui.student.EventDetailScreen
-import com.taqsiim.compusconnect.ui.student.ClubProfileScreen
 import com.taqsiim.compusconnect.ui.clubManager.ScheduleEventScreen
-import com.taqsiim.compusconnect.ui.clubManager.AttendeesScreen
+import com.taqsiim.compusconnect.ui.student.BookRoomForm
+import com.taqsiim.compusconnect.ui.student.ClubProfileScreen
+import com.taqsiim.compusconnect.ui.student.ClubsScreen
+import com.taqsiim.compusconnect.ui.student.EventDetailScreen
+import com.taqsiim.compusconnect.ui.student.EventsScreen
+import com.taqsiim.compusconnect.ui.student.HomeScreen
+import com.taqsiim.compusconnect.ui.student.NotificationsScreen
 import com.taqsiim.compusconnect.ui.student.PostDetailScreen
-import com.taqsiim.compusconnect.viewmodel.AuthViewModel
+import com.taqsiim.compusconnect.ui.student.ProfileScreen
+import com.taqsiim.compusconnect.ui.student.ReportIssueScreen
+import com.taqsiim.compusconnect.ui.student.ReservationsScreen
+import com.taqsiim.compusconnect.ui.student.ReserveSport
+import com.taqsiim.compusconnect.ui.auth.AuthViewModel
+import com.taqsiim.compusconnect.ui.student.home.HomeViewModel
+import com.taqsiim.compusconnect.ui.student.events.EventsViewModel
+import com.taqsiim.compusconnect.ui.student.events.EventDetailViewModel
+import com.taqsiim.compusconnect.ui.student.clubs.ClubsViewModel
+import com.taqsiim.compusconnect.ui.student.clubs.ClubDetailViewModel
+import com.taqsiim.compusconnect.ui.student.posts.PostDetailViewModel
+import com.taqsiim.compusconnect.ui.student.reservations.ReservationsViewModel
+import com.taqsiim.compusconnect.ui.clubManager.home.ManagerHomeViewModel
+import com.taqsiim.compusconnect.ui.clubManager.requests.RequestsViewModel
+import com.taqsiim.compusconnect.ui.clubManager.attendees.AttendeesViewModel
 
 @Composable
 fun StudentAppRoot(
     onSwitchRole: () -> Unit,
     onLogout: () -> Unit,
-    authViewModel: AuthViewModel = hiltViewModel(),
-    studentViewModel: StudentViewModel = hiltViewModel()
+    authViewModel: AuthViewModel,
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -101,7 +108,7 @@ fun StudentAppRoot(
             // modifier = Modifier.padding(innerPadding)
             ) {
             composable("student/home") {
-                val viewModel: StudentViewModel = hiltViewModel()
+                val viewModel: HomeViewModel = hiltViewModel()
                 HomeScreen(
                     viewModel = viewModel,
                     onNavigateToEventDetail = { eventId -> navController.navigate("student/event/$eventId") },
@@ -152,7 +159,7 @@ fun StudentAppRoot(
                 )
             }
             composable("student/events") {
-                val viewModel: StudentViewModel = hiltViewModel()
+                val viewModel: EventsViewModel = hiltViewModel()
                 EventsScreen(
                     viewModel = viewModel,
                     onNavigateToEventDetail = { eventId -> navController.navigate("student/event/$eventId") },
@@ -179,12 +186,11 @@ fun StudentAppRoot(
                 PostDetailScreen(
                     postId = postId,
                     onNavigateToEventDetail = { eventId -> navController.navigate("student/event/$eventId") },
-                    onNavigateBack = { navController.popBackStack()},
-                    viewModel = studentViewModel
+                    onNavigateBack = { navController.popBackStack()}
                 )
             }
             composable("student/clubs") {
-                val viewModel: StudentViewModel = hiltViewModel()
+                val viewModel: ClubsViewModel = hiltViewModel()
                 ClubsScreen(
                     viewModel = viewModel,
                     onNavigateToClubProfile = { clubId -> navController.navigate("student/club/$clubId") },
@@ -249,7 +255,7 @@ fun ManagerAppRoot(onSwitchRole: () -> Unit, onLogout: () -> Unit, authViewModel
             )
         ) {
             composable("manager/home") {
-                val viewModel: ManagerViewModel = hiltViewModel()
+                val viewModel: ManagerHomeViewModel = hiltViewModel()
                 ManagerHomeScreen(
                     viewModel = viewModel,
                     onCreatePost = { /* TODO */ },
@@ -268,7 +274,7 @@ fun ManagerAppRoot(onSwitchRole: () -> Unit, onLogout: () -> Unit, authViewModel
                 )
             }
             composable("manager/requests") {
-                val viewModel: ManagerViewModel = hiltViewModel()
+                val viewModel: RequestsViewModel = hiltViewModel()
                 RequestsScreen(
                     viewModel = viewModel
                 )

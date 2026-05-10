@@ -35,7 +35,8 @@ import android.content.res.Configuration
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.taqsiim.compusconnect.data.model.UserRole
-import com.taqsiim.compusconnect.viewmodel.ManagerViewModel
+import com.taqsiim.compusconnect.ui.clubManager.home.ManagerHomeViewModel
+import com.taqsiim.compusconnect.mvi.UiState
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButtonMenu
 import androidx.compose.material3.FloatingActionButtonMenuItem
@@ -44,12 +45,13 @@ import androidx.compose.material3.FloatingActionButtonMenuItem
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ManagerHomeScreen(
-    viewModel: ManagerViewModel,
+    viewModel: ManagerHomeViewModel,
     onCreatePost: () -> Unit,
     onScheduleEvent: () -> Unit,
     onScheduleSession: () -> Unit
 ) {
-    val postsState by viewModel.postsState.collectAsState()
+    val managerState by viewModel.state.collectAsState()
+    val postsState = managerState.posts
 
     var isFabExpanded by remember { mutableStateOf(false) }
     val fabRotation by animateFloatAsState(targetValue = if (isFabExpanded) 45f else 0f, label = "fabRotation")
@@ -121,7 +123,7 @@ fun ManagerHomeScreen(
             contentPadding = PaddingValues(bottom = 80.dp)
         ) {
             when (val state = postsState) {
-                is com.taqsiim.compusconnect.viewmodel.UiState.Loading -> {
+                is UiState.Loading -> {
                     item {
                         Box(
                             modifier = Modifier.fillMaxWidth().padding(32.dp),
@@ -131,7 +133,7 @@ fun ManagerHomeScreen(
                         }
                     }
                 }
-                is com.taqsiim.compusconnect.viewmodel.UiState.Error -> {
+                is UiState.Error -> {
                     item {
                         Text(
                             text = state.message,
@@ -141,11 +143,12 @@ fun ManagerHomeScreen(
                         )
                     }
                 }
-                is com.taqsiim.compusconnect.viewmodel.UiState.Success -> {
+                is UiState.Success -> {
                     items(state.data) { post ->
                         AnnouncementCard(post = post)
                     }
                 }
+                is UiState.Idle -> { }
             }
         }
     }

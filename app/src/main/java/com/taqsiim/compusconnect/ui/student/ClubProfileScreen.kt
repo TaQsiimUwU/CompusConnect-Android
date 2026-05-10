@@ -36,10 +36,13 @@ fun ClubProfileScreen(
     clubId: String,
     onNavigateBack: () -> Unit
 ) {
-    // Use Hilt-injected StudentViewModel to get club details
-    val viewModel: com.taqsiim.compusconnect.viewmodel.StudentViewModel = androidx.hilt.navigation.compose.hiltViewModel()
-    val clubsState by viewModel.clubsState.collectAsState()
+    val viewModel: com.taqsiim.compusconnect.ui.student.clubs.ClubDetailViewModel = androidx.hilt.navigation.compose.hiltViewModel()
+    val clubDetailState by viewModel.state.collectAsState()
     val clubIdInt = clubId.toIntOrNull()
+
+    LaunchedEffect(clubIdInt) {
+        clubIdInt?.let { viewModel.processIntent(com.taqsiim.compusconnect.ui.student.clubs.ClubDetailIntent.LoadClub(it)) }
+    }
 
     var selectedTab by remember { mutableIntStateOf(0) }
     val tabs = listOf("Posts", "Sessions")
@@ -96,7 +99,7 @@ fun ClubProfileScreen(
                         Spacer(modifier = Modifier.height(12.dp))
 
                         Text(
-                            text = (clubsState as? com.taqsiim.compusconnect.viewmodel.UiState.Success)?.data?.firstOrNull { it.id == clubIdInt }?.name ?: "",
+                            text = (clubDetailState.club as? com.taqsiim.compusconnect.mvi.UiState.Success)?.data?.name ?: "",
                             style = MaterialTheme.typography.headlineMedium,
                             color = Color.White,
                             fontWeight = FontWeight.Bold
@@ -115,7 +118,7 @@ fun ClubProfileScreen(
                                 modifier = Modifier.size(16.dp)
                             )
                             Text(
-                                text = "${(clubsState as? com.taqsiim.compusconnect.viewmodel.UiState.Success)?.data?.firstOrNull { it.id == clubIdInt }?.followersCount ?: 0} members",
+                                text = "${(clubDetailState.club as? com.taqsiim.compusconnect.mvi.UiState.Success)?.data?.followersCount ?: 0} members",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = Color.White.copy(alpha = 0.8f)
                             )
@@ -124,7 +127,7 @@ fun ClubProfileScreen(
                         Spacer(modifier = Modifier.height(12.dp))
 
                         Text(
-                            text = (clubsState as? com.taqsiim.compusconnect.viewmodel.UiState.Success)?.data?.firstOrNull { it.id == clubIdInt }?.description ?: "",
+                            text = (clubDetailState.club as? com.taqsiim.compusconnect.mvi.UiState.Success)?.data?.description ?: "",
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.White.copy(alpha = 0.9f),
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center

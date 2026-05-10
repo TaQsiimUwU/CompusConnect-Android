@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Report
 import androidx.compose.material.icons.filled.SportsBasketball
+import androidx.compose.material.icons.filled.Event
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
@@ -69,8 +70,9 @@ import com.taqsiim.compusconnect.data.model.Reservation
 import com.taqsiim.compusconnect.ui.components.PostCard
 import com.taqsiim.compusconnect.ui.components.ReservationCard
 import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
-import com.taqsiim.compusconnect.viewmodel.StudentViewModel
-import com.taqsiim.compusconnect.viewmodel.UiState
+import com.taqsiim.compusconnect.ui.student.home.HomeViewModel
+import com.taqsiim.compusconnect.ui.student.home.HomeIntent
+import com.taqsiim.compusconnect.mvi.UiState
 import kotlinx.coroutines.launch
 
 /**
@@ -80,7 +82,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    viewModel: StudentViewModel = hiltViewModel(),
+    viewModel: HomeViewModel = hiltViewModel(),
     onNavigateToEventDetail: (String) -> Unit,
     onNavigateToPostDetail: (String) -> Unit,
     onNavigateToReservations: () -> Unit = {},
@@ -93,8 +95,9 @@ fun HomeScreen(
     onScrollToTopComplete: () -> Unit = {}
 ) {
     // Collect state from ViewModel
-    val postsState by viewModel.postsState.collectAsState()
-    val reservationsState by viewModel.reservationsState.collectAsState()
+    val homeState by viewModel.state.collectAsState()
+    val postsState = homeState.posts
+    val reservationsState = homeState.reservations
 
     var isRefreshing by remember { mutableStateOf(false) }
     val pullRefreshState = rememberPullToRefreshState()
@@ -103,7 +106,7 @@ fun HomeScreen(
     val onRefresh: () -> Unit = {
         isRefreshing = true
         coroutineScope.launch {
-            viewModel.refresh()
+            viewModel.processIntent(HomeIntent.Refresh)
             isRefreshing = false
         }
     }
@@ -192,7 +195,8 @@ fun HomeScreen(
                         QuickActionsSection(
                             onBookStudyRoom = onNavigateToRoomForm,
                             onReserveSports = onNavigateToSportForm,
-                            onReportIssue = onNavigateToReportIssue
+                            onReportIssue = onNavigateToReportIssue,
+                            onMyReservations = onNavigateToReservations
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                     }
@@ -214,7 +218,7 @@ fun HomeScreen(
                     }
 
                     // Posts List
-                    when (val state = postsState) {
+                    when (postsState) {
                         is UiState.Loading -> {
                             item {
                                 Box(
@@ -228,14 +232,14 @@ fun HomeScreen(
                             }
                         }
                         is UiState.Success -> {
-                            items(state.data) { post ->
+                            items(postsState.data) { post ->
                                 PostCard(
                                     post = post,
                                     onLike = {
                                         if (post.isLiked) {
-                                            viewModel.unlikePost(post.postId)
+                                            viewModel.processIntent(HomeIntent.UnlikePost(post.postId))
                                         } else {
-                                            viewModel.likePost(post.postId)
+                                            viewModel.processIntent(HomeIntent.LikePost(post.postId))
                                         }
                                     },
                                     onViewDetails = { clickedPost -> onNavigateToPostDetail(clickedPost.postId.toString()) },
@@ -246,7 +250,7 @@ fun HomeScreen(
                             }
 
                             // Empty state
-                            if (state.data.isEmpty()) {
+                            if (postsState.data.isEmpty()) {
                                 item {
                                     EmptyStateCard()
                                 }
@@ -255,11 +259,12 @@ fun HomeScreen(
                         is UiState.Error -> {
                             item {
                                 ErrorStateCard(
-                                    message = state.message,
-                                    onRetry = { viewModel.loadPosts() }
+                                    message = postsState.message,
+                                    onRetry = { viewModel.processIntent(HomeIntent.LoadPosts) }
                                 )
                             }
                         }
+                        is UiState.Idle -> { }
                     }
                 }
             }
@@ -274,12 +279,14 @@ fun HomeScreen(
 private fun QuickActionsSection(
     onBookStudyRoom: () -> Unit,
     onReserveSports: () -> Unit,
-    onReportIssue: () -> Unit
+    onReportIssue: () -> Unit,
+    onMyReservations: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -311,6 +318,15 @@ private fun QuickActionsSection(
                 onClick = onReportIssue,
                 modifier = Modifier.weight(1f)
             )
+
+//            QuickActionButton(
+//                icon = Icons.Default.Event,
+//                label = "My Reservations",
+//                iconBackground = Color(0xFFE8F5E9),
+//                iconTint = Color(0xFF388E3C),
+//                onClick = onMyReservations,
+//                modifier = Modifier.weight(1f)
+//            )
         }
     }
 }

@@ -57,27 +57,29 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.taqsiim.compusconnect.data.model.UserRole
 import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 import com.taqsiim.compusconnect.utils.QrScannerUtil
-import com.taqsiim.compusconnect.viewmodel.ManagerViewModel
-import com.taqsiim.compusconnect.viewmodel.UiState
+import com.taqsiim.compusconnect.ui.clubManager.attendees.AttendeesViewModel
+import com.taqsiim.compusconnect.ui.clubManager.attendees.AttendeesIntent
+import com.taqsiim.compusconnect.mvi.UiState
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AttendeesScreen(
-    onScanQrCode: () -> Unit, // This callback might be redundant if we handle scanning internally, but keeping it for flexibility
+    onScanQrCode: () -> Unit,
     eventId: Int = 1, // TODO: Pass actual event ID
-    viewModel: ManagerViewModel = hiltViewModel()
+    viewModel: AttendeesViewModel = hiltViewModel()
 ) {
-    var selectedTab by remember { mutableIntStateOf(0) } // 0: Registered, 1: Attended
+    var selectedTab by remember { mutableIntStateOf(0) }
     var searchQuery by remember { mutableStateOf("") }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val qrScanner = remember { QrScannerUtil(context) }
     var scannedResult by remember { mutableStateOf<String?>(null) }
-    val attendeesState by viewModel.attendeesState.collectAsState()
+    val attendeesScreenState by viewModel.state.collectAsState()
+    val attendeesState = attendeesScreenState.attendees
     
     LaunchedEffect(eventId) {
-        viewModel.loadEventAttendees(eventId)
+        viewModel.processIntent(AttendeesIntent.LoadAttendees(eventId))
     }
 
     Scaffold(
@@ -159,6 +161,7 @@ fun AttendeesScreen(
                     onSearchQueryChange = { searchQuery = it }
                 )
             }
+            is UiState.Idle -> { }
         }
     }
 }

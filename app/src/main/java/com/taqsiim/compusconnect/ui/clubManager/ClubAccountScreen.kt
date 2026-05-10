@@ -41,7 +41,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.taqsiim.compusconnect.data.model.UserRole
 import com.taqsiim.compusconnect.ui.components.AccountActionsSection
 import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
-import com.taqsiim.compusconnect.viewmodel.AuthViewModel
+import com.taqsiim.compusconnect.ui.auth.AuthViewModel
 
 @Composable
 fun ClubAccountScreen(
@@ -49,7 +49,7 @@ fun ClubAccountScreen(
     onLogout: () -> Unit
 ) {
     val viewModel: AuthViewModel = hiltViewModel()
-    val currentUser by viewModel.currentUser.collectAsState()
+    val authState by viewModel.state.collectAsState()
 
     Column(
         modifier = Modifier
@@ -61,7 +61,7 @@ fun ClubAccountScreen(
         ClubHeaderCard()
         AboutClubCard()
         AccountActionsSection(
-            userRole = currentUser?.role ?: UserRole.CLUB_MANAGER,
+            userRole = authState.currentUser?.role ?: UserRole.CLUB_MANAGER,
             onSwitch = onSwitchToStudent,
             onLogout = onLogout
         )

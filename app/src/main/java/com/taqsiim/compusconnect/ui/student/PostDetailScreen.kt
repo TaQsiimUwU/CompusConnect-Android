@@ -2,6 +2,7 @@ package com.taqsiim.compusconnect.ui.student
 
 import android.content.res.Configuration
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -12,6 +13,9 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -33,8 +37,11 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.taqsiim.compusconnect.data.model.Comment
 import com.taqsiim.compusconnect.data.model.Post
-import com.taqsiim.compusconnect.viewmodel.StudentViewModel
-import com.taqsiim.compusconnect.viewmodel.UiState
+import com.taqsiim.compusconnect.ui.student.posts.PostDetailViewModel
+import com.taqsiim.compusconnect.ui.student.posts.PostDetailIntent
+import com.taqsiim.compusconnect.ui.student.posts.PostDetailEffect
+import com.taqsiim.compusconnect.mvi.UiState
+import androidx.hilt.navigation.compose.hiltViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,25 +49,43 @@ fun PostDetailScreen(
     postId: String,
     onNavigateToEventDetail: (String) -> Unit,
     onNavigateBack: () -> Unit,
-    viewModel: StudentViewModel,
+    viewModel: PostDetailViewModel = hiltViewModel(),
     shouldFocusComment: Boolean = false
 ) {
 
-    val postsState by viewModel.postsState.collectAsState()
-    val commentsState by viewModel.postCommentsState.collectAsState()
+    val detailState by viewModel.state.collectAsState()
+    val postState = detailState.post
+    val commentsState = detailState.comments
     var commentText by remember { mutableStateOf("") }
-    var isSubmittingComment by remember { mutableStateOf(false) }
 
     LaunchedEffect(postId) {
-        postId.toIntOrNull()?.let { viewModel.loadPostComments(it) }
+        postId.toIntOrNull()?.let { id ->
+            viewModel.processIntent(PostDetailIntent.LoadPost(id))
+            viewModel.processIntent(PostDetailIntent.LoadComments(id))
+        }
     }
 
-    val post: Post? = when (val state = postsState) {
-        is com.taqsiim.compusconnect.viewmodel.UiState.Success -> state.data.firstOrNull { it.postId.toString() == postId }
-        else -> null
+    // Collect one-shot effects
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is PostDetailEffect.CommentAdded -> { /* comment submitted successfully */ }
+                is PostDetailEffect.ShowSnackbar -> { /* TODO: show snackbar */ }
+            }
+        }
     }
 
     Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Post") },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    }
+                }
+            )
+        },
         bottomBar = {
             // Comment input box
             Surface(
@@ -91,123 +116,206 @@ fun PostDetailScreen(
                     )
                     IconButton(
                         onClick = {
-                            if (commentText.isNotBlank() && post != null && !isSubmittingComment) {
-                                isSubmittingComment = true
-                                viewModel.addComment(post.postId, commentText)
+                            val pid = postId.toIntOrNull()
+                            if (commentText.isNotBlank() && pid != null && !detailState.isSubmitting) {
+                                viewModel.processIntent(PostDetailIntent.AddComment(pid, commentText))
                                 commentText = ""
-                                isSubmittingComment = false
                             }
                         },
-                        enabled = commentText.isNotBlank() && !isSubmittingComment
+                        enabled = commentText.isNotBlank() && !detailState.isSubmitting
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Send,
                             contentDescription = "Send comment",
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = if (commentText.isNotBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
             }
         }
     ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .padding(paddingValues)
-                .padding(16.dp)
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(bottom = 16.dp)
-        ) {
-            item {
-                if (post == null) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(text = "Loading post...", style = MaterialTheme.typography.bodyMedium)
-                    }
-                    return@item
+        when (postState) {
+            is UiState.Loading -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
                 }
             }
-
-            item {
-                post?.let {
-                    Text(text = "Club ${it.clubId}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    Text(text = it.createdAt, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(text = it.content, style = MaterialTheme.typography.bodyLarge)
-
-                    if (!it.imageUrl.isNullOrEmpty()) {
-                        Spacer(modifier = Modifier.height(12.dp))
-                        AsyncImage(
-                            model = it.imageUrl,
-                            contentDescription = "Post image",
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(220.dp)
-                                .clip(RoundedCornerShape(8.dp)),
-                            contentScale = ContentScale.Crop
+            is UiState.Error -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = postState.message,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodyMedium
                         )
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                        Text(text = "${it.likeCount} likes", style = MaterialTheme.typography.bodyMedium)
-                        Text(text = "${it.commentCount} comments", style = MaterialTheme.typography.bodyMedium)
-                    }
-
-                    if (it.eventId != null) {
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Button(onClick = { onNavigateToEventDetail(it.eventId.toString()) }) {
-                            Text(text = "View Event Details")
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Button(onClick = {
+                            postId.toIntOrNull()?.let { viewModel.processIntent(PostDetailIntent.LoadPost(it)) }
+                        }) {
+                            Text("Retry")
                         }
                     }
                 }
             }
-
-            item {
-                HorizontalDivider()
-                Text(text = "Comments", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-            }
-
-            when (val state = commentsState) {
-                is UiState.Loading -> {
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(24.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
+            is UiState.Success -> {
+                val post = postState.data
+                PostDetailContent(
+                    post = post,
+                    commentsState = commentsState,
+                    paddingValues = paddingValues,
+                    onNavigateToEventDetail = onNavigateToEventDetail,
+                    onLike = {
+                        if (post.isLiked) {
+                            viewModel.processIntent(PostDetailIntent.UnlikePost(post.postId))
+                        } else {
+                            viewModel.processIntent(PostDetailIntent.LikePost(post.postId))
                         }
                     }
+                )
+            }
+            is UiState.Idle -> { }
+        }
+    }
+}
+
+@Composable
+private fun PostDetailContent(
+    post: Post,
+    commentsState: UiState<List<Comment>>,
+    paddingValues: PaddingValues,
+    onNavigateToEventDetail: (String) -> Unit,
+    onLike: () -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier
+            .padding(paddingValues)
+            .padding(16.dp)
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(bottom = 16.dp)
+    ) {
+        // Post content
+        item {
+            Text(text = "Club ${post.clubId}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(text = post.createdAt, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(text = post.content, style = MaterialTheme.typography.bodyLarge)
+
+            if (!post.imageUrl.isNullOrEmpty()) {
+                Spacer(modifier = Modifier.height(12.dp))
+                AsyncImage(
+                    model = post.imageUrl,
+                    contentDescription = "Post image",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(220.dp)
+                        .clip(RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Like and comment row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(24.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Like button
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.noRippleClickable { onLike() }
+                ) {
+                    Icon(
+                        imageVector = if (post.isLiked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                        contentDescription = "Like",
+                        tint = if (post.isLiked) Color.Red else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Text(text = "${post.likeCount} likes", style = MaterialTheme.typography.bodyMedium)
                 }
 
-                is UiState.Error -> {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ChatBubbleOutline,
+                        contentDescription = "Comments",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Text(text = "${post.commentCount} comments", style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+
+            if (post.eventId != null) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Button(onClick = { onNavigateToEventDetail(post.eventId.toString()) }) {
+                    Text(text = "View Event Details")
+                }
+            }
+        }
+
+        item {
+            HorizontalDivider()
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = "Comments", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        }
+
+        when (val state = commentsState) {
+            is UiState.Loading -> {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+            }
+
+            is UiState.Error -> {
+                item {
+                    Text(
+                        text = state.message,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+
+            is UiState.Success -> {
+                if (state.data.isEmpty()) {
                     item {
                         Text(
-                            text = state.message,
+                            text = "No comments yet",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.error
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                }
-
-                is UiState.Success -> {
-                    if (state.data.isEmpty()) {
-                        item {
-                            Text(
-                                text = "No comments yet",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    } else {
-                        items(state.data) { comment ->
-                            CommentItem(comment = comment)
-                        }
+                } else {
+                    items(state.data) { comment ->
+                        CommentItem(comment = comment)
                     }
                 }
             }
+
+            is UiState.Idle -> { }
         }
     }
 }
@@ -249,16 +357,16 @@ private fun CommentItem(comment: Comment) {
     }
 }
 
-//@androidx.compose.ui.tooling.preview.Preview(showBackground = true, name = "PostDetail - Light")
-//@androidx.compose.ui.tooling.preview.Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, name = "PostDetail - Dark")
-//@Composable
-//fun PostDetailPreview() {
-//    CampusAppTheme {
-//        PostDetailScreen(
-//            postId = "1",
-//            onNavigateToEventDetail = {},
-//            onNavigateBack = {},
-//            viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
-//        )
-//    }
-//}
+/**
+ * Modifier extension for clickable without ripple effect (for like button).
+ */
+@Composable
+private fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier {
+    return this.then(
+        Modifier.clickable(
+            indication = null,
+            interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+            onClick = onClick
+        )
+    )
+}

@@ -44,6 +44,7 @@ fun ReservationCard(
         ReservationType.SPORT -> Color(0xFF4CAF50)
         ReservationType.EVENT -> Color(0xFF9C27B0)
         ReservationType.SESSION -> Color(0xFFFF9800)
+        null -> MaterialTheme.colorScheme.outline
     }
 
     Card(
@@ -72,7 +73,7 @@ fun ReservationCard(
                     }
                 ) {
                     Text(
-                        text = reservation.type.name.replace("_", " "),
+                        text = reservation.type?.name?.replace("_", " ") ?: "RESERVATION",
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                         style = MaterialTheme.typography.labelSmall,
                         color = Color.White,

@@ -56,8 +56,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.taqsiim.compusconnect.R
 import com.taqsiim.compusconnect.data.model.UserRole
 import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
-import com.taqsiim.compusconnect.viewmodel.AuthViewModel
-import com.taqsiim.compusconnect.viewmodel.LoginState
+import com.taqsiim.compusconnect.ui.auth.AuthViewModel
+import com.taqsiim.compusconnect.ui.auth.AuthState
+import com.taqsiim.compusconnect.ui.auth.AuthIntent
+import com.taqsiim.compusconnect.ui.auth.AuthEffect
 
 @Suppress("ASSIGNED_VALUE_IS_NEVER_READ")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -66,37 +68,34 @@ fun LoginScreen(
     onLoginSuccess: (UserRole) -> Unit,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
+    val authState by viewModel.state.collectAsState()
 
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is AuthEffect.LoginSuccess -> onLoginSuccess(effect.role)
+                is AuthEffect.ShowError -> { /* handled via state.error */ }
+                is AuthEffect.LoggedOut -> { }
+            }
+        }
+    }
 
-    val loginState by viewModel.loginState.collectAsState()
-    val currentUser by viewModel.currentUser.collectAsState()
-
-    LaunchedEffect(currentUser) {
-        currentUser?.role?.let { role ->
+    LaunchedEffect(authState.currentUser) {
+        authState.currentUser?.role?.let { role ->
             onLoginSuccess(role)
         }
     }
 
-    LaunchedEffect(loginState) {
-        when (val state = loginState) {
-            is LoginState.Success -> state.user.role?.let { role ->
-                viewModel.resetLoginState()
-                onLoginSuccess(role)
-            }
-            else -> Unit
-        }
-    }
-
     LoginContent(
-        loginState = loginState,
-        onLoginClick = { email, password -> viewModel.login(email, password) }
+        authState = authState,
+        onLoginClick = { email, password -> viewModel.processIntent(AuthIntent.Login(email, password)) }
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 private fun LoginContent(
-    loginState: LoginState,
+    authState: AuthState,
     onLoginClick: (String, String) -> Unit
 ) {
     var email by remember { mutableStateOf("") }
@@ -173,7 +172,7 @@ private fun LoginContent(
                     leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                     singleLine = true,
-                    enabled = loginState !is LoginState.Loading
+                    enabled = !authState.isLoading
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -195,7 +194,7 @@ private fun LoginContent(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = loginState !is LoginState.Loading
+                    enabled = !authState.isLoading
                 )
                 Spacer(modifier = Modifier.height(32.dp))
                 Button(
@@ -203,9 +202,9 @@ private fun LoginContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
-                    enabled = email.isNotBlank() && password.isNotBlank() && loginState !is LoginState.Loading
+                    enabled = email.isNotBlank() && password.isNotBlank() && !authState.isLoading
                 ) {
-                    if (loginState is LoginState.Loading) {
+                    if (authState.isLoading) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(24.dp),
                             color = MaterialTheme.colorScheme.onPrimary
@@ -229,7 +228,7 @@ private fun LoginContent(
 private fun LoginScreenDarkPreview() {
     CampusAppTheme(darkTheme = true) {
         LoginContent(
-            loginState = LoginState.Idle,
+            authState = AuthState(),
             onLoginClick = { _, _ -> }
         )
     }
@@ -239,7 +238,7 @@ private fun LoginScreenDarkPreview() {
 private fun LoginScreenLightPreview() {
     CampusAppTheme(darkTheme = false) {
         LoginContent(
-            loginState = LoginState.Idle,
+            authState = AuthState(),
             onLoginClick = { _, _ -> }
         )
     }

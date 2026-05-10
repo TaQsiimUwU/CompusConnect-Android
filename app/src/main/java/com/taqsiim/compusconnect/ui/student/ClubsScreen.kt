@@ -22,34 +22,39 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 import com.taqsiim.compusconnect.data.model.Club
 import com.taqsiim.compusconnect.data.model.ClubStatus
-import com.taqsiim.compusconnect.viewmodel.StudentViewModel
+import com.taqsiim.compusconnect.ui.student.clubs.ClubsViewModel
+import com.taqsiim.compusconnect.ui.student.clubs.ClubsIntent
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import kotlinx.coroutines.launch
 import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 import android.content.res.Configuration
 import androidx.compose.ui.tooling.preview.Preview
-import com.taqsiim.compusconnect.viewmodel.UiState
+import com.taqsiim.compusconnect.mvi.UiState
 
 // TODO: Implement ClubsScreen composable
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ClubsScreen(
-    viewModel: StudentViewModel,
+    viewModel: ClubsViewModel,
     onNavigateToClubProfile: (String) -> Unit,
     isScrolling: (Boolean) -> Unit = {}
 ) {
-    val clubsState by viewModel.clubsState.collectAsState()
+    val clubsScreenState by viewModel.state.collectAsState()
+    val clubsState = clubsScreenState.clubs
 
     ClubsScreenContent(
         clubsState = clubsState,
         onNavigateToClubProfile = onNavigateToClubProfile,
         onToggleJoin = { club ->
             if (club.isJoined) {
-                viewModel.leaveClub(club.id)
+                viewModel.processIntent(ClubsIntent.LeaveClub(club.id))
             } else {
-                viewModel.joinClub(club.id)
+                viewModel.processIntent(ClubsIntent.JoinClub(club.id))
             }
         },
         isScrolling = isScrolling
@@ -176,6 +181,7 @@ private fun ClubsScreenContent(
                             )
                         }
                     }
+                    is UiState.Idle -> { }
                 }
             }
         }
@@ -229,24 +235,58 @@ fun ClubCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column {
-            // Header
+            // Header with Cover Image
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(cardColor)
-                    .padding(16.dp)
+                    .height(140.dp)
             ) {
+                // Cover image or fallback color
+                if (!club.cover.isNullOrEmpty()) {
+                    AsyncImage(
+                        model = club.cover,
+                        contentDescription = "${club.name} cover",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                    // Dark scrim for readability
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.4f))
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(cardColor)
+                    )
+                }
+
+                // Content overlay
                 Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Logo Placeholder
-                    Surface(
-                        modifier = Modifier.size(48.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        color = Color.White.copy(alpha = 0.2f)
-                    ) {
-                        // Icon
+                    // Club Logo
+                    if (!club.logo.isNullOrEmpty()) {
+                        AsyncImage(
+                            model = club.logo,
+                            contentDescription = "${club.name} logo",
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(RoundedCornerShape(8.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Surface(
+                            modifier = Modifier.size(48.dp),
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color.White.copy(alpha = 0.2f)
+                        ) { }
                     }
 
                     Column {
@@ -256,12 +296,7 @@ fun ClubCard(
                             color = Color.White,
                             fontWeight = FontWeight.Bold
                         )
-                        Text(
-                            text = "Technology", // TODO: Add category to Club model
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.White.copy(alpha = 0.8f)
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = club.description ?: "No description available",
                             style = MaterialTheme.typography.bodySmall,
@@ -293,6 +328,7 @@ fun ClubCard(
                 ) {
                     if (club.isJoined) {
                         Surface(
+                            onClick = onJoinLeave,
                             modifier = Modifier
                                 .weight(1f)
                                 .height(40.dp),

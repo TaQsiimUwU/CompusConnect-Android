@@ -19,9 +19,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 import com.taqsiim.compusconnect.data.model.Event
 import com.taqsiim.compusconnect.data.model.EventType
-import com.taqsiim.compusconnect.viewmodel.StudentViewModel
+import com.taqsiim.compusconnect.ui.student.events.EventsViewModel
+import com.taqsiim.compusconnect.ui.student.events.EventsIntent
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -30,23 +34,35 @@ import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 import android.content.res.Configuration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.taqsiim.compusconnect.viewmodel.UiState
+import com.taqsiim.compusconnect.mvi.UiState
 
 // TODO: Implement EventsScreen composable
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventsScreen(
-    viewModel: StudentViewModel,
+    viewModel: EventsViewModel,
     onNavigateToEventDetail: (String) -> Unit,
     isScrolling: (Boolean) -> Unit = {}
 ) {
-    val eventsState by viewModel.eventsState.collectAsState()
-    val sessionsState by viewModel.sessionsState.collectAsState()
+    val eventsScreenState by viewModel.state.collectAsState()
+    val allEvents = eventsScreenState.events
+
+    // Split events by type for the two tabs
+    val eventsState = when (allEvents) {
+        is UiState.Success -> UiState.Success(allEvents.data.filter { it.type == EventType.EVENT })
+        else -> allEvents
+    }
+    val sessionsState = when (allEvents) {
+        is UiState.Success -> UiState.Success(allEvents.data.filter { it.type == EventType.SESSION })
+        else -> allEvents
+    }
 
     EventsScreenContent(
         eventsState = eventsState,
         sessionsState = sessionsState,
         onNavigateToEventDetail = onNavigateToEventDetail,
+        onRegister = { eventId -> viewModel.processIntent(EventsIntent.RegisterForEvent(eventId)) },
+        onUnregister = { eventId -> viewModel.processIntent(EventsIntent.UnregisterFromEvent(eventId)) },
         isScrolling = isScrolling
     )
 }
@@ -57,6 +73,8 @@ private fun EventsScreenContent(
     eventsState: UiState<List<Event>>,
     sessionsState: UiState<List<Event>>,
     onNavigateToEventDetail: (String) -> Unit,
+    onRegister: (Int) -> Unit = {},
+    onUnregister: (Int) -> Unit = {},
     isScrolling: (Boolean) -> Unit = {}
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
@@ -152,11 +170,13 @@ private fun EventsScreenContent(
                         items(state.data) { event ->
                             EventCard(
                                 event = event,
-                                onRegister = { /* TODO */ },
+                                onRegister = { onRegister(event.eventId) },
+                                onUnregister = { onUnregister(event.eventId) },
                                 onViewDetails = { onNavigateToEventDetail(event.eventId.toString()) }
                             )
                         }
                     }
+                    is UiState.Idle -> { }
                 }
             }
         }
@@ -167,7 +187,6 @@ private fun EventsScreenContent(
 @Composable
 fun EventsList(
     events: List<Event>,
-    viewModel: StudentViewModel,
     onNavigateToDetail: (String) -> Unit
 ) {
     // Not used in this implementation, logic moved to EventsScreen
@@ -178,9 +197,10 @@ fun EventsList(
 fun EventCard(
     event: Event,
     onRegister: () -> Unit,
+    onUnregister: () -> Unit = {},
     onViewDetails: () -> Unit
 ) {
-    val isRegistered = event.eventId == 1 // Mock registration status
+    val isRegistered = event.isRegistered == true // safe-cast from Boolean? to Boolean
 
     Card(
         modifier = Modifier
@@ -191,63 +211,94 @@ fun EventCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column {
-            // Header with Color
+            // Header with Cover Image
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(100.dp)
-                    .background(if (event.eventId == 1) Color(0xFF2196F3) else Color(0xFFA020F0))
-                    .padding(16.dp)
+                    .height(140.dp)
             ) {
-                Column {
+                // Cover image
+                if (event.clubCoverUrl.isNotEmpty()) {
+                    AsyncImage(
+                        model = event.clubCoverUrl,
+                        contentDescription = "Event cover",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                    // Dark scrim overlay for text readability
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.4f))
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(if (event.type == EventType.EVENT) Color(0xFF2196F3) else Color(0xFFA020F0))
+                    )
+                }
+
+                // Content on top of cover
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        // Placeholder for Club Logo
-                        Surface(
-                            modifier = Modifier.size(24.dp),
-                            shape = RoundedCornerShape(4.dp),
-                            color = Color.White.copy(alpha = 0.2f)
-                        ) {
-                            // Icon or Image
+                        // Club Logo
+                        if (event.clubLogoUrl.isNotEmpty()) {
+                            AsyncImage(
+                                model = event.clubLogoUrl,
+                                contentDescription = "${event.clubName} logo",
+                                modifier = Modifier
+                                    .size(28.dp)
+                                    .clip(RoundedCornerShape(6.dp)),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Surface(
+                                modifier = Modifier.size(28.dp),
+                                shape = RoundedCornerShape(6.dp),
+                                color = Color.White.copy(alpha = 0.2f)
+                            ) { }
                         }
+
+                        Spacer(modifier = Modifier.weight(1f))
 
                         if (isRegistered) {
                             Surface(
-                                color = Color.White.copy(alpha = 0.2f),
+                                color = Color.White.copy(alpha = 0.25f),
                                 shape = RoundedCornerShape(16.dp)
                             ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    Text(
-                                        text = "✓ Registered",
-                                        color = Color.White,
-                                        style = MaterialTheme.typography.labelSmall
-                                    )
-                                }
+                                Text(
+                                    text = "✓ Registered",
+                                    color = Color.White,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                )
                             }
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = event.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 1
-                    )
-
-                    Text(
-                        text = event.clubName,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(alpha = 0.9f)
-                    )
+                    Column {
+                        Text(
+                            text = event.title,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1
+                        )
+                        Text(
+                            text = event.clubName,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.White.copy(alpha = 0.9f)
+                        )
+                    }
                 }
             }
 
@@ -268,13 +319,17 @@ fun EventCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Outlined.CalendarToday, null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Dec 5, 2025", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(event.startTime.substringBefore("T", event.startTime), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Outlined.Schedule, null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("3:00 PM - 6:00 PM", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        text = "${event.startTime.substringAfter("T", "").take(5)} - ${event.endTime.substringAfter("T", "").take(5)}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -312,7 +367,7 @@ fun EventCard(
 
                     if (isRegistered) {
                         OutlinedButton(
-                            onClick = { /* Cancel */ },
+                            onClick = onUnregister,
                             modifier = Modifier.weight(1f),
                             colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
                             border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error)

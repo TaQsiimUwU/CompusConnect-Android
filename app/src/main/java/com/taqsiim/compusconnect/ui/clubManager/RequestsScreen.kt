@@ -43,18 +43,16 @@ import androidx.compose.ui.unit.dp
 import com.taqsiim.compusconnect.data.model.EventStatus
 import com.taqsiim.compusconnect.data.model.UserRole
 import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
-import com.taqsiim.compusconnect.viewmodel.ManagerViewModel
+import com.taqsiim.compusconnect.ui.clubManager.requests.RequestsViewModel
+import com.taqsiim.compusconnect.mvi.UiState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RequestsScreen(
-    viewModel: ManagerViewModel
+    viewModel: RequestsViewModel
 ) {
-    val requestedEventsState by viewModel.requestedEventsState.collectAsState()
-    
-    LaunchedEffect(Unit) {
-        viewModel.loadRequestedEvents()
-    }
+    val requestsScreenState by viewModel.state.collectAsState()
+    val requestedEventsState = requestsScreenState.requests
 
     Scaffold(
         topBar = {
@@ -67,7 +65,7 @@ fun RequestsScreen(
         }
     ) { paddingValues ->
         when (val state = requestedEventsState) {
-            is com.taqsiim.compusconnect.viewmodel.UiState.Loading -> {
+            is UiState.Loading -> {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -77,7 +75,7 @@ fun RequestsScreen(
                     CircularProgressIndicator()
                 }
             }
-            is com.taqsiim.compusconnect.viewmodel.UiState.Error -> {
+            is UiState.Error -> {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -91,8 +89,9 @@ fun RequestsScreen(
                     )
                 }
             }
-            is com.taqsiim.compusconnect.viewmodel.UiState.Success<*> -> {
-                val requests = state.data as List<com.taqsiim.compusconnect.data.model.PendingEvent>
+            is UiState.Idle -> { }
+            is UiState.Success -> {
+                val requests = state.data
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()

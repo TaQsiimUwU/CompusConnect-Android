@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.taqsiim.compusconnect.data.model.Post
 import androidx.compose.ui.tooling.preview.Preview
+import com.taqsiim.compusconnect.data.model.Club
 import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 
 /**
@@ -60,20 +61,25 @@ fun PostCard(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     // Club Logo
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .background(
-                                MaterialTheme.colorScheme.primaryContainer,
-                                CircleShape
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Group,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
+                    if (!post.clubLogoUrl.isNullOrEmpty()) {
+                        AsyncImage(
+                            model = post.clubLogoUrl,
+                            contentDescription = "${post.clubName.orEmpty()} logo",
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
                         )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .background(
+                                    MaterialTheme.colorScheme.primaryContainer,
+                                    CircleShape
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) { }
                     }
 
                     Column {
@@ -82,7 +88,7 @@ fun PostCard(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Text(
-                                text = "Club ${post.clubId}", // TODO: Get club name from ID
+                                text = post.clubName ?: "Club ${post.clubId}",
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.Bold
                             )
@@ -199,7 +205,11 @@ fun PostCardPreviewLight() {
     }
 }
 
-@Preview(showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, name = "Post Card - Dark")
+@Preview(
+    showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
+    name = "Post Card - Dark"
+)
 @Composable
 fun PostCardPreviewDark() {
     CampusAppTheme(darkTheme = true) {
