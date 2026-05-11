@@ -1,6 +1,5 @@
 package com.taqsiim.compusconnect.ui.clubManager
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,7 +24,10 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
@@ -54,6 +56,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.taqsiim.compusconnect.data.model.Event
 import com.taqsiim.compusconnect.data.model.UserRole
 import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 import com.taqsiim.compusconnect.utils.QrScannerUtil
@@ -66,7 +69,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun AttendeesScreen(
     onScanQrCode: () -> Unit,
-    eventId: Int = 1, // TODO: Pass actual event ID
+    events: List<Event> = emptyList(),
     viewModel: AttendeesViewModel = hiltViewModel()
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
@@ -77,9 +80,17 @@ fun AttendeesScreen(
     var scannedResult by remember { mutableStateOf<String?>(null) }
     val attendeesScreenState by viewModel.state.collectAsState()
     val attendeesState = attendeesScreenState.attendees
-    
-    LaunchedEffect(eventId) {
-        viewModel.processIntent(AttendeesIntent.LoadAttendees(eventId))
+
+    // Event selector state
+    var selectedEvent by remember { mutableStateOf<Event?>(null) }
+    var isEventDropdownExpanded by remember { mutableStateOf(false) }
+
+    // Auto-select first event and load attendees
+    LaunchedEffect(events) {
+        if (events.isNotEmpty() && selectedEvent == null) {
+            selectedEvent = events.first()
+            viewModel.processIntent(AttendeesIntent.LoadAttendees(events.first().eventId))
+        }
     }
 
     Scaffold(
@@ -102,13 +113,12 @@ fun AttendeesScreen(
                                 val result = qrScanner.scanQrCode()
                                 if (result != null) {
                                     scannedResult = result
-                                    // TODO: Handle the scanned result (e.g., check in the attendee)
                                     println("Scanned QR Code: $result")
                                 }
                             }
                         },
                         colors = IconButtonDefaults.filledIconButtonColors(
-                            containerColor = Color(0xFFD500F9) // Purple from screenshot
+                            containerColor = Color(0xFFD500F9)
                         ),
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.padding(end = 16.dp)
@@ -126,164 +136,212 @@ fun AttendeesScreen(
             )
         }
     ) { paddingValues ->
-        when (val state = attendeesState) {
-            is UiState.Loading -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
-            }
-            is UiState.Error -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = state.message,
-                        color = MaterialTheme.colorScheme.error,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(16.dp)
-                    )
-                }
-            }
-            is UiState.Success -> {
-                val attendees = state.data
-                AttendeeContent(
-                    attendees = attendees,
-                    paddingValues = paddingValues,
-                    searchQuery = searchQuery,
-                    onSearchQueryChange = { searchQuery = it }
-                )
-            }
-            is UiState.Idle -> { }
-        }
-    }
-}
-
-@Composable
-private fun AttendeeContent(
-    attendees: List<com.taqsiim.compusconnect.data.model.RegisteredStudentResponse>,
-    paddingValues: PaddingValues,
-    searchQuery: String,
-    onSearchQueryChange: (String) -> Unit
-) {
-    var selectedTab by remember { mutableIntStateOf(0) } // 0: Registered, 1: Attended
-    
-    val registeredCount = attendees.size
-    val attendedCount = 0
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(paddingValues)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Event Selector Card
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+            // Event Selector Dropdown
+            if (events.isNotEmpty()) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "Select Event",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                        ExposedDropdownMenuBox(
+                            expanded = isEventDropdownExpanded,
+                            onExpandedChange = { isEventDropdownExpanded = !isEventDropdownExpanded }
+                        ) {
+                            OutlinedTextField(
+                                value = selectedEvent?.title ?: "Select an event",
+                                onValueChange = {},
+                                readOnly = true,
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isEventDropdownExpanded) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .menuAnchor(),
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            ExposedDropdownMenu(
+                                expanded = isEventDropdownExpanded,
+                                onDismissRequest = { isEventDropdownExpanded = false }
+                            ) {
+                                events.forEach { event ->
+                                    DropdownMenuItem(
+                                        text = {
+                                            Column {
+                                                Text(event.title, fontWeight = FontWeight.Medium)
+                                                Text(
+                                                    event.startTime.substringBefore("T"),
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            }
+                                        },
+                                        onClick = {
+                                            selectedEvent = event
+                                            isEventDropdownExpanded = false
+                                            viewModel.processIntent(AttendeesIntent.LoadAttendees(event.eventId))
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
                     Text(
-                        text = "AI & Machine Learning Workshop",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Text(
-                        text = "Dec 5",
+                        text = "No events available",
+                        modifier = Modifier.padding(16.dp),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
 
-            // Tabs
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                AttendeeTabButton(
-                    text = "Registered ($registeredCount)",
-                    selected = selectedTab == 0,
-                    onClick = { selectedTab = 0 },
-                    modifier = Modifier.weight(1f),
-                    icon = Icons.Default.AccessTime
-                )
-                AttendeeTabButton(
-                    text = "Attended ($attendedCount)",
-                    selected = selectedTab == 1,
-                    onClick = { selectedTab = 1 },
-                    modifier = Modifier.weight(1f),
-                    icon = Icons.Default.CheckCircleOutline
-                )
-            }
+            // Attendees content
+            when (val state = attendeesState) {
+                is UiState.Loading -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+                is UiState.Error -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = state.message,
+                            color = MaterialTheme.colorScheme.error,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                }
+                is UiState.Success -> {
+                    val attendees = state.data
 
-            // Search Bar
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = onSearchQueryChange,
-                placeholder = { Text("Search attendees...") },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
-                    focusedBorderColor = MaterialTheme.colorScheme.primary
-                )
-            )
+                    val registeredCount = attendees.size
+                    val attendedCount = 0
 
-            Text(
-                text = if (selectedTab == 0) "Registered Attendees" else "Attended Attendees",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+                    // Tabs
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        AttendeeTabButton(
+                            text = "Registered ($registeredCount)",
+                            selected = selectedTab == 0,
+                            onClick = { selectedTab = 0 },
+                            modifier = Modifier.weight(1f),
+                            icon = Icons.Default.AccessTime
+                        )
+                        AttendeeTabButton(
+                            text = "Attended ($attendedCount)",
+                            selected = selectedTab == 1,
+                            onClick = { selectedTab = 1 },
+                            modifier = Modifier.weight(1f),
+                            icon = Icons.Default.CheckCircleOutline
+                        )
+                    }
 
-            // List
-            val filteredAttendees = if (selectedTab == 0) {
-                attendees
-            } else {
-                emptyList()
-            }.filter {
-                searchQuery.isBlank() || it.name.contains(searchQuery, ignoreCase = true)
-            }
+                    // Search Bar
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        placeholder = { Text("Search attendees...") },
+                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                            focusedBorderColor = MaterialTheme.colorScheme.primary
+                        )
+                    )
 
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(bottom = 16.dp)
-            ) {
-                if (filteredAttendees.isEmpty()) {
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(32.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "No attendees found",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                    Text(
+                        text = if (selectedTab == 0) "Registered Attendees" else "Attended Attendees",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    // List
+                    val filteredAttendees = if (selectedTab == 0) {
+                        attendees
+                    } else {
+                        emptyList()
+                    }.filter {
+                        searchQuery.isBlank() || it.name.contains(searchQuery, ignoreCase = true)
+                    }
+
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(bottom = 16.dp)
+                    ) {
+                        if (filteredAttendees.isEmpty()) {
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(32.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "No attendees found",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                        items(filteredAttendees) { attendee ->
+                            RegisteredStudentCard(attendee = attendee)
                         }
                     }
                 }
-                items(filteredAttendees) { attendee ->
-                    RegisteredStudentCard(attendee = attendee)
+                is UiState.Idle -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Select an event to view attendees",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         }
     }
+}
 
 @Composable
 fun RegisteredStudentCard(
@@ -358,7 +416,6 @@ fun AttendeeTabButton(
 @Composable
 fun AttendeesScreenPreview() {
     CampusAppTheme(userRole = UserRole.CLUB_MANAGER) {
-        AttendeesScreen(onScanQrCode = {}, eventId = 1)
-
+        AttendeesScreen(onScanQrCode = {})
     }
 }
