@@ -1,40 +1,69 @@
 package com.taqsiim.compusconnect.ui.student
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.TrendingUp
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.CalendarToday
 import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.TrendingUp
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.taqsiim.compusconnect.data.model.Club
 import com.taqsiim.compusconnect.data.model.ClubStatus
-import com.taqsiim.compusconnect.ui.student.clubs.ClubsViewModel
-import com.taqsiim.compusconnect.ui.student.clubs.ClubsIntent
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import kotlinx.coroutines.launch
-import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
-import android.content.res.Configuration
-import androidx.compose.ui.tooling.preview.Preview
 import com.taqsiim.compusconnect.mvi.UiState
+import com.taqsiim.compusconnect.ui.student.clubs.ClubsIntent
+import com.taqsiim.compusconnect.ui.student.clubs.ClubsViewModel
+import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
+import kotlinx.coroutines.launch
 
 // TODO: Implement ClubsScreen composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -163,15 +192,15 @@ private fun ClubsScreenContent(
                     )
                 }
 
-                when (val state = clubsState) {
+                when (clubsState) {
                     is UiState.Loading -> {
                         item { CircularProgressIndicator() }
                     }
                     is UiState.Error -> {
-                        item { Text(state.message) }
+                        item { Text(clubsState.message) }
                     }
                     is UiState.Success -> {
-                        val allClubs = state.data
+                        val allClubs = clubsState.data
                         val filteredClubs = if (page == 0) allClubs else allClubs.filter { it.isJoined }
                         items(filteredClubs) { club ->
                             ClubCard(
@@ -317,7 +346,7 @@ fun ClubCard(
                 ) {
                     StatItem(icon = Icons.Outlined.Group, text = "${club.followersCount} members")
                     StatItem(icon = Icons.Outlined.CalendarToday, text = "${club.eventNumber} events")
-                    StatItem(icon = Icons.Outlined.TrendingUp, text = "Active")
+                    StatItem(icon = Icons.AutoMirrored.Outlined.TrendingUp, text = "Active")
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -423,7 +452,7 @@ fun ClubCardPreview() {
         isJoined = true
     )
     CampusAppTheme {
-        ClubCard(club = club, onJoinLeave = {}, onView = {})
+        ClubCard(club = club, onJoinLeave = {}, onView = {} )
     }
 }
 
