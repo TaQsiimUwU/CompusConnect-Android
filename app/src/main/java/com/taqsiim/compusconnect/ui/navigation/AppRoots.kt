@@ -55,6 +55,7 @@ import com.taqsiim.compusconnect.mvi.UiState as MviUiState
 
 @Composable
 fun StudentAppRoot(
+    canSwitchRole: Boolean,
     onSwitchRole: () -> Unit,
     onLogout: () -> Unit,
     authViewModel: AuthViewModel,
@@ -216,6 +217,7 @@ fun StudentAppRoot(
             composable("student/profile") {
                 ProfileScreen(
                     viewModel = authViewModel,
+                    canSwitchRole = canSwitchRole,
                     onSwitchToManager = onSwitchRole,
                     onLogout = onLogout
                 )
@@ -225,7 +227,12 @@ fun StudentAppRoot(
 }
 
 @Composable
-fun ManagerAppRoot(onSwitchRole: () -> Unit, onLogout: () -> Unit, authViewModel: AuthViewModel) {
+fun ManagerAppRoot(
+    canSwitchRole: Boolean,
+    onSwitchRole: () -> Unit,
+    onLogout: () -> Unit,
+    authViewModel: AuthViewModel
+) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: "manager/home"
@@ -233,7 +240,10 @@ fun ManagerAppRoot(onSwitchRole: () -> Unit, onLogout: () -> Unit, authViewModel
     // Create dependencies manually for now
     Scaffold(
         bottomBar = {
-            if (currentRoute != "manager/schedule_event") {
+            if (!currentRoute.startsWith("manager/schedule_event") &&
+                !currentRoute.startsWith("manager/post/") &&
+                !currentRoute.startsWith("manager/event/")
+            ) {
                 DynamicNavBar(
                     userRole = UserRole.CLUB_MANAGER,
                     selectedRoute = currentRoute,
@@ -255,22 +265,35 @@ fun ManagerAppRoot(onSwitchRole: () -> Unit, onLogout: () -> Unit, authViewModel
             startDestination = "manager/home",
             modifier = Modifier.padding(
                 top = innerPadding.calculateTopPadding(),
-                bottom = if (currentRoute == "manager/schedule_event") 0.dp else innerPadding.calculateBottomPadding()
+                bottom = if (currentRoute.startsWith("manager/schedule_event") ||
+                    currentRoute.startsWith("manager/post/") ||
+                    currentRoute.startsWith("manager/event/")
+                ) 0.dp else innerPadding.calculateBottomPadding()
             )
         ) {
             composable("manager/home") {
                 val viewModel: ManagerHomeViewModel = hiltViewModel()
                 ManagerHomeScreen(
                     viewModel = viewModel,
-                    onCreatePost = { /* TODO */ },
-                    onScheduleEvent = { navController.navigate("manager/schedule_event") },
-                    onScheduleSession = { navController.navigate("manager/schedule_event") }
+                    onScheduleEvent = { navController.navigate("manager/schedule_event?type=event") },
+                    onScheduleSession = { navController.navigate("manager/schedule_event?type=session") },
+                    onOpenPostDetail = { postId -> navController.navigate("manager/post/$postId") }
                 )
             }
-            composable("manager/schedule_event") {
+            composable(
+                route = "manager/schedule_event?type={type}",
+                arguments = listOf(
+                    navArgument("type") {
+                        type = NavType.StringType
+                        defaultValue = "event"
+                    }
+                )
+            ) { backStackEntry ->
+                val scheduleType = backStackEntry.arguments?.getString("type") ?: "event"
                 val scheduleViewModel: ScheduleEventViewModel = hiltViewModel()
                 ScheduleEventScreen(
                     viewModel = scheduleViewModel,
+                    initialType = scheduleType,
                     onBackClick = { navController.popBackStack() },
                     onEventCreated = {
                         navController.popBackStack()
@@ -281,6 +304,27 @@ fun ManagerAppRoot(onSwitchRole: () -> Unit, onLogout: () -> Unit, authViewModel
                 val viewModel: RequestsViewModel = hiltViewModel()
                 RequestsScreen(
                     viewModel = viewModel
+                )
+            }
+            composable(
+                route = "manager/post/{postId}",
+                arguments = listOf(navArgument("postId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val postId = backStackEntry.arguments?.getString("postId") ?: ""
+                PostDetailScreen(
+                    postId = postId,
+                    onNavigateToEventDetail = { eventId -> navController.navigate("manager/event/$eventId") },
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+            composable(
+                route = "manager/event/{eventId}",
+                arguments = listOf(navArgument("eventId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val eventId = backStackEntry.arguments?.getString("eventId") ?: ""
+                EventDetailScreen(
+                    eventId = eventId,
+                    onNavigateBack = { navController.popBackStack() }
                 )
             }
             composable("manager/attendees") {
@@ -298,6 +342,7 @@ fun ManagerAppRoot(onSwitchRole: () -> Unit, onLogout: () -> Unit, authViewModel
             }
             composable("manager/account") {
                 ClubAccountScreen(
+                    canSwitchRole = canSwitchRole,
                     onSwitchToStudent = onSwitchRole,
                     onLogout = onLogout
                 )

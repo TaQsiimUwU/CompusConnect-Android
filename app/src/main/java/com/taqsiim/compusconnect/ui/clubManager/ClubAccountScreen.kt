@@ -53,6 +53,7 @@ import com.taqsiim.compusconnect.ui.auth.AuthViewModel
 
 @Composable
 fun ClubAccountScreen(
+    canSwitchRole: Boolean = false,
     onSwitchToStudent: () -> Unit,
     onLogout: () -> Unit
 ) {
@@ -101,7 +102,8 @@ fun ClubAccountScreen(
         }
 
         AccountActionsSection(
-            userRole = authState.currentUser?.role ?: UserRole.CLUB_MANAGER,
+            userRole = UserRole.CLUB_MANAGER,
+            canSwitchRole = canSwitchRole,
             onSwitch = onSwitchToStudent,
             onLogout = onLogout
         )

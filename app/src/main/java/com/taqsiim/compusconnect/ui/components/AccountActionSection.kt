@@ -40,9 +40,21 @@ import com.taqsiim.compusconnect.data.model.UserRole
 @Composable
 fun AccountActionsSection(
     userRole: UserRole,
+    canSwitchRole: Boolean = userRole == UserRole.CLUB_MANAGER,
     onSwitch: () -> Unit,
     onLogout: () -> Unit
 ) {
+    val switchTitle = if (userRole == UserRole.CLUB_MANAGER) {
+        "Switch to Student Mode"
+    } else {
+        "Switch to Club Manager"
+    }
+    val switchSubtitle = if (userRole == UserRole.CLUB_MANAGER) {
+        "View as a student"
+    } else {
+        "Manage your club activities"
+    }
+
     Column {
 
         Card(
@@ -52,12 +64,11 @@ fun AccountActionsSection(
             shape = RoundedCornerShape(16.dp)
         ) {
             Column {
-                // Show switch button only for managers
-                if (userRole == UserRole.CLUB_MANAGER) {
+                if (canSwitchRole) {
                     ActionItem(
                         icon = Icons.Default.Refresh,
-                        title = "Switch to Student Mode",
-                        subtitle = "View as a student",
+                        title = switchTitle,
+                        subtitle = switchSubtitle,
                         onClick = onSwitch
                     )
 

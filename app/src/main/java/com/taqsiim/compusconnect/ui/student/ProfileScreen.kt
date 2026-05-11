@@ -62,6 +62,7 @@ import com.taqsiim.compusconnect.ui.auth.AuthIntent
 @Composable
 fun ProfileScreen(
     viewModel: AuthViewModel,
+    canSwitchRole: Boolean = false,
     onSwitchToManager: () -> Unit,
     onLogout: () -> Unit
 ) {
@@ -74,6 +75,7 @@ fun ProfileScreen(
     }
     ProfileScreenContent(
         user = currentUser,
+        canSwitchRole = canSwitchRole,
         onSwitchToManager = onSwitchToManager,
         onLogout = onLogout
     )
@@ -82,6 +84,7 @@ fun ProfileScreen(
 @Composable
 private fun ProfileScreenContent(
     user: User?,
+    canSwitchRole: Boolean,
     onSwitchToManager: () -> Unit,
     onLogout: () -> Unit
 ) {
@@ -97,7 +100,8 @@ private fun ProfileScreenContent(
             ProfileHeaderCard(user = user)
             QRCodeCard(userId = user?.userId?.toString() ?: "")
             AccountActionsSection(
-                userRole = user?.role ?: UserRole.STUDENT,
+                userRole = UserRole.STUDENT,
+                canSwitchRole = canSwitchRole,
                 onSwitch = onSwitchToManager,
                 onLogout = onLogout
             )
@@ -293,6 +297,7 @@ fun ProfileScreenPreview() {
     CampusAppTheme {
         ProfileScreenContent(
             user = mockUser,
+            canSwitchRole = false,
             onSwitchToManager = {},
             onLogout = {}
         )
@@ -318,6 +323,7 @@ fun ProfileScreenDarkPreview() {
     CampusAppTheme(darkTheme = true) {
         ProfileScreenContent(
             user = mockUser,
+            canSwitchRole = false,
             onSwitchToManager = {},
             onLogout = {}
         )

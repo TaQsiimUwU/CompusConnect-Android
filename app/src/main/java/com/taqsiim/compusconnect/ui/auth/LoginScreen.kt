@@ -80,12 +80,6 @@ fun LoginScreen(
         }
     }
 
-    LaunchedEffect(authState.currentUser) {
-        authState.currentUser?.role?.let { role ->
-            onLoginSuccess(role)
-        }
-    }
-
     LoginContent(
         authState = authState,
         onLoginClick = { email, password -> viewModel.processIntent(AuthIntent.Login(email, password)) }

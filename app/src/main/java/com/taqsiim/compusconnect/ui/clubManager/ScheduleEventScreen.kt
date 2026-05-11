@@ -74,6 +74,7 @@ import java.util.Locale
 @Composable
 fun ScheduleEventScreen(
     viewModel: ScheduleEventViewModel,
+    initialType: String = "event",
     onBackClick: () -> Unit,
     onEventCreated: () -> Unit
 ) {
@@ -82,7 +83,11 @@ fun ScheduleEventScreen(
     val isSubmitting = scheduleState.isSubmitting
 
     var eventName by remember { mutableStateOf("") }
-    var eventType by remember { mutableStateOf("Event") } // Event or Session
+    var eventType by remember(initialType) {
+        mutableStateOf(
+            if (initialType.equals("session", ignoreCase = true)) "Session" else "Event"
+        )
+    } // Event or Session
     var selectedDate by remember { mutableStateOf("") }
     var startTime by remember { mutableStateOf("") }
     var endTime by remember { mutableStateOf("") }

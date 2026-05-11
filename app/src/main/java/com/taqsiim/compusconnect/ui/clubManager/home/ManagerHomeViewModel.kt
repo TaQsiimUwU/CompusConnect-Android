@@ -25,6 +25,10 @@ sealed class ManagerHomeIntent {
     data object LoadEvents : ManagerHomeIntent()
     data class CreatePost(val content: String, val eventId: Int?, val imageUrl: String?) : ManagerHomeIntent()
     data class DeletePost(val postId: Int) : ManagerHomeIntent()
+    data class UpdatePost(val postId: Int, val content: String) : ManagerHomeIntent()
+    data class LikePost(val postId: Int) : ManagerHomeIntent()
+    data class UnlikePost(val postId: Int) : ManagerHomeIntent()
+    data class AddComment(val postId: Int, val content: String) : ManagerHomeIntent()
     data object Refresh : ManagerHomeIntent()
 }
 
@@ -55,6 +59,10 @@ class ManagerHomeViewModel @Inject constructor(
             is ManagerHomeIntent.LoadEvents -> loadEvents()
             is ManagerHomeIntent.CreatePost -> createPost(intent.content, intent.eventId, intent.imageUrl)
             is ManagerHomeIntent.DeletePost -> deletePost(intent.postId)
+            is ManagerHomeIntent.UpdatePost -> updatePost(intent.postId, intent.content)
+            is ManagerHomeIntent.LikePost -> likePost(intent.postId)
+            is ManagerHomeIntent.UnlikePost -> unlikePost(intent.postId)
+            is ManagerHomeIntent.AddComment -> addComment(intent.postId, intent.content)
             is ManagerHomeIntent.Refresh -> refresh()
         }
     }
@@ -132,6 +140,106 @@ class ManagerHomeViewModel @Inject constructor(
                     // Revert
                     setState { copy(posts = UiState.Success(currentPosts)) }
                     sendEffect(ManagerHomeEffect.ShowSnackbar(e.message ?: "Failed to delete"))
+                }
+            )
+        }
+    }
+
+    private fun updatePost(postId: Int, content: String) {
+        val trimmedContent = content.trim()
+        if (trimmedContent.isBlank()) {
+            viewModelScope.launch {
+                sendEffect(ManagerHomeEffect.ShowSnackbar("Post content cannot be empty"))
+            }
+            return
+        }
+
+        val currentPosts = (currentState.posts as? UiState.Success)?.data ?: return
+        val targetPost = currentPosts.find { it.postId == postId } ?: return
+        val updatedPosts = currentPosts.map { post ->
+            if (post.postId == postId) post.copy(content = trimmedContent) else post
+        }
+        setState { copy(posts = UiState.Success(updatedPosts)) }
+
+        viewModelScope.launch {
+            postRepository.updatePost(postId, trimmedContent).fold(
+                onSuccess = {
+                    sendEffect(ManagerHomeEffect.ShowSnackbar("Post updated"))
+                },
+                onFailure = { e ->
+                    setState {
+                        copy(
+                            posts = UiState.Success(
+                                currentPosts.map { post ->
+                                    if (post.postId == postId) targetPost else post
+                                }
+                            )
+                        )
+                    }
+                    sendEffect(ManagerHomeEffect.ShowSnackbar(e.message ?: "Failed to update post"))
+                }
+            )
+        }
+    }
+
+    private fun likePost(postId: Int) {
+        val currentPosts = (currentState.posts as? UiState.Success)?.data ?: return
+        val updatedPosts = currentPosts.map { post ->
+            if (post.postId == postId) post.copy(isLiked = true, likeCount = post.likeCount + 1) else post
+        }
+        setState { copy(posts = UiState.Success(updatedPosts)) }
+
+        viewModelScope.launch {
+            postRepository.likePost(postId).fold(
+                onSuccess = { },
+                onFailure = {
+                    setState { copy(posts = UiState.Success(currentPosts)) }
+                    sendEffect(ManagerHomeEffect.ShowSnackbar("Failed to like post"))
+                }
+            )
+        }
+    }
+
+    private fun unlikePost(postId: Int) {
+        val currentPosts = (currentState.posts as? UiState.Success)?.data ?: return
+        val updatedPosts = currentPosts.map { post ->
+            if (post.postId == postId) post.copy(
+                isLiked = false,
+                likeCount = (post.likeCount - 1).coerceAtLeast(0)
+            ) else post
+        }
+        setState { copy(posts = UiState.Success(updatedPosts)) }
+
+        viewModelScope.launch {
+            postRepository.unlikePost(postId).fold(
+                onSuccess = { },
+                onFailure = {
+                    setState { copy(posts = UiState.Success(currentPosts)) }
+                    sendEffect(ManagerHomeEffect.ShowSnackbar("Failed to unlike post"))
+                }
+            )
+        }
+    }
+
+    private fun addComment(postId: Int, content: String) {
+        viewModelScope.launch {
+            postRepository.addComment(postId, content).fold(
+                onSuccess = {
+                    val currentPosts = (currentState.posts as? UiState.Success)?.data
+                    if (currentPosts != null) {
+                        val updatedPosts = currentPosts.map { post ->
+                            if (post.postId == postId) {
+                                post.copy(commentCount = post.commentCount + 1)
+                            } else {
+                                post
+                            }
+                        }
+                        setState { copy(posts = UiState.Success(updatedPosts)) }
+                    }
+                    sendEffect(ManagerHomeEffect.ShowSnackbar("Comment added"))
+                },
+                onFailure = { e ->
+                    sendEffect(ManagerHomeEffect.ShowSnackbar(e.message ?: "Failed to add comment"))
                 }
             )
         }
