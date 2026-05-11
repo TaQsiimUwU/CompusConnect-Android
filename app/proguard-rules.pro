@@ -19,3 +19,7 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Gson request/response models are serialized via reflection.
+# Keep model fields so release builds keep backend JSON keys stable.
+-keep class com.taqsiim.compusconnect.data.model.** { *; }
