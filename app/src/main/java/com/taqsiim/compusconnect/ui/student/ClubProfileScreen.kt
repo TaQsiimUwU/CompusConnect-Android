@@ -2,20 +2,45 @@ package com.taqsiim.compusconnect.ui.student
 
 import android.content.res.Configuration
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Group
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,11 +48,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
-import com.taqsiim.compusconnect.data.model.Club
-import com.taqsiim.compusconnect.data.model.ClubStatus
 import com.taqsiim.compusconnect.data.model.Post
+import com.taqsiim.compusconnect.mvi.UiState
+import com.taqsiim.compusconnect.ui.student.clubs.ClubDetailIntent
+import com.taqsiim.compusconnect.ui.student.clubs.ClubDetailViewModel
 import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -36,12 +62,13 @@ fun ClubProfileScreen(
     clubId: String,
     onNavigateBack: () -> Unit
 ) {
-    val viewModel: com.taqsiim.compusconnect.ui.student.clubs.ClubDetailViewModel = androidx.hilt.navigation.compose.hiltViewModel()
+    val viewModel: ClubDetailViewModel = hiltViewModel()
     val clubDetailState by viewModel.state.collectAsState()
     val clubIdInt = clubId.toIntOrNull()
+    val club = (clubDetailState.club as? UiState.Success)?.data
 
     LaunchedEffect(clubIdInt) {
-        clubIdInt?.let { viewModel.processIntent(com.taqsiim.compusconnect.ui.student.clubs.ClubDetailIntent.LoadClub(it)) }
+        clubIdInt?.let { viewModel.processIntent(ClubDetailIntent.LoadClub(it)) }
     }
 
     var selectedTab by remember { mutableIntStateOf(0) }
@@ -77,12 +104,32 @@ fun ClubProfileScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(Color(0xFF4B5EFC))
-                        .padding(16.dp)
-                        .padding(bottom = 16.dp)
                 ) {
+                    // Cover Image
+                    if (!club?.cover.isNullOrEmpty()) {
+                        AsyncImage(
+                            model = club.cover,
+                            contentDescription = "${club.name} cover image",
+                            modifier = Modifier
+                                .fillMaxSize(), // Adjust height as needed
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        // Placeholder for cover image if not available
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(Color.Gray.copy(alpha = 0.3f))
+                        )
+                    }
+
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 120.dp) // Adjust this padding to position content below cover
+                            .padding(horizontal = 16.dp)
+                            .padding(bottom = 16.dp)
                     ) {
                         // Logo
                         Surface(
@@ -92,14 +139,30 @@ fun ClubProfileScreen(
                         ) {
                             // Icon or Image
                             Box(contentAlignment = Alignment.Center) {
-                                // Placeholder icon
+
+                                if (!club?.logo.isNullOrEmpty()) {
+                                    AsyncImage(
+                                        model = club.logo,
+                                        contentDescription = "${club.name} logo",
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .clip(RoundedCornerShape(8.dp)),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                } else {
+                                    Surface(
+                                        modifier = Modifier.size(48.dp),
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = Color.White.copy(alpha = 0.2f)
+                                    ) { }
+                                }
                             }
                         }
 
                         Spacer(modifier = Modifier.height(12.dp))
 
                         Text(
-                            text = (clubDetailState.club as? com.taqsiim.compusconnect.mvi.UiState.Success)?.data?.name ?: "",
+                            text = (clubDetailState.club as? UiState.Success)?.data?.name ?: "",
                             style = MaterialTheme.typography.headlineMedium,
                             color = Color.White,
                             fontWeight = FontWeight.Bold
