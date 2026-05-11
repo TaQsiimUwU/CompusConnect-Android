@@ -1,13 +1,7 @@
 package com.taqsiim.compusconnect.ui.clubManager
 
-import androidx.compose.animation.AnimatedVisibility
+import android.content.res.Configuration
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -15,33 +9,32 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import com.taqsiim.compusconnect.data.model.Event as EventModel
 import com.taqsiim.compusconnect.data.model.Post
+import com.taqsiim.compusconnect.data.model.UserRole
+import com.taqsiim.compusconnect.mvi.UiState
+import com.taqsiim.compusconnect.ui.clubManager.home.ManagerHomeEffect
+import com.taqsiim.compusconnect.ui.clubManager.home.ManagerHomeIntent
+import com.taqsiim.compusconnect.ui.clubManager.home.ManagerHomeViewModel
 import com.taqsiim.compusconnect.ui.components.CreatePostDialog
 import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
-import android.content.res.Configuration
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import com.taqsiim.compusconnect.data.model.UserRole
-import com.taqsiim.compusconnect.ui.clubManager.home.ManagerHomeViewModel
-import com.taqsiim.compusconnect.mvi.UiState
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FloatingActionButtonMenu
-import androidx.compose.material3.FloatingActionButtonMenuItem
 
-// TODO: Implement ManagerHomeScreen composable
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ManagerHomeScreen(
@@ -52,17 +45,63 @@ fun ManagerHomeScreen(
 ) {
     val managerState by viewModel.state.collectAsState()
     val postsState = managerState.posts
+    val eventsState = managerState.events
 
     var isFabExpanded by remember { mutableStateOf(false) }
     val fabRotation by animateFloatAsState(targetValue = if (isFabExpanded) 45f else 0f, label = "fabRotation")
     var showCreatePostDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf<Int?>(null) }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Collect effects
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is ManagerHomeEffect.ShowSnackbar -> snackbarHostState.showSnackbar(effect.message)
+                is ManagerHomeEffect.PostCreated -> { /* handled by ShowSnackbar */ }
+            }
+        }
+    }
+
+    // Get events list for linking posts
+    val events: List<EventModel> = when (val s = eventsState) {
+        is UiState.Success -> s.data
+        else -> emptyList()
+    }
 
     if (showCreatePostDialog) {
         CreatePostDialog(
             onDismissRequest = { showCreatePostDialog = false },
-            onPublish = { content, imageUri, linkType, shareToSocials ->
-                // TODO: Handle post creation
+            onPublish = { content, imageUri, linkType, _ ->
+                viewModel.processIntent(
+                    ManagerHomeIntent.CreatePost(
+                        content = content,
+                        eventId = null, // TODO: link to event via linkType + event selector
+                        imageUrl = imageUri
+                    )
+                )
                 showCreatePostDialog = false
+            }
+        )
+    }
+
+    // Delete confirmation dialog
+    showDeleteDialog?.let { postId ->
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = null },
+            title = { Text("Delete Post") },
+            text = { Text("Are you sure you want to delete this post? This action cannot be undone.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.processIntent(ManagerHomeIntent.DeletePost(postId))
+                        showDeleteDialog = null
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                ) { Text("Delete") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = null }) { Text("Cancel") }
             }
         )
     }
@@ -76,6 +115,7 @@ fun ManagerHomeScreen(
                 )
             )
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             FloatingActionButtonMenu(
                 expanded = isFabExpanded,
@@ -145,7 +185,10 @@ fun ManagerHomeScreen(
                 }
                 is UiState.Success -> {
                     items(state.data) { post ->
-                        AnnouncementCard(post = post)
+                        AnnouncementCard(
+                            post = post,
+                            onDelete = { showDeleteDialog = post.postId }
+                        )
                     }
                 }
                 is UiState.Idle -> { }
@@ -154,9 +197,11 @@ fun ManagerHomeScreen(
     }
 }
 
-// TODO: Implement AnnouncementCard composable
 @Composable
-fun AnnouncementCard(post: Post) {
+fun AnnouncementCard(
+    post: Post,
+    onDelete: () -> Unit = {}
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -175,16 +220,34 @@ fun AnnouncementCard(post: Post) {
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Surface(
-                        modifier = Modifier.size(40.dp),
-                        shape = CircleShape,
-                        color = Color(0xFFE91E63) // Mock Club Color
-                    ) {
-                        // Logo
+                    // Club Logo
+                    if (!post.clubLogoUrl.isNullOrEmpty()) {
+                        AsyncImage(
+                            model = post.clubLogoUrl,
+                            contentDescription = "${post.clubName.orEmpty()} logo",
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Surface(
+                            modifier = Modifier.size(40.dp),
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.primary
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text(
+                                    text = (post.clubName ?: "C").take(1),
+                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
                     }
                     Column {
                         Text(
-                            text = "Tech Club", // Mock Club Name
+                            text = post.clubName ?: "Club ${post.clubId}",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -235,7 +298,7 @@ fun AnnouncementCard(post: Post) {
                             tint = Color(0xFF1565C0)
                         )
                         Text(
-                            text = "Linked to: AI & Machine Learning Workshop", // Mock Event Title
+                            text = "Linked to Event #${post.eventId}",
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color(0xFF1565C0),
                             fontWeight = FontWeight.Medium
@@ -291,18 +354,10 @@ fun AnnouncementCard(post: Post) {
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.End
             ) {
-                TextButton(onClick = { /* TODO */ }) {
-                    Text("View Comments", color = MaterialTheme.colorScheme.onSurface)
-                }
-                Row {
-                    TextButton(onClick = { /* TODO */ }) {
-                        Text("Edit", color = MaterialTheme.colorScheme.onSurface)
-                    }
-                    TextButton(onClick = { /* TODO */ }) {
-                        Text("Delete", color = MaterialTheme.colorScheme.error)
-                    }
+                TextButton(onClick = onDelete) {
+                    Text("Delete", color = MaterialTheme.colorScheme.error)
                 }
             }
         }
