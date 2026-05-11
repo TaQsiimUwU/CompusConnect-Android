@@ -6,6 +6,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,8 +47,11 @@ import com.taqsiim.compusconnect.ui.student.clubs.ClubDetailViewModel
 import com.taqsiim.compusconnect.ui.student.posts.PostDetailViewModel
 import com.taqsiim.compusconnect.ui.student.reservations.ReservationsViewModel
 import com.taqsiim.compusconnect.ui.clubManager.home.ManagerHomeViewModel
+import com.taqsiim.compusconnect.ui.clubManager.home.ManagerHomeIntent
 import com.taqsiim.compusconnect.ui.clubManager.requests.RequestsViewModel
 import com.taqsiim.compusconnect.ui.clubManager.attendees.AttendeesViewModel
+import com.taqsiim.compusconnect.ui.clubManager.schedule.ScheduleEventViewModel
+import com.taqsiim.compusconnect.mvi.UiState as MviUiState
 
 @Composable
 fun StudentAppRoot(
@@ -264,11 +268,11 @@ fun ManagerAppRoot(onSwitchRole: () -> Unit, onLogout: () -> Unit, authViewModel
                 )
             }
             composable("manager/schedule_event") {
+                val scheduleViewModel: ScheduleEventViewModel = hiltViewModel()
                 ScheduleEventScreen(
+                    viewModel = scheduleViewModel,
                     onBackClick = { navController.popBackStack() },
-                    onCancelClick = { navController.popBackStack() },
-                    onCreateClick = {
-                        // TODO: Handle event creation
+                    onEventCreated = {
                         navController.popBackStack()
                     }
                 )
@@ -280,8 +284,16 @@ fun ManagerAppRoot(onSwitchRole: () -> Unit, onLogout: () -> Unit, authViewModel
                 )
             }
             composable("manager/attendees") {
+                // Get the ManagerHomeViewModel's events to pass to attendees
+                val managerHomeVM: ManagerHomeViewModel = hiltViewModel()
+                val homeState by managerHomeVM.state.collectAsState()
+                val events = when (val s = homeState.events) {
+                    is com.taqsiim.compusconnect.mvi.UiState.Success -> s.data
+                    else -> emptyList()
+                }
                 AttendeesScreen(
-                    onScanQrCode = { /* TODO: Implement QR Scanner */ }
+                    onScanQrCode = { /* TODO: Implement QR Scanner */ },
+                    events = events
                 )
             }
             composable("manager/account") {
