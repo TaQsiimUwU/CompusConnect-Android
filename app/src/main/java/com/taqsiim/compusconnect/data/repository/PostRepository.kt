@@ -100,6 +100,15 @@ class PostRepository @Inject constructor(
             Result.failure(e)
         }
     }
+
+    suspend fun deletePost(postId: Int): Result<MessageResponse> {
+        return try {
+            val response = api.deletePost(postId)
+            Result.success(response)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
     companion object {
         private const val TAG =  "PostRepository"
     }

@@ -95,6 +95,9 @@ interface ApiService {
     @PUT(Endpoints.POST_BY_ID)
     suspend fun updatePost(@Path("id") postId: Int, @Body content: UpdatePostRequest): MessageResponse
 
+    @DELETE(Endpoints.POST_BY_ID)
+    suspend fun deletePost(@Path("id") postId: Int): MessageResponse
+
     @POST(Endpoints.POST_COMMENTS)
     suspend fun addComment(@Path("id") postId: Int, @Body request: CommentRequest): MessageResponse
 
