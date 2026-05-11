@@ -66,6 +66,7 @@ dependencies {
     // QR Code Scanner
     implementation(libs.play.services.code.scanner)
     implementation(libs.kotlinx.coroutines.play.services)
+    implementation(libs.zxing.core)
 
     // Networking
     implementation(libs.retrofit)

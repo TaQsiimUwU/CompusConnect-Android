@@ -26,6 +26,7 @@ uiTooling = "1.10.0"
 uiTextGoogleFonts = "1.7.6"
 ui = "1.10.0"
 playServicesCodeScanner = "16.1.0"
+zxing = "3.5.3"
 
 [libraries]
 play-services-code-scanner = { group = "com.google.android.gms", name = "play-services-code-scanner", version.ref = "playServicesCodeScanner" }
@@ -64,6 +65,7 @@ androidx-datastore-preferences = { group = "androidx.datastore", name = "datasto
 androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview", version.ref = "uiToolingPreview" }
 androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "uiTooling" }
 androidx-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "ui" }
+zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -71,4 +73,3 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
-

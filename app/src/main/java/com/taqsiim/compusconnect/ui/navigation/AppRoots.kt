@@ -336,7 +336,6 @@ fun ManagerAppRoot(
                     else -> emptyList()
                 }
                 AttendeesScreen(
-                    onScanQrCode = { /* TODO: Implement QR Scanner */ },
                     events = events
                 )
             }

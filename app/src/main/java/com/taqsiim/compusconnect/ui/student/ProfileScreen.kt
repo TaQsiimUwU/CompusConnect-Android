@@ -1,7 +1,8 @@
 package com.taqsiim.compusconnect.ui.student
 
 import android.content.res.Configuration
-import android.util.Log
+import android.graphics.Bitmap
+import android.graphics.Color as AndroidColor
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -37,27 +38,28 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.taqsiim.compusconnect.R
 import com.taqsiim.compusconnect.data.model.User
 import com.taqsiim.compusconnect.data.model.UserRole
 import com.taqsiim.compusconnect.ui.components.AccountActionsSection
 import com.taqsiim.compusconnect.ui.components.ActionItem
 import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 import com.taqsiim.compusconnect.ui.auth.AuthViewModel
-import com.taqsiim.compusconnect.ui.auth.AuthState
 import com.taqsiim.compusconnect.ui.auth.AuthIntent
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.qrcode.QRCodeWriter
 
 @Composable
 fun ProfileScreen(
@@ -199,6 +201,14 @@ fun ContactInfoRow(icon: ImageVector, text: String) {
 
 @Composable
 fun QRCodeCard(userId: String) {
+    val normalizedUserId = userId.ifBlank { "CS2023-1234" }
+    val qrBitmap = remember(normalizedUserId) {
+        generateQrCodeBitmap(
+            data = "student_id:$normalizedUserId",
+            size = 512
+        )
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onPrimary),
@@ -218,19 +228,35 @@ fun QRCodeCard(userId: String) {
             )
             Spacer(modifier = Modifier.height(24.dp))
 
-            // QR Code Image
-            Image(
-                painter = painterResource(id = R.drawable.qr_placeholder),
-                contentDescription = "Student QR Code",
-                modifier = Modifier
-                    .size(200.dp)
-                    .clip(RoundedCornerShape(12.dp)),
-                contentScale = ContentScale.Fit
-            )
+            if (qrBitmap != null) {
+                Image(
+                    bitmap = qrBitmap.asImageBitmap(),
+                    contentDescription = "Student QR Code",
+                    modifier = Modifier
+                        .size(200.dp)
+                        .clip(RoundedCornerShape(12.dp)),
+                    contentScale = ContentScale.Fit
+                )
+            } else {
+                Surface(
+                    modifier = Modifier
+                        .size(200.dp)
+                        .clip(RoundedCornerShape(12.dp)),
+                    color = MaterialTheme.colorScheme.surfaceVariant
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            text = "QR unavailable",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
             Text(
-                text = "Student ID: ${userId.ifBlank { "CS2023-1234" }}",
+                text = "Student ID: $normalizedUserId",
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Medium
             )
@@ -243,6 +269,19 @@ fun QRCodeCard(userId: String) {
             )
         }
     }
+}
+
+private fun generateQrCodeBitmap(data: String, size: Int): Bitmap? {
+    return runCatching {
+        val bitMatrix = QRCodeWriter().encode(data, BarcodeFormat.QR_CODE, size, size)
+        Bitmap.createBitmap(size, size, Bitmap.Config.RGB_565).apply {
+            for (x in 0 until size) {
+                for (y in 0 until size) {
+                    setPixel(x, y, if (bitMatrix[x, y]) AndroidColor.BLACK else AndroidColor.WHITE)
+                }
+            }
+        }
+    }.getOrNull()
 }
 
 @Composable

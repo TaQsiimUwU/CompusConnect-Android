@@ -35,6 +35,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -68,7 +70,6 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AttendeesScreen(
-    onScanQrCode: () -> Unit,
     events: List<Event> = emptyList(),
     viewModel: AttendeesViewModel = hiltViewModel()
 ) {
@@ -77,7 +78,7 @@ fun AttendeesScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val qrScanner = remember { QrScannerUtil(context) }
-    var scannedResult by remember { mutableStateOf<String?>(null) }
+    val snackbarHostState = remember { SnackbarHostState() }
     val attendeesScreenState by viewModel.state.collectAsState()
     val attendeesState = attendeesScreenState.attendees
 
@@ -94,6 +95,7 @@ fun AttendeesScreen(
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = {
@@ -110,10 +112,35 @@ fun AttendeesScreen(
                     FilledIconButton(
                         onClick = {
                             scope.launch {
+                                val event = selectedEvent
+                                if (event == null) {
+                                    snackbarHostState.showSnackbar("Select an event before scanning")
+                                    return@launch
+                                }
+
                                 val result = qrScanner.scanQrCode()
-                                if (result != null) {
-                                    scannedResult = result
-                                    println("Scanned QR Code: $result")
+                                if (result.isNullOrBlank()) {
+                                    snackbarHostState.showSnackbar("QR scan cancelled")
+                                    return@launch
+                                }
+
+                                val attendees = (attendeesState as? UiState.Success)?.data.orEmpty()
+                                if (attendees.isEmpty()) {
+                                    snackbarHostState.showSnackbar("No attendees loaded for this event")
+                                    return@launch
+                                }
+
+                                val scannedStudentId = extractStudentId(result)
+                                val matchedAttendee = attendees.firstOrNull { attendee ->
+                                    scannedStudentId?.let { attendee.studentId == it } == true
+                                }
+
+                                if (matchedAttendee != null) {
+                                    selectedTab = 0
+                                    searchQuery = matchedAttendee.name
+                                    snackbarHostState.showSnackbar("Found: ${matchedAttendee.name} (ID ${matchedAttendee.studentId})")
+                                } else {
+                                    snackbarHostState.showSnackbar("Scanned student is not registered for this event")
                                 }
                             }
                         },
@@ -416,6 +443,11 @@ fun AttendeeTabButton(
 @Composable
 fun AttendeesScreenPreview() {
     CampusAppTheme(userRole = UserRole.CLUB_MANAGER) {
-        AttendeesScreen(onScanQrCode = {})
+        AttendeesScreen()
     }
+}
+
+private fun extractStudentId(qrRawValue: String): Int? {
+    val digits = qrRawValue.filter { it.isDigit() }
+    return digits.toIntOrNull()
 }
