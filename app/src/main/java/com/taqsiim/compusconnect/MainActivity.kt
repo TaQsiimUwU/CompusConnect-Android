@@ -82,6 +82,7 @@ fun MainContent(
                     StudentAppRoot(
                         onSwitchRole = { 
                             Log.d(TAG, "Switching to CLUB_MANAGER")
+                            currentUserRole = UserRole.CLUB_MANAGER
                         },
                         onLogout = handleLogout,
                         authViewModel = authViewModel
