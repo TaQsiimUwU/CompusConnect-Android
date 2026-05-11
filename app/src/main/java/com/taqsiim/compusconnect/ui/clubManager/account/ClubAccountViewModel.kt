@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.taqsiim.compusconnect.data.model.Club
 import com.taqsiim.compusconnect.data.model.UpdateClubRequest
 import com.taqsiim.compusconnect.data.repository.ClubRepository
+import com.taqsiim.compusconnect.data.repository.UserRepository
 import com.taqsiim.compusconnect.mvi.MviViewModel
 import com.taqsiim.compusconnect.mvi.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,7 +31,8 @@ private const val TAG = "ClubAccountViewModel"
 
 @HiltViewModel
 class ClubAccountViewModel @Inject constructor(
-    private val clubRepository: ClubRepository
+    private val clubRepository: ClubRepository,
+    private val userRepository: UserRepository
 ) : MviViewModel<ClubAccountState, ClubAccountIntent, ClubAccountEffect>() {
 
     override fun createInitialState() = ClubAccountState()
@@ -45,9 +47,30 @@ class ClubAccountViewModel @Inject constructor(
     private fun loadClubInfo() {
         viewModelScope.launch {
             setState { copy(club = UiState.Loading) }
-            // TODO: Need a way to get the manager's own club ID
-            // For now, this will be called with a specific club ID from the UI
-            setState { copy(club = UiState.Idle) }
+            // Get the user profile to find their club admin name, then match it against clubs
+            val userResult = userRepository.getCurrentUser()
+            val clubsResult = clubRepository.getClubs()
+
+            clubsResult.fold(
+                onSuccess = { clubs ->
+                    val user = userResult.getOrNull()
+                    // Try to find the club managed by this user
+                    val userName = user?.let { "${it.firstName} ${it.lastName}".trim() } ?: ""
+                    val myClub = clubs.firstOrNull { it.clubAdminName.equals(userName, ignoreCase = true) }
+                        ?: clubs.firstOrNull() // fallback to first club if no match
+                    
+                    if (myClub != null) {
+                        Log.d(TAG, "Found club: ${myClub.name} (id=${myClub.id})")
+                        setState { copy(club = UiState.Success(myClub)) }
+                    } else {
+                        setState { copy(club = UiState.Error("No club found")) }
+                    }
+                },
+                onFailure = { e ->
+                    Log.e(TAG, "Failed to load clubs: ${e.message}")
+                    setState { copy(club = UiState.Error(e.message ?: "Failed to load club info")) }
+                }
+            )
         }
     }
 
@@ -59,6 +82,7 @@ class ClubAccountViewModel @Inject constructor(
                     setState { copy(isUpdating = false) }
                     sendEffect(ClubAccountEffect.UpdateSuccess)
                     sendEffect(ClubAccountEffect.ShowSnackbar("Club updated successfully"))
+                    loadClubInfo() // Reload to reflect changes
                 },
                 onFailure = { e ->
                     setState { copy(isUpdating = false) }

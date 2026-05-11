@@ -17,28 +17,36 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Computer
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
+import com.taqsiim.compusconnect.data.model.Club
 import com.taqsiim.compusconnect.data.model.UserRole
+import com.taqsiim.compusconnect.mvi.UiState
+import com.taqsiim.compusconnect.ui.clubManager.account.ClubAccountIntent
+import com.taqsiim.compusconnect.ui.clubManager.account.ClubAccountViewModel
 import com.taqsiim.compusconnect.ui.components.AccountActionsSection
 import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 import com.taqsiim.compusconnect.ui.auth.AuthViewModel
@@ -48,8 +56,15 @@ fun ClubAccountScreen(
     onSwitchToStudent: () -> Unit,
     onLogout: () -> Unit
 ) {
-    val viewModel: AuthViewModel = hiltViewModel()
-    val authState by viewModel.state.collectAsState()
+    val authViewModel: AuthViewModel = hiltViewModel()
+    val authState by authViewModel.state.collectAsState()
+    val clubAccountViewModel: ClubAccountViewModel = hiltViewModel()
+    val clubState by clubAccountViewModel.state.collectAsState()
+
+    // Load club info on first compose
+    LaunchedEffect(Unit) {
+        clubAccountViewModel.processIntent(ClubAccountIntent.LoadClubInfo)
+    }
 
     Column(
         modifier = Modifier
@@ -58,8 +73,33 @@ fun ClubAccountScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        ClubHeaderCard()
-        AboutClubCard()
+        when (val state = clubState.club) {
+            is UiState.Loading -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+            is UiState.Success -> {
+                val club = state.data
+                ClubHeaderCard(club = club)
+                AboutClubCard(description = club.description ?: "No description available.")
+            }
+            is UiState.Error -> {
+                // Fallback to user info
+                ClubHeaderCard(club = null, userName = authState.currentUser?.let { "${it.firstName} ${it.lastName}" } ?: "Club Manager")
+                AboutClubCard(description = "Unable to load club information.")
+            }
+            is UiState.Idle -> {
+                ClubHeaderCard(club = null, userName = authState.currentUser?.let { "${it.firstName} ${it.lastName}" } ?: "Club Manager")
+                AboutClubCard(description = "")
+            }
+        }
+
         AccountActionsSection(
             userRole = authState.currentUser?.role ?: UserRole.CLUB_MANAGER,
             onSwitch = onSwitchToStudent,
@@ -69,7 +109,7 @@ fun ClubAccountScreen(
 }
 
 @Composable
-fun ClubHeaderCard() {
+fun ClubHeaderCard(club: Club? = null, userName: String = "") {
     val gradient = Brush.linearGradient(
         colors = listOf(
             MaterialTheme.colorScheme.primary,
@@ -91,44 +131,63 @@ fun ClubHeaderCard() {
         ) {
             Column {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Surface(
-                        modifier = Modifier.size(64.dp),
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = Icons.Default.Computer,
-                                contentDescription = "Club Logo",
-                                tint = MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier.size(32.dp)
-                            )
+                    if (!club?.logo.isNullOrEmpty()) {
+                        AsyncImage(
+                            model = club?.logo,
+                            contentDescription = "${club?.name} logo",
+                            modifier = Modifier
+                                .size(64.dp)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Surface(
+                            modifier = Modifier.size(64.dp),
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text(
+                                    text = (club?.name ?: userName).take(1).uppercase(),
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     Column {
                         Text(
-                            text = "Tech Club",
+                            text = club?.name ?: userName,
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onPrimary
                         )
-                        Text(
-                            text = "Technology & Innovation",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f)
-                        )
-                        Text(
-                            text = "245 Members",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
-                        )
+                        if (club != null) {
+                            Text(
+                                text = "${club.followersCount} Followers · ${club.members} Members",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f)
+                            )
+                            Text(
+                                text = "${club.eventNumber} Events · ${club.sessionsNumber} Sessions",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
+                            )
+                        }
                     }
                 }
-                Spacer(modifier = Modifier.height(24.dp))
-                ClubContactRow(icon = Icons.Default.Email, text = "techclub@university.edu")
-                Spacer(modifier = Modifier.height(8.dp))
-                ClubContactRow(icon = Icons.Default.Person, text = "Manager: John Smith")
+                if (club != null) {
+                    Spacer(modifier = Modifier.height(24.dp))
+                    if (club.email.isNotEmpty()) {
+                        ClubContactRow(icon = Icons.Default.Email, text = club.email)
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                    if (club.clubAdminName.isNotEmpty()) {
+                        ClubContactRow(icon = Icons.Default.Person, text = "Manager: ${club.clubAdminName}")
+                    }
+                }
             }
         }
     }
@@ -153,7 +212,7 @@ fun ClubContactRow(icon: ImageVector, text: String) {
 }
 
 @Composable
-fun AboutClubCard() {
+fun AboutClubCard(description: String) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
@@ -168,7 +227,7 @@ fun AboutClubCard() {
             )
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = "A community for tech enthusiasts to learn, build, and innovate together. We organize workshops, hackathons, and tech talks.",
+                text = description,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 lineHeight = 20.sp
