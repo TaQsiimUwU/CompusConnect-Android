@@ -3,22 +3,17 @@ package com.taqsiim.compusconnect.ui.clubManager.schedule
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.taqsiim.compusconnect.data.model.CreateEventRequest
-import com.taqsiim.compusconnect.data.model.Room
 import com.taqsiim.compusconnect.data.repository.EventRepository
-import com.taqsiim.compusconnect.data.repository.RoomRepository
 import com.taqsiim.compusconnect.mvi.MviViewModel
-import com.taqsiim.compusconnect.mvi.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class ScheduleEventState(
-    val rooms: UiState<List<Room>> = UiState.Loading,
     val isSubmitting: Boolean = false
 )
 
 sealed class ScheduleEventIntent {
-    data object LoadRooms : ScheduleEventIntent()
     data class CreateEvent(val request: CreateEventRequest) : ScheduleEventIntent()
     data class CreateSession(val request: CreateEventRequest) : ScheduleEventIntent()
 }
@@ -32,31 +27,15 @@ private const val TAG = "ScheduleEventViewModel"
 
 @HiltViewModel
 class ScheduleEventViewModel @Inject constructor(
-    private val eventRepository: EventRepository,
-    private val roomRepository: RoomRepository
+    private val eventRepository: EventRepository
 ) : MviViewModel<ScheduleEventState, ScheduleEventIntent, ScheduleEventEffect>() {
 
     override fun createInitialState() = ScheduleEventState()
 
-    init {
-        processIntent(ScheduleEventIntent.LoadRooms)
-    }
-
     override fun handleIntent(intent: ScheduleEventIntent) {
         when (intent) {
-            is ScheduleEventIntent.LoadRooms -> loadRooms()
             is ScheduleEventIntent.CreateEvent -> createEvent(intent.request)
             is ScheduleEventIntent.CreateSession -> createSession(intent.request)
-        }
-    }
-
-    private fun loadRooms() {
-        viewModelScope.launch {
-            setState { copy(rooms = UiState.Loading) }
-            roomRepository.getRooms().fold(
-                onSuccess = { rooms -> setState { copy(rooms = UiState.Success(rooms)) } },
-                onFailure = { e -> setState { copy(rooms = UiState.Error(e.message ?: "Failed")) } }
-            )
         }
     }
 

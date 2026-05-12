@@ -81,14 +81,14 @@ fun Event.toEntity(): EventEntity {
     return EventEntity(
         eventId = eventId,
         clubName = clubName,
-        clubLogoUrl = clubLogoUrl,
-        clubCoverUrl = clubCoverUrl,
+        clubLogoUrl = clubLogoUrl ?: "",
+        clubCoverUrl = clubCoverUrl ?: "",
         type = type.name,
         title = title,
         description = description,
         startTime = startTime,
         endTime = endTime,
-        location = location,
+        location = location ?: "",
         registrations = noOfRegistrations,
         maxRegistrations = noOfMaxRegistrations
     )

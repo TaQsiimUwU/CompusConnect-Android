@@ -2,15 +2,13 @@ package com.taqsiim.compusconnect.data.repository
 
 import android.util.Log
 import com.taqsiim.compusconnect.data.api.ApiService
-import com.taqsiim.compusconnect.data.mapper.formatDates
 import com.taqsiim.compusconnect.data.local.TokenManager
+import com.taqsiim.compusconnect.data.mapper.formatDates
 import com.taqsiim.compusconnect.data.model.CancelReservationRequest
 import com.taqsiim.compusconnect.data.model.LoginRequest
 import com.taqsiim.compusconnect.data.model.MessageResponse
 import com.taqsiim.compusconnect.data.model.Notification
 import com.taqsiim.compusconnect.data.model.Reservation
-import com.taqsiim.compusconnect.data.model.ReserveRoomRequest
-import com.taqsiim.compusconnect.data.model.RoomReservationResponse
 import com.taqsiim.compusconnect.data.model.User
 import com.taqsiim.compusconnect.data.model.UserRole
 import javax.inject.Inject
@@ -75,15 +73,6 @@ class UserRepository @Inject constructor(
         return try {
             val response = api.cancelRoomReservation(reservationId.toInt(), CancelReservationRequest(startTime))
             Result.success(response)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun reserveRoom(request: ReserveRoomRequest): Result<RoomReservationResponse> {
-        return try {
-            val reservation = api.reserveRoom(request)
-            Result.success(reservation)
         } catch (e: Exception) {
             Result.failure(e)
         }

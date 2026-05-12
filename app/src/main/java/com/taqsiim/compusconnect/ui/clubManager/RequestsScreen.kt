@@ -193,7 +193,7 @@ fun PendingEventCard(request: com.taqsiim.compusconnect.data.model.PendingEvent)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Club: ${request.clubName}",
+                        text = "Club: ${request.clubName ?: "Unknown"}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

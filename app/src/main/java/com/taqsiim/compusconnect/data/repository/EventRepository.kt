@@ -6,6 +6,7 @@ import com.taqsiim.compusconnect.data.model.CreateEventRequest
 import com.taqsiim.compusconnect.data.model.Event
 import com.taqsiim.compusconnect.data.model.PendingEvent
 import com.taqsiim.compusconnect.data.model.RegisteredStudentResponse
+import retrofit2.HttpException
 import javax.inject.Inject
 
 class EventRepository @Inject constructor(
@@ -17,9 +18,14 @@ class EventRepository @Inject constructor(
         return try {
             val events = (api.getEvents() ?: emptyList()).map { it.formatDates() }
             Result.success(events)
+        } catch (e: HttpException) {
+            if (e.code() == 204) {
+                Result.success(emptyList())
+            } else {
+                Result.failure(e)
+            }
         } catch (e: Exception) {
-            // Handle 204 No Content or null response
-            Result.success(emptyList())
+            Result.failure(e)
         }
     }
 

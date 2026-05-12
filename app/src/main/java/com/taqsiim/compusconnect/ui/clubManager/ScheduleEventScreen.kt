@@ -22,10 +22,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -58,9 +55,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.taqsiim.compusconnect.data.model.CreateEventRequest
-import com.taqsiim.compusconnect.data.model.Room
 import com.taqsiim.compusconnect.data.model.UserRole
-import com.taqsiim.compusconnect.mvi.UiState
 import com.taqsiim.compusconnect.ui.clubManager.schedule.ScheduleEventEffect
 import com.taqsiim.compusconnect.ui.clubManager.schedule.ScheduleEventIntent
 import com.taqsiim.compusconnect.ui.clubManager.schedule.ScheduleEventViewModel
@@ -79,7 +74,6 @@ fun ScheduleEventScreen(
     onEventCreated: () -> Unit
 ) {
     val scheduleState by viewModel.state.collectAsState()
-    val roomsState = scheduleState.rooms
     val isSubmitting = scheduleState.isSubmitting
 
     var eventName by remember { mutableStateOf("") }
@@ -93,19 +87,12 @@ fun ScheduleEventScreen(
     var endTime by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var maxRegistration by remember { mutableStateOf("") }
-    var selectedRoom by remember { mutableStateOf<Room?>(null) }
-    var isRoomDropdownExpanded by remember { mutableStateOf(false) }
 
     var showDatePicker by remember { mutableStateOf(false) }
     var showStartTimePicker by remember { mutableStateOf(false) }
     var showEndTimePicker by remember { mutableStateOf(false) }
 
     val snackbarHostState = remember { SnackbarHostState() }
-
-    val rooms: List<Room> = when (val s = roomsState) {
-        is UiState.Success -> s.data
-        else -> emptyList()
-    }
 
     // Collect effects
     LaunchedEffect(Unit) {
@@ -216,7 +203,7 @@ fun ScheduleEventScreen(
                     }
                     Button(
                         onClick = {
-                            if (eventName.isBlank() || selectedDate.isBlank() || startTime.isBlank() || endTime.isBlank() || selectedRoom == null) {
+                            if (eventName.isBlank() || selectedDate.isBlank() || startTime.isBlank() || endTime.isBlank()) {
                                 return@Button
                             }
                             val startIso = "${selectedDate}T${startTime}:00Z"
@@ -227,7 +214,6 @@ fun ScheduleEventScreen(
                                 description = description,
                                 startTime = startIso,
                                 endTime = endIso,
-                                roomId = selectedRoom!!.id,
                                 maxRegistrations = maxRegistration.toIntOrNull() ?: 50
                             )
                             val intent = if (eventType == "Event") {
@@ -244,7 +230,7 @@ fun ScheduleEventScreen(
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary
                         ),
-                        enabled = !isSubmitting && eventName.isNotBlank() && selectedDate.isNotBlank() && startTime.isNotBlank() && endTime.isNotBlank() && selectedRoom != null
+                        enabled = !isSubmitting && eventName.isNotBlank() && selectedDate.isNotBlank() && startTime.isNotBlank() && endTime.isNotBlank()
                     ) {
                         if (isSubmitting) {
                             CircularProgressIndicator(
@@ -332,58 +318,6 @@ fun ScheduleEventScreen(
                         shape = RoundedCornerShape(8.dp),
                         singleLine = true
                     )
-                }
-            }
-
-            // Room Selection
-            Card(
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "Room",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-                    ExposedDropdownMenuBox(
-                        expanded = isRoomDropdownExpanded,
-                        onExpandedChange = { isRoomDropdownExpanded = !isRoomDropdownExpanded }
-                    ) {
-                        OutlinedTextField(
-                            value = selectedRoom?.let { "Room ${it.roomNumber} - ${it.buildingName}" } ?: "",
-                            onValueChange = {},
-                            readOnly = true,
-                            placeholder = { Text("Select a room") },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isRoomDropdownExpanded) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .menuAnchor(),
-                            shape = RoundedCornerShape(8.dp)
-                        )
-                        ExposedDropdownMenu(
-                            expanded = isRoomDropdownExpanded,
-                            onDismissRequest = { isRoomDropdownExpanded = false }
-                        ) {
-                            if (rooms.isEmpty()) {
-                                DropdownMenuItem(
-                                    text = { Text("Loading rooms...") },
-                                    onClick = { }
-                                )
-                            } else {
-                                rooms.forEach { room ->
-                                    DropdownMenuItem(
-                                        text = { Text("Room ${room.roomNumber} - ${room.buildingName} (Cap: ${room.capacity})") },
-                                        onClick = {
-                                            selectedRoom = room
-                                            isRoomDropdownExpanded = false
-                                        }
-                                    )
-                                }
-                            }
-                        }
-                    }
                 }
             }
 

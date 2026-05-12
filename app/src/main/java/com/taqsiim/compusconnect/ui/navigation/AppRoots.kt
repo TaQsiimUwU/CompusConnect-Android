@@ -6,6 +6,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -20,12 +21,18 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.taqsiim.compusconnect.data.model.ReserveFacilityRequest
+import com.taqsiim.compusconnect.data.model.ReserveRoomRequest
 import com.taqsiim.compusconnect.data.model.UserRole
+import com.taqsiim.compusconnect.ui.auth.AuthViewModel
 import com.taqsiim.compusconnect.ui.clubManager.AttendeesScreen
 import com.taqsiim.compusconnect.ui.clubManager.ClubAccountScreen
 import com.taqsiim.compusconnect.ui.clubManager.ManagerHomeScreen
 import com.taqsiim.compusconnect.ui.clubManager.RequestsScreen
 import com.taqsiim.compusconnect.ui.clubManager.ScheduleEventScreen
+import com.taqsiim.compusconnect.ui.clubManager.home.ManagerHomeViewModel
+import com.taqsiim.compusconnect.ui.clubManager.requests.RequestsViewModel
+import com.taqsiim.compusconnect.ui.clubManager.schedule.ScheduleEventViewModel
 import com.taqsiim.compusconnect.ui.student.BookRoomForm
 import com.taqsiim.compusconnect.ui.student.ClubProfileScreen
 import com.taqsiim.compusconnect.ui.student.ClubsScreen
@@ -38,20 +45,15 @@ import com.taqsiim.compusconnect.ui.student.ProfileScreen
 import com.taqsiim.compusconnect.ui.student.ReportIssueScreen
 import com.taqsiim.compusconnect.ui.student.ReservationsScreen
 import com.taqsiim.compusconnect.ui.student.ReserveSport
-import com.taqsiim.compusconnect.ui.auth.AuthViewModel
-import com.taqsiim.compusconnect.ui.student.home.HomeViewModel
-import com.taqsiim.compusconnect.ui.student.events.EventsViewModel
-import com.taqsiim.compusconnect.ui.student.events.EventDetailViewModel
 import com.taqsiim.compusconnect.ui.student.clubs.ClubsViewModel
-import com.taqsiim.compusconnect.ui.student.clubs.ClubDetailViewModel
-import com.taqsiim.compusconnect.ui.student.posts.PostDetailViewModel
-import com.taqsiim.compusconnect.ui.student.reservations.ReservationsViewModel
-import com.taqsiim.compusconnect.ui.clubManager.home.ManagerHomeViewModel
-import com.taqsiim.compusconnect.ui.clubManager.home.ManagerHomeIntent
-import com.taqsiim.compusconnect.ui.clubManager.requests.RequestsViewModel
-import com.taqsiim.compusconnect.ui.clubManager.attendees.AttendeesViewModel
-import com.taqsiim.compusconnect.ui.clubManager.schedule.ScheduleEventViewModel
-import com.taqsiim.compusconnect.mvi.UiState as MviUiState
+import com.taqsiim.compusconnect.ui.student.events.EventsViewModel
+import com.taqsiim.compusconnect.ui.student.facilities.FacilityBookingEffect
+import com.taqsiim.compusconnect.ui.student.facilities.FacilityBookingIntent
+import com.taqsiim.compusconnect.ui.student.facilities.FacilityBookingViewModel
+import com.taqsiim.compusconnect.ui.student.home.HomeViewModel
+import com.taqsiim.compusconnect.ui.student.rooms.RoomBookingEffect
+import com.taqsiim.compusconnect.ui.student.rooms.RoomBookingIntent
+import com.taqsiim.compusconnect.ui.student.rooms.RoomBookingViewModel
 
 @Composable
 fun StudentAppRoot(
@@ -146,20 +148,63 @@ fun StudentAppRoot(
                 )
             }
             composable("student/book_room") {
+                val viewModel: RoomBookingViewModel = hiltViewModel()
+                val effect by viewModel.effect.collectAsState(initial = null)
+                val authState by authViewModel.state.collectAsState()
+                
+                LaunchedEffect(effect) {
+                    when (effect) {
+                        is RoomBookingEffect.BookingSuccess -> navController.popBackStack()
+                        else -> {}
+                    }
+                }
+                
                 BookRoomForm(
                     onNavigateBack = { navController.popBackStack() },
-                    onSubmit = {
-                        // TODO: Handle submission
-                        navController.popBackStack()
+                    onSubmit = { date, startTime, endTime, purpose, _ ->
+                        val userId = authState.currentUser?.userId ?: 0
+                        val startIso = if (startTime.contains("T")) startTime else "${date}T${startTime}:00Z"
+                        val endIso = if (endTime.contains("T")) endTime else "${date}T${endTime}:00Z"
+                        val request = ReserveRoomRequest(
+                            startTime = startIso,
+                            endTime = endIso,
+                            purpose = purpose,
+                            stdIds = if (userId > 0) listOf(userId) else listOf()
+                        )
+                        viewModel.processIntent(RoomBookingIntent.ReserveRoom(request))
                     }
                 )
             }
             composable("student/reserve_sport") {
+                val viewModel: FacilityBookingViewModel = hiltViewModel()
+                val effect by viewModel.effect.collectAsState(initial = null)
+                val facilityState by viewModel.state.collectAsState()
+
+                LaunchedEffect(effect) {
+                    when (effect) {
+                        is FacilityBookingEffect.BookingSuccess -> navController.popBackStack()
+                        else -> {}
+                    }
+                }
+
                 ReserveSport(
                     onNavigateBack = { navController.popBackStack() },
-                    onSubmit = {
-                        // TODO: Handle submission
-                        navController.popBackStack()
+                    facilities = (facilityState.facilities as? com.taqsiim.compusconnect.mvi.UiState.Success)?.data
+                        ?: emptyList(),
+                    isSubmitting = facilityState.isSubmitting,
+                    onSubmit = { facilityId, startIso, endIso, teamIds ->
+                        val request = ReserveFacilityRequest(
+                            facilityId = facilityId,
+                            startTime = startIso,
+                            endTime = endIso,
+                            teamIds = teamIds
+                        )
+                        viewModel.processIntent(
+                            FacilityBookingIntent.ReserveFacility(
+                                facilityId = facilityId,
+                                request = request
+                            )
+                        )
                     }
                 )
             }

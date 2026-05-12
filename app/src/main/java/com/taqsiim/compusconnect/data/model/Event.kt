@@ -18,9 +18,9 @@ data class Event(
     @SerializedName("club_name")
     val clubName: String,
     @SerializedName("club_logo_url")
-    val clubLogoUrl: String,
+    val clubLogoUrl: String?,
     @SerializedName("club_cover_url")
-    val clubCoverUrl: String,
+    val clubCoverUrl: String?,
     val type: EventType,
     val title: String,
     val description: String,
@@ -28,7 +28,9 @@ data class Event(
     val startTime: String, // ISO format
     @SerializedName("end_time")
     val endTime: String,   // ISO format
-    val location: String,
+    @SerializedName("room_id")
+    val roomId: Int? = null,
+    val location: String?,
     @SerializedName("regestrations")
     val noOfRegistrations: Int,
     @SerializedName("max_regestrations")
@@ -78,8 +80,6 @@ data class CreateEventRequest(
     val startTime: String,
     @SerializedName("end_time")
     val endTime: String,
-    @SerializedName("room_id")
-    val roomId: Int,
     @SerializedName("max_registrations")
     val maxRegistrations: Int
 )
@@ -108,7 +108,7 @@ data class PendingEvent(
     @SerializedName("max_regestrations")
     val maxRegistrations: Int,
     @SerializedName("club_name")
-    val clubName: String = ""
+    val clubName: String? = null
 )
 
 data class StudentSearchResult(

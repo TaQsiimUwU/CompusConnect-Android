@@ -72,6 +72,8 @@ data class FacilityReservationResponse(
 )
 
 data class ReserveFacilityRequest(
+    @SerializedName("facility_id")
+    val facilityId: Int? = null,
     @SerializedName("start_time")
     val startTime: String,
     @SerializedName("end_time")

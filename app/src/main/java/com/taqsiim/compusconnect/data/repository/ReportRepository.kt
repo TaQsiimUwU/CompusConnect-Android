@@ -1,7 +1,11 @@
 package com.taqsiim.compusconnect.data.repository
 
 import com.taqsiim.compusconnect.data.api.ApiService
-import com.taqsiim.compusconnect.data.model.*
+import com.taqsiim.compusconnect.data.model.MessageResponse
+import com.taqsiim.compusconnect.data.model.ReportClubRequest
+import com.taqsiim.compusconnect.data.model.ReportEventRequest
+import com.taqsiim.compusconnect.data.model.ReportFacilityRequest
+import com.taqsiim.compusconnect.data.model.ReportRoomRequest
 import javax.inject.Inject
 
 class ReportRepository @Inject constructor(

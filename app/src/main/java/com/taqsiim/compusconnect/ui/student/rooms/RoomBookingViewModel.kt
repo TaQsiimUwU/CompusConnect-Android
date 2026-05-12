@@ -1,9 +1,8 @@
 package com.taqsiim.compusconnect.ui.student.rooms
 
-import android.util.Log
 import androidx.lifecycle.viewModelScope
-import com.taqsiim.compusconnect.data.model.Resource
 import com.taqsiim.compusconnect.data.model.ReserveRoomRequest
+import com.taqsiim.compusconnect.data.model.Resource
 import com.taqsiim.compusconnect.data.model.Room
 import com.taqsiim.compusconnect.data.repository.RoomRepository
 import com.taqsiim.compusconnect.mvi.MviViewModel

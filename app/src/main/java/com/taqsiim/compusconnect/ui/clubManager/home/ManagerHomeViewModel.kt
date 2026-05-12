@@ -137,7 +137,6 @@ class ManagerHomeViewModel @Inject constructor(
                     sendEffect(ManagerHomeEffect.ShowSnackbar("Post deleted"))
                 },
                 onFailure = { e ->
-                    // Revert
                     setState { copy(posts = UiState.Success(currentPosts)) }
                     sendEffect(ManagerHomeEffect.ShowSnackbar(e.message ?: "Failed to delete"))
                 }

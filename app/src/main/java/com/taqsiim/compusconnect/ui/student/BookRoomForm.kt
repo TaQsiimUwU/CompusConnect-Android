@@ -1,9 +1,14 @@
 package com.taqsiim.compusconnect.ui.student
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -13,31 +18,98 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Group
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTimePickerState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
+import androidx.compose.ui.window.Dialog
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BookRoomForm(
     onNavigateBack: () -> Unit,
-    onSubmit: () -> Unit
+    onSubmit: (date: String, startTime: String, endTime: String, purpose: String, numberOfPeople: String) -> Unit
 ) {
     var date by remember { mutableStateOf("") }
     var startTime by remember { mutableStateOf("") }
     var endTime by remember { mutableStateOf("") }
     var numberOfPeople by remember { mutableStateOf("1") }
     var purpose by remember { mutableStateOf("Studying") }
+    var showDatePicker by remember { mutableStateOf(false) }
+    var showStartTimePicker by remember { mutableStateOf(false) }
+    var showEndTimePicker by remember { mutableStateOf(false) }
 
     val purposeOptions = listOf("Studying", "Meeting", "Project", "Presentation")
+
+    if (showDatePicker) {
+        val datePickerState = rememberDatePickerState()
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { millis ->
+                        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+                        date = sdf.format(Date(millis))
+                    }
+                    showDatePicker = false
+                }) { Text("OK") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+
+    if (showStartTimePicker) {
+        RoomTimePickerDialog(
+            onDismiss = { showStartTimePicker = false },
+            onConfirm = { hour, minute ->
+                startTime = String.format(Locale.US, "%02d:%02d", hour, minute)
+                showStartTimePicker = false
+            }
+        )
+    }
+
+    if (showEndTimePicker) {
+        RoomTimePickerDialog(
+            onDismiss = { showEndTimePicker = false },
+            onConfirm = { hour, minute ->
+                endTime = String.format(Locale.US, "%02d:%02d", hour, minute)
+                showEndTimePicker = false
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -115,30 +187,68 @@ fun BookRoomForm(
                 ) {
 
                     // Time Inputs
+                    OutlinedTextField(
+                        value = date,
+                        onValueChange = { },
+                        label = { Text("Date") },
+                        placeholder = { Text("yyyy-mm-dd") },
+                        leadingIcon = {
+                            Icon(Icons.Default.CalendarToday, contentDescription = null)
+                        },
+                        trailingIcon = {
+                            IconButton(onClick = { showDatePicker = true }) {
+                                Icon(Icons.Default.CalendarToday, contentDescription = "Select Date")
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { showDatePicker = true },
+                        readOnly = true,
+                        enabled = false
+                    )
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         OutlinedTextField(
                             value = startTime,
-                            onValueChange = { startTime = it },
+                            onValueChange = { },
                             label = { Text("Start Time") },
                             placeholder = { Text("HH:MM") },
                             leadingIcon = {
                                 Icon(Icons.Default.AccessTime, contentDescription = null)
                             },
-                            modifier = Modifier.weight(1f)
+                            trailingIcon = {
+                                IconButton(onClick = { showStartTimePicker = true }) {
+                                    Icon(Icons.Default.AccessTime, contentDescription = "Select Start Time")
+                                }
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { showStartTimePicker = true },
+                            readOnly = true,
+                            enabled = false
                         )
 
                         OutlinedTextField(
                             value = endTime,
-                            onValueChange = { endTime = it },
+                            onValueChange = { },
                             label = { Text("End Time") },
                             placeholder = { Text("HH:MM") },
                             leadingIcon = {
                                 Icon(Icons.Default.AccessTime, contentDescription = null)
                             },
-                            modifier = Modifier.weight(1f)
+                            trailingIcon = {
+                                IconButton(onClick = { showEndTimePicker = true }) {
+                                    Icon(Icons.Default.AccessTime, contentDescription = "Select End Time")
+                                }
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { showEndTimePicker = true },
+                            readOnly = true,
+                            enabled = false
                         )
                     }
 
@@ -185,7 +295,8 @@ fun BookRoomForm(
                     }
 
                     Button(
-                        onClick = onSubmit,
+                        onClick = { onSubmit(date, startTime, endTime, purpose, numberOfPeople) },
+                        enabled = date.isNotBlank() && startTime.isNotBlank() && endTime.isNotBlank(),
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(8.dp)
                     ) {
@@ -195,6 +306,46 @@ fun BookRoomForm(
             }
 
 
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun RoomTimePickerDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (hour: Int, minute: Int) -> Unit
+) {
+    val timePickerState = rememberTimePickerState()
+
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 6.dp
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Select time",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp)
+                )
+                TimePicker(state = timePickerState)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onDismiss) { Text("Cancel") }
+                    TextButton(onClick = {
+                        onConfirm(timePickerState.hour, timePickerState.minute)
+                    }) { Text("OK") }
+                }
+            }
         }
     }
 }
@@ -215,14 +366,6 @@ private fun HowItWorksItem(text: String) {
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.primary
         )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun BookRoomFormPreview() {
-    CampusAppTheme {
-        BookRoomForm(onNavigateBack = {}, onSubmit = {})
     }
 }
 

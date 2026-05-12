@@ -218,7 +218,7 @@ private fun EventDetailContent(
                     DetailRow(
                         icon = Icons.Outlined.Place,
                         label = "Location",
-                        value = event.location
+                        value = event.location ?: ""
                     )
                 }
             }

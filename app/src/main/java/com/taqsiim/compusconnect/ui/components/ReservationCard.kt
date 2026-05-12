@@ -38,6 +38,14 @@ fun ReservationCard(
     modifier: Modifier = Modifier,
     onCancelClick: () -> Unit = {}
 ) {
+    val hasIsoTimes = reservation.startTime.contains("T") && reservation.endTime.contains("T")
+    val dateText = if (hasIsoTimes) reservation.startTime.substringBefore("T") else reservation.startTime
+    val timeText = if (hasIsoTimes) {
+        "${reservation.startTime.substringAfter("T").take(5)} - ${reservation.endTime.substringAfter("T").take(5)}"
+    } else {
+        reservation.endTime
+    }
+
     // the colors need to be from the theme
     val borderColor = when (reservation.type) {
         ReservationType.STUDY_ROOM -> Color(0xFF2196F3)
@@ -115,14 +123,8 @@ fun ReservationCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-//                Icon(
-//                    imageVector = Icons.Default.CalendarToday,
-//                    contentDescription = null,
-//                    modifier = Modifier.size(16.dp),
-//                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-//                )
                 Text(
-                    text = "Today", // TODO: Format reservation.startTime
+                    text = dateText,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -134,14 +136,8 @@ fun ReservationCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-//                Icon(
-//                    imageVector = Icons.Default.Schedule,
-//                    contentDescription = null,
-//                    modifier = Modifier.size(16.dp),
-//                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-//                )
                 Text(
-                    text = "2:00 PM - 4:00 PM", // TODO: Format times
+                    text = timeText,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
