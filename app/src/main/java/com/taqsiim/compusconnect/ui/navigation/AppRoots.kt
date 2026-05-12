@@ -30,6 +30,9 @@ import com.taqsiim.compusconnect.ui.clubManager.ClubAccountScreen
 import com.taqsiim.compusconnect.ui.clubManager.ManagerHomeScreen
 import com.taqsiim.compusconnect.ui.clubManager.RequestsScreen
 import com.taqsiim.compusconnect.ui.clubManager.ScheduleEventScreen
+import com.taqsiim.compusconnect.ui.clubManager.attendees.AttendeesViewModel
+import com.taqsiim.compusconnect.ui.clubManager.account.ClubAccountIntent
+import com.taqsiim.compusconnect.ui.clubManager.account.ClubAccountViewModel
 import com.taqsiim.compusconnect.ui.clubManager.home.ManagerHomeViewModel
 import com.taqsiim.compusconnect.ui.clubManager.requests.RequestsViewModel
 import com.taqsiim.compusconnect.ui.clubManager.schedule.ScheduleEventViewModel
@@ -281,6 +284,12 @@ fun ManagerAppRoot(
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: "manager/home"
+    val clubAccountViewModel: ClubAccountViewModel = hiltViewModel()
+    val attendeesViewModel: AttendeesViewModel = hiltViewModel()
+
+    LaunchedEffect(Unit) {
+        clubAccountViewModel.processIntent(ClubAccountIntent.LoadClubInfo)
+    }
 
     // Create dependencies manually for now
     Scaffold(
@@ -381,14 +390,16 @@ fun ManagerAppRoot(
                     else -> emptyList()
                 }
                 AttendeesScreen(
-                    events = events
+                    events = events,
+                    viewModel = attendeesViewModel
                 )
             }
             composable("manager/account") {
                 ClubAccountScreen(
                     canSwitchRole = canSwitchRole,
                     onSwitchToStudent = onSwitchRole,
-                    onLogout = onLogout
+                    onLogout = onLogout,
+                    clubAccountViewModel = clubAccountViewModel
                 )
             }
         }

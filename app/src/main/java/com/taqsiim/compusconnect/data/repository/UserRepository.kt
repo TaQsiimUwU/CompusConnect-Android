@@ -9,6 +9,7 @@ import com.taqsiim.compusconnect.data.model.LoginRequest
 import com.taqsiim.compusconnect.data.model.MessageResponse
 import com.taqsiim.compusconnect.data.model.Notification
 import com.taqsiim.compusconnect.data.model.Reservation
+import com.taqsiim.compusconnect.data.model.ReservationType
 import com.taqsiim.compusconnect.data.model.User
 import com.taqsiim.compusconnect.data.model.UserRole
 import javax.inject.Inject
@@ -62,16 +63,44 @@ class UserRepository @Inject constructor(
 
     suspend fun getMyReservations(): Result<List<Reservation>> {
         return try {
-            val reservations = api.getMyReservations().map { it.formatDates() }
+            val reservations = api.getMyReservations()
             Result.success(reservations)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    suspend fun cancelReservation(reservationId: String, startTime: String = ""): Result<MessageResponse> {
+    suspend fun cancelReservation(reservation: Reservation): Result<MessageResponse> {
         return try {
-            val response = api.cancelRoomReservation(reservationId.toInt(), CancelReservationRequest(startTime))
+            // The backend currently only supports cancelling via the room endpoint
+            // and reservation.type might be null.
+            val parsedId = Regex("\\d+").find(reservation.reservationId)?.value?.toIntOrNull() ?: 0
+            
+            // Convert start_time to backend expected format "yyyy-MM-dd HH:mm:ss"
+            val dbStartTime = try {
+                if (reservation.startTime.contains("T")) {
+                    reservation.startTime.replace("T", " ").substringBefore(".").substringBefore("Z")
+                } else {
+                    val cleanString = reservation.startTime.substringBefore(" (")
+                    val parser = java.text.SimpleDateFormat("EEE MMM dd yyyy HH:mm:ss 'GMT'Z", java.util.Locale.US)
+                    val date = parser.parse(cleanString)
+                    val dbFormatter = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.US).apply {
+                        timeZone = java.util.TimeZone.getTimeZone("UTC")
+                    }
+                    date?.let { dbFormatter.format(it) } ?: reservation.startTime
+                }
+            } catch (e: Exception) {
+                reservation.startTime
+            }
+
+            val response = when (reservation.type) {
+                ReservationType.EVENT, ReservationType.SESSION -> {
+                    api.unregisterFromEvent(parsedId)
+                }
+                else -> {
+                    api.cancelRoomReservation(parsedId, CancelReservationRequest(dbStartTime))
+                }
+            }
             Result.success(response)
         } catch (e: Exception) {
             Result.failure(e)

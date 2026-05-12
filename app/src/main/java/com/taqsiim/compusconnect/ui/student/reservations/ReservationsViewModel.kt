@@ -16,7 +16,7 @@ data class ReservationsState(
 
 sealed class ReservationsIntent {
     data object LoadReservations : ReservationsIntent()
-    data class CancelReservation(val id: String) : ReservationsIntent()
+    data class CancelReservation(val reservation: Reservation) : ReservationsIntent()
 }
 
 sealed class ReservationsEffect {
@@ -40,7 +40,7 @@ class ReservationsViewModel @Inject constructor(
     override fun handleIntent(intent: ReservationsIntent) {
         when (intent) {
             is ReservationsIntent.LoadReservations -> loadReservations()
-            is ReservationsIntent.CancelReservation -> cancelReservation(intent.id)
+            is ReservationsIntent.CancelReservation -> cancelReservation(intent.reservation)
         }
     }
 
@@ -60,9 +60,9 @@ class ReservationsViewModel @Inject constructor(
         }
     }
 
-    private fun cancelReservation(id: String) {
+    private fun cancelReservation(reservation: Reservation) {
         viewModelScope.launch {
-            userRepository.cancelReservation(id).fold(
+            userRepository.cancelReservation(reservation).fold(
                 onSuccess = {
                     sendEffect(ReservationsEffect.ReservationCancelled)
                     loadReservations()

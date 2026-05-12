@@ -8,6 +8,7 @@ import com.taqsiim.compusconnect.data.model.Post
 import com.taqsiim.compusconnect.data.repository.ClubRepository
 import com.taqsiim.compusconnect.data.repository.EventRepository
 import com.taqsiim.compusconnect.data.repository.PostRepository
+import com.taqsiim.compusconnect.data.repository.UserRepository
 import com.taqsiim.compusconnect.mvi.MviViewModel
 import com.taqsiim.compusconnect.mvi.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -43,10 +44,12 @@ private const val TAG = "ManagerHomeViewModel"
 class ManagerHomeViewModel @Inject constructor(
     private val postRepository: PostRepository,
     private val eventRepository: EventRepository,
-    private val clubRepository: ClubRepository
+    private val clubRepository: ClubRepository,
+    private val userRepository: UserRepository
 ) : MviViewModel<ManagerHomeState, ManagerHomeIntent, ManagerHomeEffect>() {
 
     override fun createInitialState() = ManagerHomeState()
+    private var managedClubId: Int? = null
 
     init {
         processIntent(ManagerHomeIntent.LoadPosts)
@@ -70,7 +73,12 @@ class ManagerHomeViewModel @Inject constructor(
     private fun loadPosts() {
         viewModelScope.launch {
             setState { copy(posts = UiState.Loading) }
-            postRepository.getPosts().fold(
+            val clubId = managedClubId ?: resolveManagedClubId()?.also { managedClubId = it }
+            if (clubId == null) {
+                setState { copy(posts = UiState.Error("Failed to resolve club id")) }
+                return@launch
+            }
+            postRepository.getPostsByClubId(clubId).fold(
                 onSuccess = { posts ->
                     Log.d(TAG, "Posts loaded: ${posts.size}")
                     val enriched = enrichPostsWithClubData(posts)
@@ -79,6 +87,14 @@ class ManagerHomeViewModel @Inject constructor(
                 onFailure = { e -> setState { copy(posts = UiState.Error(e.message ?: "Failed")) } }
             )
         }
+    }
+
+    private suspend fun resolveManagedClubId(): Int? {
+        val user = userRepository.getCurrentUser().getOrNull() ?: return null
+        val clubs = clubRepository.getClubs().getOrNull() ?: return null
+        val userName = "${user.firstName} ${user.lastName}".trim()
+        return clubs.firstOrNull { it.clubAdminName.equals(userName, ignoreCase = true) }?.id
+            ?: clubs.firstOrNull()?.id
     }
 
     private suspend fun enrichPostsWithClubData(posts: List<Post>): List<Post> {

@@ -1,6 +1,7 @@
 package com.taqsiim.compusconnect.data.repository
 
 import com.taqsiim.compusconnect.data.api.ApiService
+import com.taqsiim.compusconnect.data.model.AttendanceListRequest
 import com.taqsiim.compusconnect.data.mapper.formatDates
 import com.taqsiim.compusconnect.data.model.CreateEventRequest
 import com.taqsiim.compusconnect.data.model.Event
@@ -107,8 +108,16 @@ class EventRepository @Inject constructor(
         }
     }
 
-    suspend fun checkInStudent(eventId: Int, studentId: Int): Result<Unit> {
-        return Result.failure(UnsupportedOperationException("check-in endpoint is not in the API contract"))
+    suspend fun submitAttendanceList(eventId: Int, studentIds: List<Int>): Result<Unit> {
+        return try {
+            api.submitAttendanceList(
+                eventId = eventId,
+                request = AttendanceListRequest(studentIds = studentIds)
+            )
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     suspend fun deleteEvent(eventId: Int): Result<Unit> {

@@ -44,12 +44,27 @@ fun EventDetailScreen(
 ) {
     val detailState by viewModel.state.collectAsState()
     val eventDetailState = detailState.event
+    val snackbarHostState = androidx.compose.runtime.remember { SnackbarHostState() }
 
     LaunchedEffect(eventId) {
         viewModel.processIntent(EventDetailIntent.LoadEvent(eventId.toIntOrNull() ?: 0))
     }
 
+    LaunchedEffect(viewModel.effect) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is com.taqsiim.compusconnect.ui.student.events.EventDetailEffect.ShowSnackbar -> {
+                    snackbarHostState.showSnackbar(effect.message)
+                }
+                is com.taqsiim.compusconnect.ui.student.events.EventDetailEffect.ReportSubmitted -> {
+                    // Do nothing here, handled by snackbar
+                }
+            }
+        }
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = {},

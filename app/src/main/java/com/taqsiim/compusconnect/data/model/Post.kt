@@ -40,7 +40,13 @@ data class CreatePostRequest(
     val imageUrl: String?
 )
 
+data class GetClubPostsRequest(
+    @SerializedName("club_id")
+    val clubId: Int
+)
+
 data class UpdatePostRequest(
     @SerializedName("new_content")
     val newContent: String
 )
+

@@ -94,6 +94,11 @@ data class CheckInRequest(
     val studentId: Int
 )
 
+data class AttendanceListRequest(
+    @SerializedName("student_ids")
+    val studentIds: List<Int>
+)
+
 data class PendingEvent(
     @SerializedName("event_id")
     val eventId: Int,

@@ -27,7 +27,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -45,7 +44,6 @@ import coil.compose.AsyncImage
 import com.taqsiim.compusconnect.data.model.Club
 import com.taqsiim.compusconnect.data.model.UserRole
 import com.taqsiim.compusconnect.mvi.UiState
-import com.taqsiim.compusconnect.ui.clubManager.account.ClubAccountIntent
 import com.taqsiim.compusconnect.ui.clubManager.account.ClubAccountViewModel
 import com.taqsiim.compusconnect.ui.components.AccountActionsSection
 import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
@@ -55,17 +53,12 @@ import com.taqsiim.compusconnect.ui.auth.AuthViewModel
 fun ClubAccountScreen(
     canSwitchRole: Boolean = false,
     onSwitchToStudent: () -> Unit,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    clubAccountViewModel: ClubAccountViewModel = hiltViewModel()
 ) {
     val authViewModel: AuthViewModel = hiltViewModel()
     val authState by authViewModel.state.collectAsState()
-    val clubAccountViewModel: ClubAccountViewModel = hiltViewModel()
     val clubState by clubAccountViewModel.state.collectAsState()
-
-    // Load club info on first compose
-    LaunchedEffect(Unit) {
-        clubAccountViewModel.processIntent(ClubAccountIntent.LoadClubInfo)
-    }
 
     Column(
         modifier = Modifier

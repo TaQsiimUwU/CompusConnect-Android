@@ -61,6 +61,12 @@ interface ApiService {
     @GET(Endpoints.EVENT_ATTENDANCE)
     suspend fun getAttendanceList(@Path("event_id") eventId: Int): List<RegisteredStudentResponse>
 
+    @POST(Endpoints.EVENT_ATTENDANCE)
+    suspend fun submitAttendanceList(
+        @Path("event_id") eventId: Int,
+        @Body request: AttendanceListRequest
+    ): MessageResponse
+
     @GET(Endpoints.EVENT_POSTS)
     suspend fun getPostsForEvent(@Path("id") eventId: Int): List<Post>
 
@@ -79,6 +85,9 @@ interface ApiService {
     // Posts
     @GET(Endpoints.POSTS)
     suspend fun getPosts(): PostsResponse
+
+    @GET(Endpoints.POSTS)
+    suspend fun getPostsByClubId(@Query("club_id") clubId: Int): PostsResponse
 
     @GET(Endpoints.POST_BY_ID)
     suspend fun getPostById(@Path("id") postId: Int): Post

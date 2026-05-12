@@ -11,11 +11,13 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class RequestsState(
-    val requests: UiState<List<PendingEvent>> = UiState.Loading
+    val requests: UiState<List<PendingEvent>> = UiState.Loading,
+    val isRefreshing: Boolean = false
 )
 
 sealed class RequestsIntent {
     data object LoadRequests : RequestsIntent()
+    data object RefreshRequests : RequestsIntent()
 }
 
 sealed class RequestsEffect {
@@ -37,21 +39,27 @@ class RequestsViewModel @Inject constructor(
 
     override fun handleIntent(intent: RequestsIntent) {
         when (intent) {
-            is RequestsIntent.LoadRequests -> loadRequests()
+            is RequestsIntent.LoadRequests -> loadRequests(isRefresh = false)
+            is RequestsIntent.RefreshRequests -> loadRequests(isRefresh = true)
         }
     }
 
-    private fun loadRequests() {
+    private fun loadRequests(isRefresh: Boolean) {
         viewModelScope.launch {
             Log.d(TAG, "Loading requested events...")
-            setState { copy(requests = UiState.Loading) }
+            setState {
+                copy(
+                    requests = if (isRefresh && requests is UiState.Success) requests else UiState.Loading,
+                    isRefreshing = isRefresh
+                )
+            }
             eventRepository.getRequestedEvents().fold(
                 onSuccess = { events ->
                     Log.d(TAG, "Requests loaded: ${events.size}")
-                    setState { copy(requests = UiState.Success(events)) }
+                    setState { copy(requests = UiState.Success(events), isRefreshing = false) }
                 },
                 onFailure = { e ->
-                    setState { copy(requests = UiState.Error(e.message ?: "Failed")) }
+                    setState { copy(requests = UiState.Error(e.message ?: "Failed"), isRefreshing = false) }
                 }
             )
         }

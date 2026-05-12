@@ -21,6 +21,7 @@ import com.taqsiim.compusconnect.data.model.ReservationType
 import com.taqsiim.compusconnect.ui.components.ReservationCard
 import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 import com.taqsiim.compusconnect.ui.student.reservations.ReservationsViewModel
+import com.taqsiim.compusconnect.ui.student.reservations.ReservationsEffect
 import com.taqsiim.compusconnect.ui.student.reservations.ReservationsIntent
 import com.taqsiim.compusconnect.mvi.UiState
 import kotlinx.coroutines.launch
@@ -36,8 +37,23 @@ fun ReservationsScreen(
     val coroutineScope = rememberCoroutineScope()
     val reservationsScreenState by viewModel.state.collectAsState()
     val reservationsState = reservationsScreenState.reservations
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(viewModel.effect) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is ReservationsEffect.ShowSnackbar -> {
+                    snackbarHostState.showSnackbar(effect.message)
+                }
+                is ReservationsEffect.ReservationCancelled -> {
+                    snackbarHostState.showSnackbar("Reservation cancelled successfully")
+                }
+            }
+        }
+    }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = {
@@ -140,7 +156,7 @@ fun ReservationsScreen(
                                     reservation = reservation,
                                     modifier = Modifier.fillMaxWidth(),
                                     onCancelClick = {
-                                        viewModel.processIntent(ReservationsIntent.CancelReservation(reservation.reservationId))
+                                        viewModel.processIntent(ReservationsIntent.CancelReservation(reservation))
                                     }
                                 )
                             }

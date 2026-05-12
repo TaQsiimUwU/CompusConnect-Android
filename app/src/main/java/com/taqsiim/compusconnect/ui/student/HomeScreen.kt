@@ -72,6 +72,7 @@ import com.taqsiim.compusconnect.ui.components.ReservationCard
 import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 import com.taqsiim.compusconnect.ui.student.home.HomeViewModel
 import com.taqsiim.compusconnect.ui.student.home.HomeIntent
+import com.taqsiim.compusconnect.ui.student.home.HomeEffect
 import com.taqsiim.compusconnect.mvi.UiState
 import kotlinx.coroutines.launch
 
@@ -128,7 +129,25 @@ fun HomeScreen(
         isScrolling(scrollBehavior.state.collapsedFraction > 0.0f)
     }
 
+    val snackbarHostState = remember { androidx.compose.material3.SnackbarHostState() }
+
+    LaunchedEffect(viewModel.effect) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is HomeEffect.ShowSnackbar -> {
+                    snackbarHostState.showSnackbar(effect.message)
+                }
+            }
+        }
+    }
+
     Scaffold(
+        snackbarHost = { 
+            androidx.compose.material3.SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.padding(bottom = 80.dp)
+            ) 
+        },
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
@@ -208,7 +227,8 @@ fun HomeScreen(
                                 item {
                                     UpcomingReservationsSection(
                                         reservations = state.data,
-                                        onViewAll = onNavigateToReservations
+                                        onViewAll = onNavigateToReservations,
+                                        onCancelReservation = { onNavigateToReservations() }
                                     )
                                     Spacer(modifier = Modifier.height(16.dp))
                                 }
@@ -393,7 +413,8 @@ private fun QuickActionButton(
 @Composable
 private fun UpcomingReservationsSection(
     reservations: List<Reservation>,
-    onViewAll: () -> Unit
+    onViewAll: () -> Unit,
+    onCancelReservation: (Reservation) -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -409,7 +430,10 @@ private fun UpcomingReservationsSection(
             contentPadding = PaddingValues(end = 16.dp)
         ) {
             items(reservations) { reservation ->
-                ReservationCard(reservation = reservation)
+                ReservationCard(
+                    reservation = reservation,
+                    onCancelClick = { onCancelReservation(reservation) }
+                )
             }
         }
     }

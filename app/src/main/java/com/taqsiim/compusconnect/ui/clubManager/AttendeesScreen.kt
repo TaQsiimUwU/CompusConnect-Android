@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircleOutline
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Search
@@ -64,6 +65,7 @@ import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 import com.taqsiim.compusconnect.utils.QrScannerUtil
 import com.taqsiim.compusconnect.ui.clubManager.attendees.AttendeesViewModel
 import com.taqsiim.compusconnect.ui.clubManager.attendees.AttendeesIntent
+import com.taqsiim.compusconnect.ui.clubManager.attendees.AttendeesEffect
 import com.taqsiim.compusconnect.mvi.UiState
 import kotlinx.coroutines.launch
 
@@ -82,14 +84,27 @@ fun AttendeesScreen(
     val attendeesScreenState by viewModel.state.collectAsState()
     val attendeesState = attendeesScreenState.attendees
 
+    LaunchedEffect(viewModel) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is AttendeesEffect.ShowSnackbar -> snackbarHostState.showSnackbar(effect.message)
+            }
+        }
+    }
+
     // Event selector state
-    var selectedEvent by remember { mutableStateOf<Event?>(null) }
     var isEventDropdownExpanded by remember { mutableStateOf(false) }
+    val selectedEvent = remember(events, attendeesScreenState.selectedEventId) {
+        val selectedId = attendeesScreenState.selectedEventId
+        when {
+            selectedId != null -> events.firstOrNull { it.eventId == selectedId }
+            else -> events.firstOrNull()
+        }
+    }
 
     // Auto-select first event and load attendees
-    LaunchedEffect(events) {
-        if (events.isNotEmpty() && selectedEvent == null) {
-            selectedEvent = events.first()
+    LaunchedEffect(events, attendeesScreenState.selectedEventId) {
+        if (events.isNotEmpty() && attendeesScreenState.selectedEventId == null) {
             viewModel.processIntent(AttendeesIntent.LoadAttendees(events.first().eventId))
         }
     }
@@ -138,7 +153,16 @@ fun AttendeesScreen(
                                 if (matchedAttendee != null) {
                                     selectedTab = 0
                                     searchQuery = matchedAttendee.name
-                                    snackbarHostState.showSnackbar("Found: ${matchedAttendee.name} (ID ${matchedAttendee.studentId})")
+                                    if (matchedAttendee.studentId !in attendeesScreenState.attendedStudentIds) {
+                                        viewModel.processIntent(
+                                            AttendeesIntent.MarkAttended(
+                                                eventId = event.eventId,
+                                                studentId = matchedAttendee.studentId
+                                            )
+                                        )
+                                    } else {
+                                        snackbarHostState.showSnackbar("${matchedAttendee.name} is already marked attended")
+                                    }
                                 } else {
                                     snackbarHostState.showSnackbar("Scanned student is not registered for this event")
                                 }
@@ -216,7 +240,6 @@ fun AttendeesScreen(
                                             }
                                         },
                                         onClick = {
-                                            selectedEvent = event
                                             isEventDropdownExpanded = false
                                             viewModel.processIntent(AttendeesIntent.LoadAttendees(event.eventId))
                                         }
@@ -271,8 +294,9 @@ fun AttendeesScreen(
                 is UiState.Success -> {
                     val attendees = state.data
 
-                    val registeredCount = attendees.size
-                    val attendedCount = 0
+                    val attendedIds = attendeesScreenState.attendedStudentIds
+                    val registeredCount = attendees.count { it.studentId !in attendedIds }
+                    val attendedCount = attendees.count { it.studentId in attendedIds }
 
                     // Tabs
                     Row(
@@ -310,6 +334,11 @@ fun AttendeesScreen(
                             focusedBorderColor = MaterialTheme.colorScheme.primary
                         )
                     )
+                    Text(
+                        text = "Tap the check mark beside a student to mark attendance",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
 
                     Text(
                         text = if (selectedTab == 0) "Registered Attendees" else "Attended Attendees",
@@ -318,11 +347,11 @@ fun AttendeesScreen(
                     )
 
                     // List
-                    val filteredAttendees = if (selectedTab == 0) {
-                        attendees
+                    val filteredAttendees = (if (selectedTab == 0) {
+                        attendees.filter { it.studentId !in attendedIds }
                     } else {
-                        emptyList()
-                    }.filter {
+                        attendees.filter { it.studentId in attendedIds }
+                    }).filter {
                         searchQuery.isBlank() || it.name.contains(searchQuery, ignoreCase = true)
                     }
 
@@ -346,8 +375,25 @@ fun AttendeesScreen(
                                 }
                             }
                         }
-                        items(filteredAttendees) { attendee ->
-                            RegisteredStudentCard(attendee = attendee)
+                        items(
+                            items = filteredAttendees,
+                            key = { attendee -> attendee.studentId }
+                        ) { attendee ->
+                            RegisteredStudentCard(
+                                attendee = attendee,
+                                showAttendanceAction = selectedTab == 0,
+                                isSubmittingAttendance = attendee.studentId in attendeesScreenState.submittingStudentIds,
+                                onMarkAttended = {
+                                    selectedEvent?.let { event ->
+                                        viewModel.processIntent(
+                                            AttendeesIntent.MarkAttended(
+                                                eventId = event.eventId,
+                                                studentId = attendee.studentId
+                                            )
+                                        )
+                                    }
+                                }
+                            )
                         }
                     }
                 }
@@ -372,7 +418,10 @@ fun AttendeesScreen(
 
 @Composable
 fun RegisteredStudentCard(
-    attendee: com.taqsiim.compusconnect.data.model.RegisteredStudentResponse
+    attendee: com.taqsiim.compusconnect.data.model.RegisteredStudentResponse,
+    showAttendanceAction: Boolean,
+    isSubmittingAttendance: Boolean,
+    onMarkAttended: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -388,11 +437,42 @@ fun RegisteredStudentCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = attendee.name,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = attendee.name,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.weight(1f)
+                    )
+                    if (showAttendanceAction) {
+                        FilledIconButton(
+                            onClick = onMarkAttended,
+                            enabled = !isSubmittingAttendance,
+                            modifier = Modifier.size(34.dp),
+                            colors = IconButtonDefaults.filledIconButtonColors(
+                                containerColor = Color(0xFFD500F9),
+                                contentColor = Color.White
+                            )
+                        ) {
+                            if (isSubmittingAttendance) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(16.dp),
+                                    color = Color.White,
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "Mark attended"
+                                )
+                            }
+                        }
+                    }
+                }
                 Text(
                     text = attendee.email,
                     style = MaterialTheme.typography.bodySmall,

@@ -28,6 +28,18 @@ class PostRepository @Inject constructor(
         }
     }
 
+    suspend fun getPostsByClubId(clubId: Int): Result<List<Post>> {
+        return try {
+            val response = api.getPostsByClubId(clubId)
+            val posts = response.newsFeed
+                .filter { it.clubId == clubId }
+                .map { it.formatDates() }
+            Result.success(posts)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     suspend fun getPostById(postId: Int): Result<Post> {
         return try {
             val post = api.getPostById(postId).formatDates()
