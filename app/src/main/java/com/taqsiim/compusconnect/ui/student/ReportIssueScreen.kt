@@ -326,46 +326,6 @@ fun ReportIssueScreen(
                 Text("Submit Report", fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
 
-            // Recent Reports Section
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Your Recent Reports",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "(2)",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                RecentReportCard(
-                    title = "AC not working in Study Room B-204",
-                    category = "Equipment",
-                    date = "Reported on Nov 25, 2025",
-                    status = "In Progress",
-                    statusColor = Color(0xFFFFE0B2),
-                    statusTextColor = Color(0xFFE65100),
-                    indicatorColor = Color(0xFFFF6D00)
-                )
-
-                RecentReportCard(
-                    title = "Broken whiteboard marker in Court A",
-                    category = "Equipment",
-                    date = "Reported on Nov 20, 2025",
-                    status = "Resolved",
-                    statusColor = Color(0xFFC8E6C9),
-                    statusTextColor = Color(0xFF2E7D32),
-                    indicatorColor = Color(0xFF00C853)
-                )
-            }
-
 
         }
     }
@@ -448,88 +408,6 @@ fun CategoryCheckbox(
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(start = 8.dp)
             )
-        }
-    }
-}
-
-@Composable
-fun RecentReportCard(
-    title: String,
-    category: String,
-    date: String,
-    status: String,
-    statusColor: Color,
-    statusTextColor: Color,
-    indicatorColor: Color
-) {
-    Card(
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Row(modifier = Modifier.height(IntrinsicSize.Min)) {
-            // Colored indicator strip
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .width(4.dp)
-                    .background(indicatorColor)
-            )
-
-            Column(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .weight(1f)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Top
-                ) {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    Surface(
-                        color = statusColor,
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Text(
-                            text = status,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = statusTextColor,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = category,
-                    style = MaterialTheme.typography.bodySmall,
-                    fontWeight = FontWeight.Medium
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.CalendarToday, // Assuming CalendarToday is available or use generic
-                        contentDescription = null,
-                        modifier = Modifier.size(14.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = date,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
         }
     }
 }

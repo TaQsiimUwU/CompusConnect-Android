@@ -135,11 +135,11 @@ fun HomeScreen(
     }
 
     Scaffold(
-        snackbarHost = { 
+        snackbarHost = {
             androidx.compose.material3.SnackbarHost(
                 hostState = snackbarHostState,
                 modifier = Modifier.padding(bottom = 80.dp)
-            ) 
+            )
         },
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
@@ -195,8 +195,12 @@ fun HomeScreen(
                                 item {
                                     UpcomingReservationsSection(
                                         reservations = reservationsState.data,
-                                        onViewAll = onNavigateToReservations,
-                                        onCancelReservation = { onNavigateToReservations() }
+                                                onViewAll = onNavigateToReservations,
+                                                onCancelReservation = { reservation ->
+                                                    viewModel.processIntent(
+                                                        HomeIntent.CancelReservation(reservation)
+                                                    )
+                                                }
                                     )
                                     Spacer(modifier = Modifier.height(16.dp))
                                 }

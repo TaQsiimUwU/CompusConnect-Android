@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package com.taqsiim.compusconnect.ui.student
 
 import androidx.compose.foundation.clickable
@@ -29,6 +31,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -47,6 +51,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import java.text.SimpleDateFormat
@@ -150,29 +155,7 @@ fun BookRoomForm(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // How it works
-            Card(
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
-                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    Text(
-                        text = "How it works",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    HowItWorksItem("Submit your reservation request")
-                    HowItWorksItem("System automatically assigns best available room")
-                    HowItWorksItem("Confirmation sent via email and notification")
-                    HowItWorksItem("Room details will include amenities and location")
-                }
-            }
+
             // Form Fields
             Card(
                 shape = RoundedCornerShape(12.dp),
@@ -207,50 +190,41 @@ fun BookRoomForm(
                         enabled = false
                     )
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        OutlinedTextField(
-                            value = startTime,
-                            onValueChange = { },
-                            label = { Text("Start Time") },
-                            placeholder = { Text("HH:MM") },
-                            leadingIcon = {
-                                Icon(Icons.Default.AccessTime, contentDescription = null)
-                            },
-                            trailingIcon = {
-                                IconButton(onClick = { showStartTimePicker = true }) {
-                                    Icon(Icons.Default.AccessTime, contentDescription = "Select Start Time")
-                                }
-                            },
-                            modifier = Modifier
-                                .weight(1f)
-                                .clickable { showStartTimePicker = true },
-                            readOnly = true,
-                            enabled = false
-                        )
 
-                        OutlinedTextField(
-                            value = endTime,
-                            onValueChange = { },
-                            label = { Text("End Time") },
-                            placeholder = { Text("HH:MM") },
-                            leadingIcon = {
-                                Icon(Icons.Default.AccessTime, contentDescription = null)
+                    // Time Inputs
+
+                    // --- Start Time Field ---
+
+                    OutlinedTextField(
+                        value = startTime,
+                        onValueChange = { },
+                        label = { Text("Start Time") },
+                        placeholder = { Text("HH:MM") },
+                        leadingIcon = {
+                            Icon(Icons.Default.AccessTime, contentDescription = null)
                             },
-                            trailingIcon = {
-                                IconButton(onClick = { showEndTimePicker = true }) {
-                                    Icon(Icons.Default.AccessTime, contentDescription = "Select End Time")
-                                }
-                            },
-                            modifier = Modifier
-                                .weight(1f)
-                                .clickable { showEndTimePicker = true },
-                            readOnly = true,
-                            enabled = false
-                        )
-                    }
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { showStartTimePicker = true },
+                        readOnly = true,
+                        enabled = false
+                    )
+                    // --- End Time Field ---
+                    OutlinedTextField(
+                        value = endTime,
+                        onValueChange = { },
+                        label = { Text("End Time") },
+                        placeholder = { Text("HH:MM") },
+                        leadingIcon = {
+                            Icon(Icons.Default.AccessTime, contentDescription = null)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { showEndTimePicker = true },
+                        readOnly = true,
+                        enabled = false
+                    )
+
 
                     // Number of People
                     OutlinedTextField(
@@ -350,22 +324,28 @@ private fun RoomTimePickerDialog(
     }
 }
 
+@Preview(showBackground = true, name = "Book Room Form - Light")
 @Composable
-private fun HowItWorksItem(text: String) {
-    Row(
-        modifier = Modifier.padding(vertical = 4.dp),
-        verticalAlignment = Alignment.Top
-    ) {
-        Text(
-            text = "• ",
-            color = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.primary
+fun BookRoomFormPreviewLight() {
+    MaterialExpressiveTheme { // Replace with CampusConnectTheme if you have custom colors
+        BookRoomForm(
+            onNavigateBack = {},
+            onSubmit = { _, _, _, _, _ -> }
         )
     }
 }
 
+@Preview(
+    showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
+    name = "Book Room Form - Dark"
+)
+@Composable
+fun BookRoomFormPreviewDark() {
+    MaterialExpressiveTheme { // Replace with CampusConnectTheme if you have custom colors
+        BookRoomForm(
+            onNavigateBack = {},
+            onSubmit = { _, _, _, _, _ -> }
+        )
+    }
+}
