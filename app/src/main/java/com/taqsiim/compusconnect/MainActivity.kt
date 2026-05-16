@@ -8,14 +8,15 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.taqsiim.compusconnect.data.model.UserRole
@@ -48,18 +49,10 @@ fun MainContent(
     var accountRole by remember { mutableStateOf<UserRole?>(null) }
     val authState by authViewModel.state.collectAsState()
     val currentUser = authState.currentUser
+    val sessionReady = !authState.isCheckingSession
+    val effectiveAccountRole = accountRole ?: currentUser?.role?.takeIf { sessionReady }
+    val displayRole = currentUserRole ?: effectiveAccountRole
 
-    LaunchedEffect(currentUser) {
-        Log.d(TAG, "CurrentUser changed: ${currentUser?.email}, role: ${currentUser?.role}")
-        if (currentUser == null) {
-            currentUserRole = null
-            accountRole = null
-        } else if (currentUser.role != null && accountRole == null) {
-            accountRole = currentUser.role
-        }
-        Log.d(TAG, "CurrentUserRole updated to: $currentUserRole")
-    }
-    
     val handleLogout: () -> Unit = {
         Log.d(TAG, "Logging out...")
         authViewModel.processIntent(AuthIntent.Logout)
@@ -68,25 +61,32 @@ fun MainContent(
         Log.d(TAG, "Logout complete, currentUserRole set to null")
     }
 
-    CampusAppTheme(userRole = currentUserRole) {
+    CampusAppTheme(userRole = displayRole) {
         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-            Box(modifier = Modifier.padding(innerPadding)) {
-                when (currentUserRole) {
-                    null -> {
-                        Log.d(TAG, "Displaying LoginScreen (currentUserRole is null)")
+            Box(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                when {
+                    !sessionReady -> {
+                        CircularProgressIndicator()
+                    }
+                    displayRole == null -> {
+                        Log.d(TAG, "Displaying LoginScreen")
                         LoginScreen(
                             onLoginSuccess = { role ->
                                 Log.d(TAG, "onLoginSuccess callback received with role: $role")
                                 currentUserRole = role
                                 accountRole = role
-                                Log.d(TAG, "CurrentUserRole set to: $role")
                             }
                         )
                     }
-                    UserRole.STUDENT -> {
+                    displayRole == UserRole.STUDENT -> {
                         Log.d(TAG, "Displaying StudentAppRoot")
                         StudentAppRoot(
-                            canSwitchRole = accountRole == UserRole.CLUB_MANAGER,
+                            canSwitchRole = effectiveAccountRole == UserRole.CLUB_MANAGER,
                             onSwitchRole = { 
                                 Log.d(TAG, "Switching to CLUB_MANAGER")
                                 currentUserRole = UserRole.CLUB_MANAGER
@@ -95,10 +95,10 @@ fun MainContent(
                             authViewModel = authViewModel
                         )
                     }
-                    UserRole.CLUB_MANAGER -> {
+                    displayRole == UserRole.CLUB_MANAGER -> {
                         Log.d(TAG, "Displaying ManagerAppRoot")
                         ManagerAppRoot(
-                            canSwitchRole = accountRole == UserRole.CLUB_MANAGER,
+                            canSwitchRole = effectiveAccountRole == UserRole.CLUB_MANAGER,
                             onSwitchRole = {
                                 Log.d(TAG, "Switching to STUDENT")
                                 currentUserRole = UserRole.STUDENT

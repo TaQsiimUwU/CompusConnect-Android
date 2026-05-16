@@ -3,7 +3,10 @@ package com.taqsiim.compusconnect.data.repository
 import android.util.Log
 import com.taqsiim.compusconnect.data.api.ApiService
 import com.taqsiim.compusconnect.data.local.TokenManager
+import com.taqsiim.compusconnect.data.local.dao.CampusDao
 import com.taqsiim.compusconnect.data.mapper.formatDates
+import com.taqsiim.compusconnect.data.mapper.toDomainModel
+import com.taqsiim.compusconnect.data.mapper.toEntity
 import com.taqsiim.compusconnect.data.model.CancelReservationRequest
 import com.taqsiim.compusconnect.data.model.LoginRequest
 import com.taqsiim.compusconnect.data.model.MessageResponse
@@ -12,11 +15,14 @@ import com.taqsiim.compusconnect.data.model.Reservation
 import com.taqsiim.compusconnect.data.model.ReservationType
 import com.taqsiim.compusconnect.data.model.User
 import com.taqsiim.compusconnect.data.model.UserRole
+import kotlinx.coroutines.flow.first
+import retrofit2.HttpException
 import javax.inject.Inject
 
 class UserRepository @Inject constructor(
     private val api: ApiService,
-    private val tokenManager: TokenManager
+    private val tokenManager: TokenManager,
+    private val campusDao: CampusDao
 ) {
 
     suspend fun login(email: String, password: String): Result<User> {
@@ -39,6 +45,7 @@ class UserRepository @Inject constructor(
             Log.d(TAG, "User profile fetched: userId=${userProfile.userId}, email=${userProfile.email}")
 
             val user = userProfile.copy(role = userRole, userId = response.user.id.toIntOrNull() ?: userProfile.userId)
+            campusDao.refreshUser(user.toEntity())
             Log.d(TAG, "Combined user data: userId=${user.userId}, role=${user.role} ,${user.phone}")
             Log.d(TAG, "Login successful! Returning user with role: ${user.role}")
             Result.success(user)
@@ -52,9 +59,49 @@ class UserRepository @Inject constructor(
 
 
 
+    suspend fun getCachedSessionUser(): User? {
+        if (tokenManager.getTokenOnce().isNullOrBlank()) return null
+        return campusDao.getUser().first()?.toDomainModel()
+    }
+
+    suspend fun refreshSessionUser(): Result<User?> {
+        val token = tokenManager.getTokenOnce()
+        if (token.isNullOrBlank()) {
+            return Result.success(null)
+        }
+
+        val cachedUser = campusDao.getUser().first()?.toDomainModel()
+
+        return try {
+            val profile = api.getUserProfile()
+            val user = profile.copy(
+                role = cachedUser?.role ?: profile.role,
+                userId = if (profile.userId > 0) profile.userId else cachedUser?.userId ?: profile.userId
+            )
+            campusDao.refreshUser(user.toEntity())
+            Result.success(user)
+        } catch (e: Exception) {
+            if (e is HttpException && e.code() == 401) {
+                clearSession()
+                return Result.success(null)
+            }
+            if (cachedUser != null) {
+                Result.success(cachedUser)
+            } else {
+                Result.failure(e)
+            }
+        }
+    }
+
     suspend fun getCurrentUser(): Result<User> {
         return try {
-            val user = api.getUserProfile()
+            val cachedUser = campusDao.getUser().first()?.toDomainModel()
+            val profile = api.getUserProfile()
+            val user = profile.copy(
+                role = cachedUser?.role ?: profile.role,
+                userId = if (profile.userId > 0) profile.userId else cachedUser?.userId ?: profile.userId
+            )
+            campusDao.refreshUser(user.toEntity())
             Result.success(user)
         } catch (e: Exception) {
             Result.failure(e)
@@ -113,11 +160,16 @@ class UserRepository @Inject constructor(
 
     suspend fun logout(): Result<Unit> {
         return try {
-            tokenManager.clearToken()
+            clearSession()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    private suspend fun clearSession() {
+        tokenManager.clearToken()
+        campusDao.clearUser()
     }
 
 

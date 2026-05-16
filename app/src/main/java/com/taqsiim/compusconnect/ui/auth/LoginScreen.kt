@@ -74,6 +74,7 @@ fun LoginScreen(
         viewModel.effect.collect { effect ->
             when (effect) {
                 is AuthEffect.LoginSuccess -> onLoginSuccess(effect.role)
+                is AuthEffect.SessionRestored -> onLoginSuccess(effect.role)
                 is AuthEffect.ShowError -> { /* handled via state.error */ }
                 is AuthEffect.LoggedOut -> { }
             }
