@@ -2,7 +2,7 @@ package com.taqsiim.compusconnect.utils
 
 object Constants {
     // API Configuration
-    const val BASE_URL = "https://campusconnect-backend-production-81cf.up.railway.app/"
+    const val BASE_URL = "https://campus-connect-backend-three.vercel.app/"
     object Endpoints {
         const val LOGIN = "api/auth/login"
 
