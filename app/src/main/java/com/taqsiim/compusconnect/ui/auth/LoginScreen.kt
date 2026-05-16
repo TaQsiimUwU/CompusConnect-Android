@@ -31,6 +31,8 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -85,7 +87,8 @@ fun LoginScreen(
 
     LoginContent(
         authState = authState,
-        onLoginClick = { email, password -> viewModel.processIntent(AuthIntent.Login(email, password)) }
+        onLoginClick = { email, password -> viewModel.processIntent(AuthIntent.Login(email, password)) },
+        onClearError = { viewModel.processIntent(AuthIntent.ClearError) }
     )
 }
 
@@ -93,15 +96,19 @@ fun LoginScreen(
 @Composable
 private fun LoginContent(
     authState: AuthState,
-    onLoginClick: (String, String) -> Unit
+    onLoginClick: (String, String) -> Unit,
+    onClearError: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    var emailError by remember { mutableStateOf<String?>(null) }
+    var passwordError by remember { mutableStateOf<String?>(null) }
     val isImeVisible = WindowInsets.isImeVisible
     val scrollState = rememberScrollState()
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    Scaffold { paddingValues ->
+    Scaffold(snackbarHost = { SnackbarHost(hostState = snackbarHostState) }) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -164,20 +171,37 @@ private fun LoginContent(
                 OutlinedTextField(
                     modifier = Modifier.fillMaxWidth(),
                     value = email,
-                    onValueChange = { email = it },
+                    onValueChange = {
+                        email = it
+                        emailError = null
+                        onClearError()
+                    },
                     label = { Text(text = "Email") },
                     leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                     singleLine = true,
-                    enabled = !authState.isLoading
+                    enabled = !authState.isLoading,
+                    isError = emailError != null
                 )
+
+                if (emailError != null) {
+                    Text(
+                        text = emailError!!,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 OutlinedTextField(
                     value = password,
-                    onValueChange = { password = it },
-                    label = { Text("Password") },
+                    onValueChange = {
+                        password = it
+                        passwordError = null
+                        onClearError()
+                    },
+                    label = { Text(text = "Password") },
                     leadingIcon = { Icon(Icons.Default.Lock, contentDescription = "Password") },
                     trailingIcon = {
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
@@ -191,15 +215,40 @@ private fun LoginContent(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = !authState.isLoading
+                    enabled = !authState.isLoading,
+                    isError = passwordError != null
                 )
+
+                if (passwordError != null) {
+                    Text(
+                        text = passwordError!!,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
                 Spacer(modifier = Modifier.height(32.dp))
                 Button(
-                    onClick = { onLoginClick(email, password) },
+                    onClick = {
+                        // Basic client-side validation (ignore leading/trailing whitespace)
+                        val trimmedEmail = email.trim()
+                        val trimmedPassword = password.trim()
+                        var hasError = false
+                        if (trimmedEmail.isBlank() || !android.util.Patterns.EMAIL_ADDRESS.matcher(trimmedEmail).matches()) {
+                            emailError = "Enter a valid email addres"
+                            hasError = true
+                        }
+                        if (trimmedPassword.isBlank()) {
+                            passwordError = "Password must not be empty"
+                            hasError = true
+                        }
+                        if (!hasError) {
+                            onLoginClick(trimmedEmail, trimmedPassword)
+                        }
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
-                    enabled = email.isNotBlank() && password.isNotBlank() && !authState.isLoading
+                    enabled = email.trim().isNotBlank() && password.trim().isNotBlank() && !authState.isLoading
                 ) {
                     if (authState.isLoading) {
                         CircularProgressIndicator(
@@ -218,6 +267,13 @@ private fun LoginContent(
             }
         }
     }
+
+    LaunchedEffect(authState.error) {
+        authState.error?.let { msg ->
+            snackbarHostState.showSnackbar(message = msg)
+            onClearError()
+        }
+    }
 }
 
 
@@ -227,7 +283,8 @@ private fun LoginScreenDarkPreview() {
     MaterialExpressiveTheme {
         LoginContent(
             authState = AuthState(),
-            onLoginClick = { _, _ -> }
+            onLoginClick = { _, _ -> },
+            onClearError = {}
         )
     }
 }
@@ -237,7 +294,8 @@ private fun LoginScreenLightPreview() {
     MaterialExpressiveTheme {
         LoginContent(
             authState = AuthState(),
-            onLoginClick = { _, _ -> }
+            onLoginClick = { _, _ -> },
+            onClearError = {}
         )
     }
 }
