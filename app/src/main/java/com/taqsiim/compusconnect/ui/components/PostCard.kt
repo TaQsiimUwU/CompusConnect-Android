@@ -58,13 +58,10 @@ fun PostCard(
             // Club Header
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
+
                     // Club Logo
                     if (!post.clubLogoUrl.isNullOrEmpty()) {
                         AsyncImage(
@@ -111,7 +108,7 @@ fun PostCard(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                }
+
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -125,24 +122,35 @@ fun PostCard(
 
             // Event button
             if (post.eventId != null) {
-                Row(
-                    modifier = Modifier.padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                Spacer(modifier = Modifier.height(12.dp))
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = { onEventClick(post.eventId) }),
+                    shape = RoundedCornerShape(8.dp),
+                    color = MaterialTheme.colorScheme.inversePrimary,
+                    border = androidx.compose.foundation.BorderStroke(1.dp,MaterialTheme.colorScheme.primary )
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Event,
-                        contentDescription = null,
-                        tint = Color(0xFF1565C0)
-                    )
-                    Text(
-                        text = "Linked to Event #${post.eventId}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color(0xFF1565C0),
-                        fontWeight = FontWeight.Medium
-                    )
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Event,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "Linked to Event #${post.eventId}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
                 }
             }
+
 
             // Post Image
             if (!post.imageUrl.isNullOrEmpty()) {

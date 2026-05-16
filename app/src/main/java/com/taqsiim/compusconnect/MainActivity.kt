@@ -51,6 +51,7 @@ fun MainContent(
     val currentUser = authState.currentUser
     val sessionReady = !authState.isCheckingSession
     val effectiveAccountRole = accountRole ?: currentUser?.role?.takeIf { sessionReady }
+    val displayRole = currentUserRole ?: effectiveAccountRole
 
     val handleLogout: () -> Unit = {
         Log.d(TAG, "Logging out...")

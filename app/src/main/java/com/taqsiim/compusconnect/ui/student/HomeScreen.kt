@@ -25,21 +25,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Feed
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Report
 import androidx.compose.material.icons.filled.SportsBasketball
-import androidx.compose.material.icons.filled.Event
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -91,7 +85,6 @@ fun HomeScreen(
     onNavigateToRoomForm: () -> Unit = {},
     onNavigateToSportForm: () -> Unit = {},
     onNavigateToReportIssue: () -> Unit = {},
-    onNavigateToNotifications: () -> Unit = {},
     isScrolling: (Boolean) -> Unit = {},
     scrollToTop: Boolean = false,
     onScrollToTopComplete: () -> Unit = {}
@@ -113,7 +106,6 @@ fun HomeScreen(
         }
     }
 
-    val notificationCount = 0 // TODO: Get from notifications state
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val listState = rememberLazyListState()
 
@@ -159,30 +151,6 @@ fun HomeScreen(
                         fontSize = 20.sp
                     )
                 },
-                actions = {
-                    BadgedBox(
-                        badge = {
-                            if (notificationCount > 0) {
-                                Badge(
-                                    containerColor = MaterialTheme.colorScheme.error,
-                                    contentColor = Color.White
-                                ) {
-                                    Text(
-                                        text = notificationCount.toString(),
-                                        fontSize = 12.sp
-                                    )
-                                }
-                            }
-                        }
-                    ) {
-                        IconButton(onClick = onNavigateToNotifications) {
-                            Icon(
-                                imageVector = Icons.Default.Notifications,
-                                contentDescription = "Notifications"
-                            )
-                        }
-                    }
-                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
                     scrolledContainerColor = MaterialTheme.colorScheme.surface
@@ -215,8 +183,7 @@ fun HomeScreen(
                         QuickActionsSection(
                             onBookStudyRoom = onNavigateToRoomForm,
                             onReserveSports = onNavigateToSportForm,
-                            onReportIssue = onNavigateToReportIssue,
-                            onMyReservations = onNavigateToReservations
+                            onReportIssue = onNavigateToReportIssue
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                     }
@@ -300,8 +267,7 @@ fun HomeScreen(
 private fun QuickActionsSection(
     onBookStudyRoom: () -> Unit,
     onReserveSports: () -> Unit,
-    onReportIssue: () -> Unit,
-    onMyReservations: () -> Unit = {}
+    onReportIssue: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -339,15 +305,6 @@ private fun QuickActionsSection(
                 onClick = onReportIssue,
                 modifier = Modifier.weight(1f)
             )
-
-//            QuickActionButton(
-//                icon = Icons.Default.Event,
-//                label = "My Reservations",
-//                iconBackground = Color(0xFFE8F5E9),
-//                iconTint = Color(0xFF388E3C),
-//                onClick = onMyReservations,
-//                modifier = Modifier.weight(1f)
-//            )
         }
     }
 }
@@ -369,7 +326,7 @@ private fun QuickActionButton(
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         )
     ) {
         Column(
@@ -582,25 +539,7 @@ private fun HomeScreenPreviewLight() {
                             fontSize = 20.sp
                         )
                     },
-                    actions = {
-                        BadgedBox(
-                            badge = {
-                                Badge(
-                                    containerColor = MaterialTheme.colorScheme.error,
-                                    contentColor = Color.White
-                                ) {
-                                    Text(text = "3", fontSize = 12.sp)
-                                }
-                            }
-                        ) {
-                            IconButton(onClick = { /* preview only */ }) {
-                                Icon(
-                                    imageVector = Icons.Default.Notifications,
-                                    contentDescription = "Notifications"
-                                )
-                            }
-                        }
-                    },
+
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.surface
                     )
@@ -644,25 +583,7 @@ private fun HomeScreenPreviewDark() {
                             fontSize = 20.sp
                         )
                     },
-                    actions = {
-                        BadgedBox(
-                            badge = {
-                                Badge(
-                                    containerColor = MaterialTheme.colorScheme.error,
-                                    contentColor = Color.White
-                                ) {
-                                    Text(text = "3", fontSize = 12.sp)
-                                }
-                            }
-                        ) {
-                            IconButton(onClick = { /* preview only */ }) {
-                                Icon(
-                                    imageVector = Icons.Default.Notifications,
-                                    contentDescription = "Notifications"
-                                )
-                            }
-                        }
-                    },
+
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.surface
                     )

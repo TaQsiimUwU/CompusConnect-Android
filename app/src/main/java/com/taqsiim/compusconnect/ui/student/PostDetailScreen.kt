@@ -3,6 +3,7 @@ package com.taqsiim.compusconnect.ui.student
 import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -17,6 +18,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.Event
+import androidx.compose.material.icons.filled.Group
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -49,11 +51,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 @Composable
 fun PostDetailScreen(
     postId: String,
-    onNavigateToEventDetail: (String) -> Unit,
+    onEventClick: (Int) -> Unit,
     onNavigateBack: () -> Unit,
     viewModel: PostDetailViewModel = hiltViewModel(),
-    shouldFocusComment: Boolean = false
-) {
+
+    ) {
 
     val detailState by viewModel.state.collectAsState()
     val postState = detailState.post
@@ -91,7 +93,9 @@ fun PostDetailScreen(
         bottomBar = {
             // Comment input box
             Surface(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .imePadding(), // <--- Add this modifier right here
                 color = MaterialTheme.colorScheme.surface,
                 tonalElevation = 8.dp
             ) {
@@ -111,6 +115,18 @@ fun PostDetailScreen(
                         placeholder = { Text("Add a comment...") },
                         singleLine = true,
                         shape = RoundedCornerShape(20.dp),
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                            imeAction = ImeAction.Send
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onSend = {
+                                val pid = postId.toIntOrNull()
+                                if (commentText.isNotBlank() && pid != null && !detailState.isSubmitting) {
+                                    viewModel.processIntent(PostDetailIntent.AddComment(pid, commentText))
+                                    commentText = ""
+                                }
+                            }
+                        ),
                         colors = TextFieldDefaults.colors(
                             unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                             focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant
@@ -175,7 +191,7 @@ fun PostDetailScreen(
                     post = post,
                     commentsState = commentsState,
                     paddingValues = paddingValues,
-                    onNavigateToEventDetail = onNavigateToEventDetail,
+                    onEventClick = onEventClick,
                     onLike = {
                         if (post.isLiked) {
                             viewModel.processIntent(PostDetailIntent.UnlikePost(post.postId))
@@ -195,7 +211,7 @@ private fun PostDetailContent(
     post: Post,
     commentsState: UiState<List<Comment>>,
     paddingValues: PaddingValues,
-    onNavigateToEventDetail: (String) -> Unit,
+    onEventClick: (Int) -> Unit,
     onLike: () -> Unit
 ) {
     LazyColumn(
@@ -208,10 +224,95 @@ private fun PostDetailContent(
     ) {
         // Post content
         item {
-            Text(text = post.clubName ?: "Club ${post.clubId}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Text(text = post.createdAt, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(modifier = Modifier.height(4.dp))
+            // Club Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+
+                // Club Logo
+                if (!post.clubLogoUrl.isNullOrEmpty()) {
+                    AsyncImage(
+                        model = post.clubLogoUrl,
+                        contentDescription = "${post.clubName.orEmpty()} logo",
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(
+                                MaterialTheme.colorScheme.primaryContainer,
+                                CircleShape
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Group,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
+
+                Column {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = post.clubName ?: "Club ${post.clubId}",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    Text(
+                        text = post.createdAt,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
             Text(text = post.content, style = MaterialTheme.typography.bodyLarge)
+
+            // Event button
+            if (post.eventId != null) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = { onEventClick(post.eventId) }),
+                    shape = RoundedCornerShape(8.dp),
+                    color = MaterialTheme.colorScheme.inversePrimary,
+                    border = androidx.compose.foundation.BorderStroke(1.dp,MaterialTheme.colorScheme.primary )
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Event,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "Linked to Event #${post.eventId}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+            }
 
             if (!post.imageUrl.isNullOrEmpty()) {
                 Spacer(modifier = Modifier.height(12.dp))
@@ -263,26 +364,7 @@ private fun PostDetailContent(
                 }
             }
 
-            if (post.eventId != null) {
-                Spacer(modifier = Modifier.height(12.dp))
-                Row(
-                    modifier = Modifier.padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Event,
-                        contentDescription = null,
-                        tint = Color(0xFF1565C0)
-                    )
-                    Text(
-                        text = "Linked to Event #${post.eventId}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color(0xFF1565C0),
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-            }
+
         }
 
         item {
@@ -422,7 +504,7 @@ private fun PostDetailPreview() {
         post = samplePost,
         commentsState = UiState.Success(sampleComments),
         paddingValues = PaddingValues(0.dp),
-        onNavigateToEventDetail = {},
+        onEventClick = {},
         onLike = {}
     )
 }

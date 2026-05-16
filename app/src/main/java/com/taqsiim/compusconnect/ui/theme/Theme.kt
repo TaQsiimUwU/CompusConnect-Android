@@ -6,6 +6,7 @@ import android.os.Build
 import androidx.compose.animation.core.animate
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MotionScheme
 import androidx.compose.material3.darkColorScheme
@@ -81,6 +82,7 @@ private val DarkColorScheme = darkColorScheme(
     inversePrimary = Color(0xFF1E54C2),
     surfaceTint = Color(0xFF8EBBFF),
 )
+
 @Composable
 fun CompusConnectTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -96,7 +98,7 @@ fun CompusConnectTheme(
         else -> LightColorScheme
     }
 
-    MaterialTheme(
+    MaterialExpressiveTheme(
         colorScheme = colorScheme,
         typography = Typography,
         motionScheme = MotionScheme.expressive(),
