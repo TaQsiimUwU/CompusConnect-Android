@@ -1,8 +1,6 @@
 package com.taqsiim.compusconnect
 
 import android.os.Bundle
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.MaterialExpressiveTheme
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -21,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.taqsiim.compusconnect.data.model.UserRole
+import com.taqsiim.compusconnect.ui.theme.CompusConnectTheme
 import com.taqsiim.compusconnect.ui.auth.LoginScreen
 import com.taqsiim.compusconnect.ui.navigation.ManagerAppRoot
 import com.taqsiim.compusconnect.ui.navigation.StudentAppRoot
@@ -41,7 +40,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun MainContent(
     authViewModel: AuthViewModel = hiltViewModel()
@@ -61,7 +59,7 @@ fun MainContent(
         }
         Log.d(TAG, "CurrentUserRole updated to: $currentUserRole")
     }
-    
+
     val handleLogout: () -> Unit = {
         Log.d(TAG, "Logging out...")
         authViewModel.processIntent(AuthIntent.Logout)
@@ -70,7 +68,7 @@ fun MainContent(
         Log.d(TAG, "Logout complete, currentUserRole set to null")
     }
 
-    MaterialExpressiveTheme {
+    CompusConnectTheme {
         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
             Box(modifier = Modifier.padding(innerPadding)) {
                 when (currentUserRole) {
@@ -89,7 +87,7 @@ fun MainContent(
                         Log.d(TAG, "Displaying StudentAppRoot")
                         StudentAppRoot(
                             canSwitchRole = accountRole == UserRole.CLUB_MANAGER,
-                            onSwitchRole = { 
+                            onSwitchRole = {
                                 Log.d(TAG, "Switching to CLUB_MANAGER")
                                 currentUserRole = UserRole.CLUB_MANAGER
                             },
