@@ -15,6 +15,7 @@ import javax.inject.Inject
 data class AuthState(
     val currentUser: User? = null,
     val isLoading: Boolean = false,
+    val isCheckingSession: Boolean = true,
     val error: String? = null
 )
 
@@ -31,6 +32,7 @@ sealed class AuthIntent {
 
 sealed class AuthEffect {
     data class LoginSuccess(val role: UserRole) : AuthEffect()
+    data class SessionRestored(val role: UserRole) : AuthEffect()
     data class ShowError(val message: String) : AuthEffect()
     data object LoggedOut : AuthEffect()
 }
@@ -45,6 +47,10 @@ class AuthViewModel @Inject constructor(
 ) : MviViewModel<AuthState, AuthIntent, AuthEffect>() {
 
     override fun createInitialState() = AuthState()
+
+    init {
+        restoreSession()
+    }
 
     override fun handleIntent(intent: AuthIntent) {
         when (intent) {
@@ -73,6 +79,47 @@ class AuthViewModel @Inject constructor(
                     val msg = error.message ?: "Login failed"
                     setState { copy(isLoading = false, error = msg) }
                     sendEffect(AuthEffect.ShowError(msg))
+                }
+            )
+        }
+    }
+
+    private fun restoreSession() {
+        viewModelScope.launch {
+            Log.d(TAG, "Checking for saved session...")
+            setState { copy(isCheckingSession = true) }
+
+            val cachedUser = userRepository.getCachedSessionUser()
+            if (cachedUser != null) {
+                Log.d(TAG, "Restored cached user: ${cachedUser.email}, role=${cachedUser.role}")
+                setState { copy(currentUser = cachedUser, isCheckingSession = false) }
+            }
+
+            userRepository.refreshSessionUser().fold(
+                onSuccess = { user ->
+                    when {
+                        user != null -> {
+                            Log.d(TAG, "Session refreshed from network: ${user.email}")
+                            setState { copy(currentUser = user, isCheckingSession = false) }
+                            if (cachedUser == null) {
+                                sendEffect(AuthEffect.SessionRestored(user.role ?: UserRole.STUDENT))
+                            }
+                        }
+                        cachedUser == null -> {
+                            Log.d(TAG, "No saved session found")
+                            setState { copy(currentUser = null, isCheckingSession = false) }
+                        }
+                        else -> {
+                            Log.d(TAG, "Network session invalid, clearing cached user")
+                            setState { copy(currentUser = null, isCheckingSession = false) }
+                        }
+                    }
+                },
+                onFailure = { error ->
+                    Log.e(TAG, "Failed to refresh session: ${error.message}")
+                    if (cachedUser == null) {
+                        setState { copy(isCheckingSession = false) }
+                    }
                 }
             )
         }

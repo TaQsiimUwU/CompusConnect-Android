@@ -92,10 +92,11 @@ object AppModule {
     @Provides
     @Singleton
     fun provideUserRepository(
-        api: ApiService, 
-        tokenManager: TokenManager
+        api: ApiService,
+        tokenManager: TokenManager,
+        campusDao: CampusDao
     ): UserRepository {
-        return UserRepository(api,  tokenManager)
+        return UserRepository(api, tokenManager, campusDao)
     }
 
 

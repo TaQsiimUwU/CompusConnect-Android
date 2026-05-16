@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChatBubbleOutline
+import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Group
@@ -32,6 +33,7 @@ import com.taqsiim.compusconnect.data.model.Club
 
 /**
  * Post Card for Latest Updates
+ * Features edge-to-edge layout with an integrated, toggleable bottom divider.
  */
 @Composable
 fun PostCard(
@@ -39,20 +41,20 @@ fun PostCard(
     onLike: () -> Unit,
     onViewDetails: (Post) -> Unit,
     onEventClick: (Int) -> Unit = {},
-    onCommentClick: () -> Unit = {}
+    onCommentClick: () -> Unit = {},
+    showDivider: Boolean = true // Added parameter to control the divider
 ) {
-    Card(
+    // Outer column handles the background, click, and edge-to-edge elements
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .clickable { onViewDetails(post) },
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            .background(MaterialTheme.colorScheme.surface)
+            .clickable { onViewDetails(post) }
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        // Inner column handles the padded content
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
             // Club Header
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -82,7 +84,13 @@ fun PostCard(
                                     CircleShape
                                 ),
                             contentAlignment = Alignment.Center
-                        ) { }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Group,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
                     }
 
                     Column {
@@ -98,7 +106,7 @@ fun PostCard(
                         }
 
                         Text(
-                            text = post.createdAt, // Date is formatted in data layer
+                            text = post.createdAt,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -117,8 +125,22 @@ fun PostCard(
 
             // Event button
             if (post.eventId != null) {
-                TextButton(onClick = { onEventClick(post.eventId) }) {
-                    Text(text = "View Event", color = MaterialTheme.colorScheme.primary)
+                Row(
+                    modifier = Modifier.padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Event,
+                        contentDescription = null,
+                        tint = Color(0xFF1565C0)
+                    )
+                    Text(
+                        text = "Linked to Event #${post.eventId}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color(0xFF1565C0),
+                        fontWeight = FontWeight.Medium
+                    )
                 }
             }
 
@@ -181,6 +203,15 @@ fun PostCard(
                 }
             }
         }
+
+        // Edge-to-edge Horizontal Divider
+        if (showDivider) {
+            HorizontalDivider(
+                modifier = Modifier.fillMaxWidth(),
+                thickness = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant
+            )
+        }
     }
 }
 
@@ -211,7 +242,7 @@ fun PostCardPreviewLight() {
 @Preview(
     showBackground = true,
     uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
-    name = "Post Card - Dark"
+    name = "Post Card - Dark",
 )
 @Composable
 fun PostCardPreviewDark() {
@@ -231,7 +262,8 @@ fun PostCardPreviewDark() {
             onLike = {},
             onViewDetails = { _ -> },
             onEventClick = {},
-            onCommentClick = {}
+            onCommentClick = {},
+            showDivider = false // Previewing without the divider
         )
     }
 }

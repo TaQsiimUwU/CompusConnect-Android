@@ -37,6 +37,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LoadingIndicator
@@ -221,12 +222,12 @@ fun HomeScreen(
                     }
 
                     // Upcoming Reservations Section
-                    when (val state = reservationsState) {
+                    when (reservationsState) {
                         is UiState.Success -> {
-                            if (state.data.isNotEmpty()) {
+                            if (reservationsState.data.isNotEmpty()) {
                                 item {
                                     UpcomingReservationsSection(
-                                        reservations = state.data,
+                                        reservations = reservationsState.data,
                                         onViewAll = onNavigateToReservations,
                                         onCancelReservation = { onNavigateToReservations() }
                                     )
