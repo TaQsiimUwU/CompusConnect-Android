@@ -1,6 +1,10 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package com.taqsiim.compusconnect.ui.student
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
@@ -19,7 +23,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.taqsiim.compusconnect.data.model.Reservation
 import com.taqsiim.compusconnect.data.model.ReservationType
 import com.taqsiim.compusconnect.ui.components.ReservationCard
-import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 import com.taqsiim.compusconnect.ui.student.reservations.ReservationsViewModel
 import com.taqsiim.compusconnect.ui.student.reservations.ReservationsEffect
 import com.taqsiim.compusconnect.ui.student.reservations.ReservationsIntent
@@ -193,7 +196,7 @@ enum class ReservationFilter {
 @Preview(showBackground = true)
 @Composable
 fun ReservationsScreenPreview() {
-    CampusAppTheme {
+    MaterialExpressiveTheme {
         ReservationsScreen(onNavigateBack = {})
     }
 }

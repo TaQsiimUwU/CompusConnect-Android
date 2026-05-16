@@ -1,6 +1,10 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package com.taqsiim.compusconnect.ui.clubManager
 
 import androidx.compose.foundation.background
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,7 +50,6 @@ import com.taqsiim.compusconnect.data.model.UserRole
 import com.taqsiim.compusconnect.mvi.UiState
 import com.taqsiim.compusconnect.ui.clubManager.account.ClubAccountViewModel
 import com.taqsiim.compusconnect.ui.components.AccountActionsSection
-import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 import com.taqsiim.compusconnect.ui.auth.AuthViewModel
 
 @Composable
@@ -234,7 +237,7 @@ fun AboutClubCard(description: String) {
 @Preview(showBackground = true)
 @Composable
 fun ClubAccountScreenPreview() {
-    CampusAppTheme(userRole = UserRole.CLUB_MANAGER) {
+    MaterialExpressiveTheme {
         ClubAccountScreen(
             onSwitchToStudent = {},
             onLogout = {}
@@ -245,7 +248,7 @@ fun ClubAccountScreenPreview() {
 @Preview(showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun ClubAccountScreenDarkPreview() {
-    CampusAppTheme(darkTheme = true, userRole = UserRole.CLUB_MANAGER) {
+    MaterialExpressiveTheme {
         ClubAccountScreen(
             onSwitchToStudent = {},
             onLogout = {}

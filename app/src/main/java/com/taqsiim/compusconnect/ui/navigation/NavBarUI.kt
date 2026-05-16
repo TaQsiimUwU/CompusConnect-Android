@@ -1,6 +1,10 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package com.taqsiim.compusconnect.ui.navigation
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -25,7 +29,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 import com.taqsiim.compusconnect.data.model.UserRole
 
 private data class NavBarItem(
@@ -200,7 +203,7 @@ private fun NavBarContent(
 @Preview(showBackground = true, name = "Student Navigation Bar - Light")
 @Composable
 fun StudentNavBarPreviewLight() {
-    CampusAppTheme(userRole = UserRole.STUDENT, darkTheme = false) {
+    MaterialExpressiveTheme {
         DynamicNavBar(
             userRole = UserRole.STUDENT,
             selectedRoute = "student/home",
@@ -212,7 +215,7 @@ fun StudentNavBarPreviewLight() {
 @Preview(showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, name = "Student Navigation Bar - Dark")
 @Composable
 fun StudentNavBarPreviewDark() {
-    CampusAppTheme(userRole = UserRole.STUDENT, darkTheme = true) {
+    MaterialExpressiveTheme {
         DynamicNavBar(
             userRole = UserRole.STUDENT,
             selectedRoute = "student/home",
@@ -224,7 +227,7 @@ fun StudentNavBarPreviewDark() {
 @Preview(showBackground = true, name = "Manager Navigation Bar - Light")
 @Composable
 fun ManagerNavBarPreviewLight() {
-    CampusAppTheme(userRole = UserRole.CLUB_MANAGER, darkTheme = false) {
+    MaterialExpressiveTheme {
         DynamicNavBar(
             userRole = UserRole.CLUB_MANAGER,
             selectedRoute = "manager/home",
@@ -236,7 +239,7 @@ fun ManagerNavBarPreviewLight() {
 @Preview(showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, name = "Manager Navigation Bar - Dark")
 @Composable
 fun ManagerNavBarPreviewDark() {
-    CampusAppTheme(userRole = UserRole.CLUB_MANAGER, darkTheme = true) {
+    MaterialExpressiveTheme {
         DynamicNavBar(
             userRole = UserRole.CLUB_MANAGER,
             selectedRoute = "manager/home",

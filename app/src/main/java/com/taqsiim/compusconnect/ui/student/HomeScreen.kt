@@ -3,6 +3,7 @@
 package com.taqsiim.compusconnect.ui.student
 
 import androidx.compose.foundation.background
+import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -69,7 +70,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.taqsiim.compusconnect.data.model.Reservation
 import com.taqsiim.compusconnect.ui.components.PostCard
 import com.taqsiim.compusconnect.ui.components.ReservationCard
-import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 import com.taqsiim.compusconnect.ui.student.home.HomeViewModel
 import com.taqsiim.compusconnect.ui.student.home.HomeIntent
 import com.taqsiim.compusconnect.ui.student.home.HomeEffect
@@ -570,7 +570,7 @@ private fun ErrorStateCard(
 @Preview(showBackground = true, backgroundColor = 0xFFF2F2F2, name = "Student Home - Light")
 @Composable
 private fun HomeScreenPreviewLight() {
-    CampusAppTheme(darkTheme = false) {
+    MaterialExpressiveTheme {
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -632,7 +632,7 @@ private fun HomeScreenPreviewLight() {
 @Preview(showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, name = "Student Home - Dark")
 @Composable
 private fun HomeScreenPreviewDark() {
-    CampusAppTheme(darkTheme = true) {
+    MaterialExpressiveTheme {
         Scaffold(
             topBar = {
                 TopAppBar(

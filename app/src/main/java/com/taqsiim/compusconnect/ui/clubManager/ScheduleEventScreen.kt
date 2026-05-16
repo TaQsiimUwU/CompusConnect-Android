@@ -1,6 +1,10 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package com.taqsiim.compusconnect.ui.clubManager
 
 import androidx.compose.foundation.clickable
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -59,7 +63,6 @@ import com.taqsiim.compusconnect.data.model.UserRole
 import com.taqsiim.compusconnect.ui.clubManager.schedule.ScheduleEventEffect
 import com.taqsiim.compusconnect.ui.clubManager.schedule.ScheduleEventIntent
 import com.taqsiim.compusconnect.ui.clubManager.schedule.ScheduleEventViewModel
-import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -502,7 +505,7 @@ private fun TimePickerDialog(
 @Preview(name = "Light Mode")
 @Composable
 fun ScheduleEventScreenPreview() {
-    CampusAppTheme(userRole = UserRole.CLUB_MANAGER) {
+    MaterialExpressiveTheme {
         // Preview placeholder — ViewModel can't be previewed
     }
 }

@@ -1,6 +1,10 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package com.taqsiim.compusconnect.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -25,7 +29,6 @@ import coil.compose.AsyncImage
 import com.taqsiim.compusconnect.data.model.Post
 import androidx.compose.ui.tooling.preview.Preview
 import com.taqsiim.compusconnect.data.model.Club
-import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 
 /**
  * Post Card for Latest Updates
@@ -184,7 +187,7 @@ fun PostCard(
 @Preview(showBackground = true, name = "Post Card - Light")
 @Composable
 fun PostCardPreviewLight() {
-    CampusAppTheme(darkTheme = false) {
+    MaterialExpressiveTheme {
         PostCard(
             post = Post(
                 postId = 1,
@@ -212,7 +215,7 @@ fun PostCardPreviewLight() {
 )
 @Composable
 fun PostCardPreviewDark() {
-    CampusAppTheme(darkTheme = true) {
+    MaterialExpressiveTheme {
         PostCard(
             post = Post(
                 postId = 2,

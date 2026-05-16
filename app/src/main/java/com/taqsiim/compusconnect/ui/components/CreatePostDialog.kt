@@ -1,6 +1,10 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package com.taqsiim.compusconnect.ui.components
 
 import android.content.res.Configuration
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,7 +24,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 import com.taqsiim.compusconnect.data.model.UserRole
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -247,7 +250,7 @@ fun CreatePostDialog(
 )
 @Composable
 fun CreatePostDialogPreview() {
-    CampusAppTheme(userRole = UserRole.CLUB_MANAGER) {
+    MaterialExpressiveTheme {
         CreatePostDialog(
             onDismissRequest = {},
             onPublish = { _, _, _, _ -> }

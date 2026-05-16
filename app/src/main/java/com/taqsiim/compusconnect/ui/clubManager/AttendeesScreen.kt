@@ -1,6 +1,10 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package com.taqsiim.compusconnect.ui.clubManager
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -61,7 +65,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.taqsiim.compusconnect.data.model.Event
 import com.taqsiim.compusconnect.data.model.UserRole
-import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 import com.taqsiim.compusconnect.utils.QrScannerUtil
 import com.taqsiim.compusconnect.ui.clubManager.attendees.AttendeesViewModel
 import com.taqsiim.compusconnect.ui.clubManager.attendees.AttendeesIntent
@@ -522,7 +525,7 @@ fun AttendeeTabButton(
 @Preview(name = "Light Mode")
 @Composable
 fun AttendeesScreenPreview() {
-    CampusAppTheme(userRole = UserRole.CLUB_MANAGER) {
+    MaterialExpressiveTheme {
         AttendeesScreen()
     }
 }

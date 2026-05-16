@@ -1,6 +1,10 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package com.taqsiim.compusconnect.ui.clubManager
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -43,7 +47,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.taqsiim.compusconnect.data.model.EventStatus
 import com.taqsiim.compusconnect.data.model.UserRole
-import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 import com.taqsiim.compusconnect.ui.clubManager.requests.RequestsViewModel
 import com.taqsiim.compusconnect.ui.clubManager.requests.RequestsIntent
 import com.taqsiim.compusconnect.mvi.UiState
@@ -264,7 +267,7 @@ data class Quadruple<A, B, C, D>(val first: A, val second: B, val third: C, val 
 @Preview(name = "Light Mode")
 @Composable
 fun RequestsScreenPreview() {
-    CampusAppTheme(userRole = UserRole.CLUB_MANAGER) {
+    MaterialExpressiveTheme {
         RequestsScreen(
             viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
         )

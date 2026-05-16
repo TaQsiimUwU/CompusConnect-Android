@@ -1,6 +1,8 @@
 package com.taqsiim.compusconnect
 
 import android.os.Bundle
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialExpressiveTheme
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -22,7 +24,6 @@ import com.taqsiim.compusconnect.data.model.UserRole
 import com.taqsiim.compusconnect.ui.auth.LoginScreen
 import com.taqsiim.compusconnect.ui.navigation.ManagerAppRoot
 import com.taqsiim.compusconnect.ui.navigation.StudentAppRoot
-import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 import com.taqsiim.compusconnect.ui.auth.AuthViewModel
 import com.taqsiim.compusconnect.ui.auth.AuthIntent
 import dagger.hilt.android.AndroidEntryPoint
@@ -40,6 +41,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun MainContent(
     authViewModel: AuthViewModel = hiltViewModel()
@@ -68,7 +70,7 @@ fun MainContent(
         Log.d(TAG, "Logout complete, currentUserRole set to null")
     }
 
-    CampusAppTheme(userRole = currentUserRole) {
+    MaterialExpressiveTheme {
         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
             Box(modifier = Modifier.padding(innerPadding)) {
                 when (currentUserRole) {

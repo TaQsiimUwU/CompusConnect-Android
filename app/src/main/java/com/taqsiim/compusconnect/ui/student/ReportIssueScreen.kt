@@ -1,6 +1,10 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package com.taqsiim.compusconnect.ui.student
 
 import android.graphics.Bitmap
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -32,7 +36,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -538,7 +541,7 @@ enum class ReportType {
 @Preview(showBackground = true)
 @Composable
 fun ReportIssueScreenPreview() {
-    CampusAppTheme {
+    MaterialExpressiveTheme {
         ReportIssueScreen(onNavigateBack = {})
     }
 }
@@ -546,7 +549,7 @@ fun ReportIssueScreenPreview() {
 @Preview(showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun ReportIssueScreenDarkPreview() {
-    CampusAppTheme {
+    MaterialExpressiveTheme {
         ReportIssueScreen(onNavigateBack = {})
     }
 }

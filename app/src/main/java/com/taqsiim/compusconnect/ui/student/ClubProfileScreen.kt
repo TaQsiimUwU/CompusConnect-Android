@@ -1,6 +1,8 @@
 package com.taqsiim.compusconnect.ui.student
 
 import android.content.res.Configuration
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -54,7 +56,6 @@ import com.taqsiim.compusconnect.data.model.Post
 import com.taqsiim.compusconnect.mvi.UiState
 import com.taqsiim.compusconnect.ui.student.clubs.ClubDetailIntent
 import com.taqsiim.compusconnect.ui.student.clubs.ClubDetailViewModel
-import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -362,6 +363,7 @@ fun ClubPostCard(post: Post) {
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @androidx.compose.ui.tooling.preview.Preview(name = "Light Mode")
 @androidx.compose.ui.tooling.preview.Preview(
     uiMode = Configuration.UI_MODE_NIGHT_YES,
@@ -369,7 +371,7 @@ fun ClubPostCard(post: Post) {
 )
 @Composable
 fun ClubProfileScreenPreview() {
-    CampusAppTheme {
+    MaterialExpressiveTheme {
         ClubProfileScreen(clubId = "1", onNavigateBack = {})
     }
 }

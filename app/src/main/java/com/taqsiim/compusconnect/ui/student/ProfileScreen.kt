@@ -1,6 +1,10 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package com.taqsiim.compusconnect.ui.student
 
 import android.content.res.Configuration
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialExpressiveTheme
 import android.graphics.Bitmap
 import android.graphics.Color as AndroidColor
 import androidx.compose.foundation.Image
@@ -55,7 +59,6 @@ import com.taqsiim.compusconnect.data.model.User
 import com.taqsiim.compusconnect.data.model.UserRole
 import com.taqsiim.compusconnect.ui.components.AccountActionsSection
 import com.taqsiim.compusconnect.ui.components.ActionItem
-import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 import com.taqsiim.compusconnect.ui.auth.AuthViewModel
 import com.taqsiim.compusconnect.ui.auth.AuthIntent
 import com.google.zxing.BarcodeFormat
@@ -333,7 +336,7 @@ fun ProfileScreenPreview() {
         phone = "+20 10 1234 5678"
     )
 
-    CampusAppTheme {
+    MaterialExpressiveTheme {
         ProfileScreenContent(
             user = mockUser,
             canSwitchRole = false,
@@ -359,7 +362,7 @@ fun ProfileScreenDarkPreview() {
         phone = "+20 10 1234 5678"
     )
 
-    CampusAppTheme(darkTheme = true) {
+    MaterialExpressiveTheme {
         ProfileScreenContent(
             user = mockUser,
             canSwitchRole = false,

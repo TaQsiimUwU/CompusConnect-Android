@@ -1,6 +1,8 @@
 package com.taqsiim.compusconnect.ui.student
 
 import android.content.res.Configuration
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -62,10 +64,9 @@ import com.taqsiim.compusconnect.data.model.ClubStatus
 import com.taqsiim.compusconnect.mvi.UiState
 import com.taqsiim.compusconnect.ui.student.clubs.ClubsIntent
 import com.taqsiim.compusconnect.ui.student.clubs.ClubsViewModel
-import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 import kotlinx.coroutines.launch
 
-// TODO: Implement ClubsScreen composable
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ClubsScreen(
@@ -428,6 +429,7 @@ private fun StatItem(icon: androidx.compose.ui.graphics.vector.ImageVector, text
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Preview(name = "Light Mode")
 @Preview(
     uiMode = Configuration.UI_MODE_NIGHT_YES,
@@ -451,11 +453,12 @@ fun ClubCardPreview() {
         status = ClubStatus.ACTIVE,
         isJoined = true
     )
-    CampusAppTheme {
+    MaterialExpressiveTheme {
         ClubCard(club = club, onJoinLeave = {}, onView = {} )
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Preview(name = "Clubs Screen - Light", showBackground = true)
 @Preview(
     uiMode = Configuration.UI_MODE_NIGHT_YES,
@@ -499,7 +502,7 @@ fun ClubsScreenPreview() {
         )
     )
 
-    CampusAppTheme {
+    MaterialExpressiveTheme {
         ClubsScreenContent(
             clubsState = UiState.Success(sampleClubs),
             onNavigateToClubProfile = {},

@@ -1,6 +1,10 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package com.taqsiim.compusconnect.ui.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,7 +34,6 @@ import androidx.compose.ui.unit.dp
 import com.taqsiim.compusconnect.data.model.Reservation
 import com.taqsiim.compusconnect.data.model.ReservationType
 import androidx.compose.ui.tooling.preview.Preview
-import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 
 @Composable
 fun ReservationCard(
@@ -165,7 +168,7 @@ fun ReservationCard(
 @Preview(showBackground = true, name = "Reservation Card - Light")
 @Composable
 fun ReservationCardPreviewLight() {
-    CampusAppTheme(darkTheme = false) {
+    MaterialExpressiveTheme {
         ReservationCard(
             reservation = Reservation(
                 reservationId = "1",
@@ -181,7 +184,7 @@ fun ReservationCardPreviewLight() {
 @Preview(showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, name = "Reservation Card - Dark")
 @Composable
 fun ReservationCardPreviewDark() {
-    CampusAppTheme(darkTheme = true) {
+    MaterialExpressiveTheme {
         ReservationCard(
             reservation = Reservation(
                 reservationId = "2",

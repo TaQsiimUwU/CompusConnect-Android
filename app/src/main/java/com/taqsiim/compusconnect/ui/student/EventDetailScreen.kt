@@ -1,6 +1,10 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package com.taqsiim.compusconnect.ui.student
 
 import androidx.compose.foundation.background
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,7 +28,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.taqsiim.compusconnect.data.model.Event
-import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 import com.taqsiim.compusconnect.ui.student.events.EventDetailViewModel
 import com.taqsiim.compusconnect.ui.student.events.EventDetailIntent
 import com.taqsiim.compusconnect.mvi.UiState
@@ -384,7 +387,7 @@ private fun DetailRow(
 )
 @Composable
 fun EventDetailScreenPreview() {
-    CampusAppTheme {
+    MaterialExpressiveTheme {
         EventDetailScreen(eventId = "1", onNavigateBack = {})
     }
 }

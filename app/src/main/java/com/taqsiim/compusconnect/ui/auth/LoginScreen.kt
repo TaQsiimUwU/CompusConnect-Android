@@ -1,6 +1,10 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package com.taqsiim.compusconnect.ui.auth
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -55,7 +59,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.taqsiim.compusconnect.R
 import com.taqsiim.compusconnect.data.model.UserRole
-import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 import com.taqsiim.compusconnect.ui.auth.AuthViewModel
 import com.taqsiim.compusconnect.ui.auth.AuthState
 import com.taqsiim.compusconnect.ui.auth.AuthIntent
@@ -217,10 +220,11 @@ private fun LoginContent(
     }
 }
 
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun LoginScreenDarkPreview() {
-    CampusAppTheme(darkTheme = true) {
+    MaterialExpressiveTheme {
         LoginContent(
             authState = AuthState(),
             onLoginClick = { _, _ -> }
@@ -230,7 +234,7 @@ private fun LoginScreenDarkPreview() {
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun LoginScreenLightPreview() {
-    CampusAppTheme(darkTheme = false) {
+    MaterialExpressiveTheme {
         LoginContent(
             authState = AuthState(),
             onLoginClick = { _, _ -> }
