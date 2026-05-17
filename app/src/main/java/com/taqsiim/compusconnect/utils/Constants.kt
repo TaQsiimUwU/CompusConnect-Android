@@ -21,6 +21,7 @@ object Constants {
         const val EVENT_REGISTER = "api/events/{event_id}/register"
         const val EVENT_REGISTERED_STUDENTS = "api/events/{event_id}/registered_students" // this for club manager
         const val EVENT_ATTENDANCE = "api/events/{event_id}/attendance_list" // this for club manager
+        const val EVENT_ATTENDEES  = "api/events/{event_id}/attendees"        // batch check-in (POST)
         const val EVENT_POSTS = "api/events/{id}/posts"
         const val EVENT_REPORT = "api/events/report"
 

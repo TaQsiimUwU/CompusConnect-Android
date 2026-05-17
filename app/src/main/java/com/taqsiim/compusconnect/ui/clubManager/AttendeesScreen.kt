@@ -1,5 +1,10 @@
 package com.taqsiim.compusconnect.ui.clubManager
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +25,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircleOutline
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -29,6 +35,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
@@ -153,15 +160,13 @@ fun AttendeesScreen(
                                 if (matchedAttendee != null) {
                                     selectedTab = 0
                                     searchQuery = matchedAttendee.name
-                                    if (matchedAttendee.studentId !in attendeesScreenState.attendedStudentIds) {
-                                        viewModel.processIntent(
-                                            AttendeesIntent.MarkAttended(
-                                                eventId = event.eventId,
-                                                studentId = matchedAttendee.studentId
-                                            )
-                                        )
-                                    } else {
-                                        snackbarHostState.showSnackbar("${matchedAttendee.name} is already marked attended")
+                                    when {
+                                        matchedAttendee.studentId in attendeesScreenState.attendedStudentIds ->
+                                            snackbarHostState.showSnackbar("${matchedAttendee.name} is already marked attended")
+                                        matchedAttendee.studentId in attendeesScreenState.pendingStudentIds ->
+                                            snackbarHostState.showSnackbar("${matchedAttendee.name} is already staged")
+                                        else ->
+                                            viewModel.processIntent(AttendeesIntent.StageAttendee(matchedAttendee.studentId))
                                     }
                                 } else {
                                     snackbarHostState.showSnackbar("Scanned student is not registered for this event")
@@ -185,6 +190,38 @@ fun AttendeesScreen(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
             )
+        },
+        floatingActionButton = {
+            val pendingCount = attendeesScreenState.pendingStudentIds.size
+            AnimatedVisibility(
+                visible = pendingCount > 0 && selectedTab == 0,
+                enter = slideInVertically { it } + fadeIn(),
+                exit  = slideOutVertically { it } + fadeOut()
+            ) {
+                ExtendedFloatingActionButton(
+                    onClick = {
+                        selectedEvent?.let { event ->
+                            viewModel.processIntent(AttendeesIntent.SubmitPending(event.eventId))
+                        }
+                    },
+                    icon = {
+                        if (attendeesScreenState.isSubmitting) {
+                            CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Color.White, strokeWidth = 2.dp)
+                        } else {
+                            Icon(Icons.Default.Upload, contentDescription = null, tint = Color.White)
+                        }
+                    },
+                    text = {
+                        Text(
+                            text = if (attendeesScreenState.isSubmitting) "Submitting…" else "Submit Check-ins ($pendingCount)",
+                            color = Color.White,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    },
+                    containerColor = Color(0xFFD500F9),
+                    shape = RoundedCornerShape(16.dp)
+                )
+            }
         }
     ) { paddingValues ->
         Column(
@@ -295,8 +332,9 @@ fun AttendeesScreen(
                     val attendees = state.data
 
                     val attendedIds = attendeesScreenState.attendedStudentIds
+                    val pendingIds  = attendeesScreenState.pendingStudentIds
                     val registeredCount = attendees.count { it.studentId !in attendedIds }
-                    val attendedCount = attendees.count { it.studentId in attendedIds }
+                    val attendedCount   = attendees.count { it.studentId in attendedIds }
 
                     // Tabs
                     Row(
@@ -357,7 +395,7 @@ fun AttendeesScreen(
 
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(12.dp),
-                        contentPadding = PaddingValues(bottom = 16.dp)
+                        contentPadding = PaddingValues(bottom = 80.dp) // room for FAB
                     ) {
                         if (filteredAttendees.isEmpty()) {
                             item {
@@ -382,16 +420,9 @@ fun AttendeesScreen(
                             RegisteredStudentCard(
                                 attendee = attendee,
                                 showAttendanceAction = selectedTab == 0,
-                                isSubmittingAttendance = attendee.studentId in attendeesScreenState.submittingStudentIds,
+                                isSubmittingAttendance = attendee.studentId in pendingIds,
                                 onMarkAttended = {
-                                    selectedEvent?.let { event ->
-                                        viewModel.processIntent(
-                                            AttendeesIntent.MarkAttended(
-                                                eventId = event.eventId,
-                                                studentId = attendee.studentId
-                                            )
-                                        )
-                                    }
+                                    viewModel.processIntent(AttendeesIntent.StageAttendee(attendee.studentId))
                                 }
                             )
                         }
@@ -458,18 +489,10 @@ fun RegisteredStudentCard(
                                 contentColor = Color.White
                             )
                         ) {
-                            if (isSubmittingAttendance) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(16.dp),
-                                    color = Color.White,
-                                    strokeWidth = 2.dp
-                                )
-                            } else {
-                                Icon(
-                                    imageVector = Icons.Default.Check,
-                                    contentDescription = "Mark attended"
-                                )
-                            }
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = "Mark attended"
+                            )
                         }
                     }
                 }

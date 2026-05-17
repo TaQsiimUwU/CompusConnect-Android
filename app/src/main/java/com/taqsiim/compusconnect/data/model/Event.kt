@@ -99,6 +99,17 @@ data class AttendanceListRequest(
     val studentIds: List<Int>
 )
 
+data class BatchCheckInRequest(
+    @SerializedName("studentIds")
+    val studentIds: List<Int>
+)
+
+data class CheckInResponse(
+    val success: Boolean,
+    @SerializedName("checkedInStudents")
+    val checkedInStudents: List<Int> = emptyList()
+)
+
 data class PendingEvent(
     @SerializedName("event_id")
     val eventId: Int,

@@ -67,6 +67,12 @@ interface ApiService {
         @Body request: AttendanceListRequest
     ): MessageResponse
 
+    @POST(Endpoints.EVENT_ATTENDEES)
+    suspend fun checkInAttendees(
+        @Path("event_id") eventId: Int,
+        @Body request: BatchCheckInRequest
+    ): CheckInResponse
+
     @GET(Endpoints.EVENT_POSTS)
     suspend fun getPostsForEvent(@Path("id") eventId: Int): List<Post>
 
