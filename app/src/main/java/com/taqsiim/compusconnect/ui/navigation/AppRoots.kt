@@ -376,17 +376,7 @@ fun ManagerAppRoot(
                 )
             }
             composable("manager/attendees") {
-                // Get the ManagerHomeViewModel's events to pass to attendees
-                val managerHomeVM: ManagerHomeViewModel = hiltViewModel()
-                val homeState by managerHomeVM.state.collectAsState()
-                val events = when (val s = homeState.events) {
-                    is com.taqsiim.compusconnect.mvi.UiState.Success -> s.data
-                    else -> emptyList()
-                }
-                AttendeesScreen(
-                    events = events,
-                    viewModel = attendeesViewModel
-                )
+                AttendeesScreen(viewModel = attendeesViewModel)
             }
             composable("manager/account") {
                 ClubAccountScreen(

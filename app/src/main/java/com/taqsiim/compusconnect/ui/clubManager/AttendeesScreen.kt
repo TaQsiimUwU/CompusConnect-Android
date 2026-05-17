@@ -82,7 +82,6 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AttendeesScreen(
-    events: List<Event> = emptyList(),
     viewModel: AttendeesViewModel = hiltViewModel()
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
@@ -93,6 +92,7 @@ fun AttendeesScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val attendeesScreenState by viewModel.state.collectAsState()
     val attendeesState = attendeesScreenState.attendees
+    val events = (attendeesScreenState.events as? UiState.Success)?.data.orEmpty()
 
     LaunchedEffect(viewModel) {
         viewModel.effect.collect { effect ->
@@ -102,20 +102,13 @@ fun AttendeesScreen(
         }
     }
 
-    // Event selector state
+    // Event selector
     var isEventDropdownExpanded by remember { mutableStateOf(false) }
     val selectedEvent = remember(events, attendeesScreenState.selectedEventId) {
         val selectedId = attendeesScreenState.selectedEventId
         when {
             selectedId != null -> events.firstOrNull { it.eventId == selectedId }
             else -> events.firstOrNull()
-        }
-    }
-
-    // Auto-select first event and load attendees
-    LaunchedEffect(events, attendeesScreenState.selectedEventId) {
-        if (events.isNotEmpty() && attendeesScreenState.selectedEventId == null) {
-            viewModel.processIntent(AttendeesIntent.LoadAttendees(events.first().eventId))
         }
     }
 
@@ -235,73 +228,90 @@ fun AttendeesScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Event Selector Dropdown
-            if (events.isNotEmpty()) {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = "Select Event",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-                        ExposedDropdownMenuBox(
-                            expanded = isEventDropdownExpanded,
-                            onExpandedChange = { isEventDropdownExpanded = !isEventDropdownExpanded }
+            when (val eventsState = attendeesScreenState.events) {
+                is UiState.Loading -> {
+                    CircularProgressIndicator(modifier = Modifier.padding(8.dp))
+                }
+                is UiState.Error -> {
+                    Text(
+                        text = "Failed to load events: ${eventsState.message}",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+                is UiState.Success -> {
+                    val clubEvents = eventsState.data
+                    if (clubEvents.isNotEmpty()) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                            shape = RoundedCornerShape(12.dp)
                         ) {
-                            OutlinedTextField(
-                                value = selectedEvent?.title ?: "Select an event",
-                                onValueChange = {},
-                                readOnly = true,
-                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isEventDropdownExpanded) },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .menuAnchor(),
-                                shape = RoundedCornerShape(8.dp)
-                            )
-                            ExposedDropdownMenu(
-                                expanded = isEventDropdownExpanded,
-                                onDismissRequest = { isEventDropdownExpanded = false }
-                            ) {
-                                events.forEach { event ->
-                                    DropdownMenuItem(
-                                        text = {
-                                            Column {
-                                                Text(event.title, fontWeight = FontWeight.Medium)
-                                                Text(
-                                                    event.startTime.substringBefore("T"),
-                                                    style = MaterialTheme.typography.bodySmall,
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                                )
-                                            }
-                                        },
-                                        onClick = {
-                                            isEventDropdownExpanded = false
-                                            viewModel.processIntent(AttendeesIntent.LoadAttendees(event.eventId))
-                                        }
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text(
+                                    text = "Select Event",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(bottom = 8.dp)
+                                )
+                                ExposedDropdownMenuBox(
+                                    expanded = isEventDropdownExpanded,
+                                    onExpandedChange = { isEventDropdownExpanded = !isEventDropdownExpanded }
+                                ) {
+                                    OutlinedTextField(
+                                        value = selectedEvent?.title ?: "Select an event",
+                                        onValueChange = {},
+                                        readOnly = true,
+                                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isEventDropdownExpanded) },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .menuAnchor(),
+                                        shape = RoundedCornerShape(8.dp)
                                     )
+                                    ExposedDropdownMenu(
+                                        expanded = isEventDropdownExpanded,
+                                        onDismissRequest = { isEventDropdownExpanded = false }
+                                    ) {
+                                        clubEvents.forEach { event ->
+                                            DropdownMenuItem(
+                                                text = {
+                                                    Column {
+                                                        Text(event.title, fontWeight = FontWeight.Medium)
+                                                        Text(
+                                                            event.startTime.substringBefore("T"),
+                                                            style = MaterialTheme.typography.bodySmall,
+                                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                        )
+                                                    }
+                                                },
+                                                onClick = {
+                                                    isEventDropdownExpanded = false
+                                                    viewModel.processIntent(AttendeesIntent.LoadAttendees(event.eventId))
+                                                }
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
+                    } else {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text(
+                                text = "No events available for your club",
+                                modifier = Modifier.padding(16.dp),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
-            } else {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text(
-                        text = "No events available",
-                        modifier = Modifier.padding(16.dp),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                else -> {}
             }
 
             // Attendees content
