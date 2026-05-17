@@ -1,6 +1,10 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package com.taqsiim.compusconnect.ui.clubManager
 
 import android.content.res.Configuration
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -36,7 +40,6 @@ import com.taqsiim.compusconnect.ui.clubManager.home.ManagerHomeEffect
 import com.taqsiim.compusconnect.ui.clubManager.home.ManagerHomeIntent
 import com.taqsiim.compusconnect.ui.clubManager.home.ManagerHomeViewModel
 import com.taqsiim.compusconnect.ui.components.CreatePostDialog
-import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -452,7 +455,7 @@ fun AnnouncementCard(
 )
 @Composable
 fun ManagerHomeScreenPreview() {
-    CampusAppTheme(userRole = UserRole.CLUB_MANAGER) {
+    MaterialExpressiveTheme {
         ManagerHomeScreen(
             viewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
             onScheduleEvent = {},

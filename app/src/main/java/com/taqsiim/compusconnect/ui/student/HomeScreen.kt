@@ -3,6 +3,7 @@
 package com.taqsiim.compusconnect.ui.student
 
 import androidx.compose.foundation.background
+import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,12 +25,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Feed
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Report
 import androidx.compose.material.icons.filled.SportsBasketball
-import androidx.compose.material.icons.filled.Event
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -37,7 +34,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -69,7 +65,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.taqsiim.compusconnect.data.model.Reservation
 import com.taqsiim.compusconnect.ui.components.PostCard
 import com.taqsiim.compusconnect.ui.components.ReservationCard
-import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 import com.taqsiim.compusconnect.ui.student.home.HomeViewModel
 import com.taqsiim.compusconnect.ui.student.home.HomeIntent
 import com.taqsiim.compusconnect.ui.student.home.HomeEffect
@@ -90,7 +85,6 @@ fun HomeScreen(
     onNavigateToRoomForm: () -> Unit = {},
     onNavigateToSportForm: () -> Unit = {},
     onNavigateToReportIssue: () -> Unit = {},
-    onNavigateToNotifications: () -> Unit = {},
     isScrolling: (Boolean) -> Unit = {},
     scrollToTop: Boolean = false,
     onScrollToTopComplete: () -> Unit = {}
@@ -112,7 +106,6 @@ fun HomeScreen(
         }
     }
 
-    val notificationCount = 0 // TODO: Get from notifications state
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val listState = rememberLazyListState()
 
@@ -142,11 +135,11 @@ fun HomeScreen(
     }
 
     Scaffold(
-        snackbarHost = { 
+        snackbarHost = {
             androidx.compose.material3.SnackbarHost(
                 hostState = snackbarHostState,
                 modifier = Modifier.padding(bottom = 80.dp)
-            ) 
+            )
         },
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
@@ -157,30 +150,6 @@ fun HomeScreen(
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp
                     )
-                },
-                actions = {
-                    BadgedBox(
-                        badge = {
-                            if (notificationCount > 0) {
-                                Badge(
-                                    containerColor = MaterialTheme.colorScheme.error,
-                                    contentColor = Color.White
-                                ) {
-                                    Text(
-                                        text = notificationCount.toString(),
-                                        fontSize = 12.sp
-                                    )
-                                }
-                            }
-                        }
-                    ) {
-                        IconButton(onClick = onNavigateToNotifications) {
-                            Icon(
-                                imageVector = Icons.Default.Notifications,
-                                contentDescription = "Notifications"
-                            )
-                        }
-                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
@@ -214,21 +183,24 @@ fun HomeScreen(
                         QuickActionsSection(
                             onBookStudyRoom = onNavigateToRoomForm,
                             onReserveSports = onNavigateToSportForm,
-                            onReportIssue = onNavigateToReportIssue,
-                            onMyReservations = onNavigateToReservations
+                            onReportIssue = onNavigateToReportIssue
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                     }
 
                     // Upcoming Reservations Section
-                    when (val state = reservationsState) {
+                    when (reservationsState) {
                         is UiState.Success -> {
-                            if (state.data.isNotEmpty()) {
+                            if (reservationsState.data.isNotEmpty()) {
                                 item {
                                     UpcomingReservationsSection(
-                                        reservations = state.data,
-                                        onViewAll = onNavigateToReservations,
-                                        onCancelReservation = { onNavigateToReservations() }
+                                        reservations = reservationsState.data,
+                                                onViewAll = onNavigateToReservations,
+                                                onCancelReservation = { reservation ->
+                                                    viewModel.processIntent(
+                                                        HomeIntent.CancelReservation(reservation)
+                                                    )
+                                                }
                                     )
                                     Spacer(modifier = Modifier.height(16.dp))
                                 }
@@ -299,8 +271,7 @@ fun HomeScreen(
 private fun QuickActionsSection(
     onBookStudyRoom: () -> Unit,
     onReserveSports: () -> Unit,
-    onReportIssue: () -> Unit,
-    onMyReservations: () -> Unit = {}
+    onReportIssue: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -338,15 +309,6 @@ private fun QuickActionsSection(
                 onClick = onReportIssue,
                 modifier = Modifier.weight(1f)
             )
-
-//            QuickActionButton(
-//                icon = Icons.Default.Event,
-//                label = "My Reservations",
-//                iconBackground = Color(0xFFE8F5E9),
-//                iconTint = Color(0xFF388E3C),
-//                onClick = onMyReservations,
-//                modifier = Modifier.weight(1f)
-//            )
         }
     }
 }
@@ -368,7 +330,7 @@ private fun QuickActionButton(
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         )
     ) {
         Column(
@@ -570,7 +532,7 @@ private fun ErrorStateCard(
 @Preview(showBackground = true, backgroundColor = 0xFFF2F2F2, name = "Student Home - Light")
 @Composable
 private fun HomeScreenPreviewLight() {
-    CampusAppTheme(darkTheme = false) {
+    MaterialExpressiveTheme {
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -581,25 +543,7 @@ private fun HomeScreenPreviewLight() {
                             fontSize = 20.sp
                         )
                     },
-                    actions = {
-                        BadgedBox(
-                            badge = {
-                                Badge(
-                                    containerColor = MaterialTheme.colorScheme.error,
-                                    contentColor = Color.White
-                                ) {
-                                    Text(text = "3", fontSize = 12.sp)
-                                }
-                            }
-                        ) {
-                            IconButton(onClick = { /* preview only */ }) {
-                                Icon(
-                                    imageVector = Icons.Default.Notifications,
-                                    contentDescription = "Notifications"
-                                )
-                            }
-                        }
-                    },
+
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.surface
                     )
@@ -632,7 +576,7 @@ private fun HomeScreenPreviewLight() {
 @Preview(showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, name = "Student Home - Dark")
 @Composable
 private fun HomeScreenPreviewDark() {
-    CampusAppTheme(darkTheme = true) {
+    MaterialExpressiveTheme {
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -643,25 +587,7 @@ private fun HomeScreenPreviewDark() {
                             fontSize = 20.sp
                         )
                     },
-                    actions = {
-                        BadgedBox(
-                            badge = {
-                                Badge(
-                                    containerColor = MaterialTheme.colorScheme.error,
-                                    contentColor = Color.White
-                                ) {
-                                    Text(text = "3", fontSize = 12.sp)
-                                }
-                            }
-                        ) {
-                            IconButton(onClick = { /* preview only */ }) {
-                                Icon(
-                                    imageVector = Icons.Default.Notifications,
-                                    contentDescription = "Notifications"
-                                )
-                            }
-                        }
-                    },
+
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.surface
                     )

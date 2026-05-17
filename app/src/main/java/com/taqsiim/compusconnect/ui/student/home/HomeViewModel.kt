@@ -26,6 +26,7 @@ data class HomeState(
 sealed class HomeIntent {
     data object LoadPosts : HomeIntent()
     data object LoadReservations : HomeIntent()
+    data class CancelReservation(val reservation: Reservation) : HomeIntent()
     data class LikePost(val postId: Int) : HomeIntent()
     data class UnlikePost(val postId: Int) : HomeIntent()
     data object Refresh : HomeIntent()
@@ -59,9 +60,26 @@ class HomeViewModel @Inject constructor(
         when (intent) {
             is HomeIntent.LoadPosts -> loadPosts()
             is HomeIntent.LoadReservations -> loadReservations()
+            is HomeIntent.CancelReservation -> cancelReservation(intent.reservation)
             is HomeIntent.LikePost -> likePost(intent.postId)
             is HomeIntent.UnlikePost -> unlikePost(intent.postId)
             is HomeIntent.Refresh -> refresh()
+        }
+    }
+
+    private fun cancelReservation(reservation: Reservation) {
+        viewModelScope.launch {
+            // Call repository to cancel reservation
+            userRepository.cancelReservation(reservation).fold(
+                onSuccess = {
+                    // Reload reservations after successful cancellation
+                    sendEffect(HomeEffect.ShowSnackbar(it.message ?: "Reservation cancelled"))
+                    loadReservations()
+                },
+                onFailure = { error ->
+                    sendEffect(HomeEffect.ShowSnackbar(error.message ?: "Failed to cancel reservation"))
+                }
+            )
         }
     }
 

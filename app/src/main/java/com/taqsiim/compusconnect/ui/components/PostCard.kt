@@ -1,12 +1,17 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package com.taqsiim.compusconnect.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChatBubbleOutline
+import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Group
@@ -25,10 +30,10 @@ import coil.compose.AsyncImage
 import com.taqsiim.compusconnect.data.model.Post
 import androidx.compose.ui.tooling.preview.Preview
 import com.taqsiim.compusconnect.data.model.Club
-import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 
 /**
  * Post Card for Latest Updates
+ * Features edge-to-edge layout with an integrated, toggleable bottom divider.
  */
 @Composable
 fun PostCard(
@@ -36,30 +41,27 @@ fun PostCard(
     onLike: () -> Unit,
     onViewDetails: (Post) -> Unit,
     onEventClick: (Int) -> Unit = {},
-    onCommentClick: () -> Unit = {}
+    onCommentClick: () -> Unit = {},
+    showDivider: Boolean = true // Added parameter to control the divider
 ) {
-    Card(
+    // Outer column handles the background, click, and edge-to-edge elements
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .clickable { onViewDetails(post) },
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            .background(MaterialTheme.colorScheme.surface)
+            .clickable { onViewDetails(post) }
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        // Inner column handles the padded content
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
             // Club Header
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
+
                     // Club Logo
                     if (!post.clubLogoUrl.isNullOrEmpty()) {
                         AsyncImage(
@@ -79,7 +81,13 @@ fun PostCard(
                                     CircleShape
                                 ),
                             contentAlignment = Alignment.Center
-                        ) { }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Group,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
                     }
 
                     Column {
@@ -95,12 +103,12 @@ fun PostCard(
                         }
 
                         Text(
-                            text = post.createdAt, // Date is formatted in data layer
+                            text = post.createdAt,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                }
+
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -114,10 +122,35 @@ fun PostCard(
 
             // Event button
             if (post.eventId != null) {
-                TextButton(onClick = { onEventClick(post.eventId) }) {
-                    Text(text = "View Event", color = MaterialTheme.colorScheme.primary)
+                Spacer(modifier = Modifier.height(12.dp))
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = { onEventClick(post.eventId) }),
+                    shape = RoundedCornerShape(8.dp),
+                    color = MaterialTheme.colorScheme.inversePrimary,
+                    border = androidx.compose.foundation.BorderStroke(1.dp,MaterialTheme.colorScheme.primary )
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Event,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "Linked to Event #${post.eventId}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
                 }
             }
+
 
             // Post Image
             if (!post.imageUrl.isNullOrEmpty()) {
@@ -178,13 +211,22 @@ fun PostCard(
                 }
             }
         }
+
+        // Edge-to-edge Horizontal Divider
+        if (showDivider) {
+            HorizontalDivider(
+                modifier = Modifier.fillMaxWidth(),
+                thickness = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant
+            )
+        }
     }
 }
 
 @Preview(showBackground = true, name = "Post Card - Light")
 @Composable
 fun PostCardPreviewLight() {
-    CampusAppTheme(darkTheme = false) {
+    MaterialExpressiveTheme {
         PostCard(
             post = Post(
                 postId = 1,
@@ -208,11 +250,11 @@ fun PostCardPreviewLight() {
 @Preview(
     showBackground = true,
     uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
-    name = "Post Card - Dark"
+    name = "Post Card - Dark",
 )
 @Composable
 fun PostCardPreviewDark() {
-    CampusAppTheme(darkTheme = true) {
+    MaterialExpressiveTheme {
         PostCard(
             post = Post(
                 postId = 2,
@@ -228,7 +270,8 @@ fun PostCardPreviewDark() {
             onLike = {},
             onViewDetails = { _ -> },
             onEventClick = {},
-            onCommentClick = {}
+            onCommentClick = {},
+            showDivider = false // Previewing without the divider
         )
     }
 }

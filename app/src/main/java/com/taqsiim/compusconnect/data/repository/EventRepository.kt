@@ -30,6 +30,17 @@ class EventRepository @Inject constructor(
         }
     }
 
+    suspend fun getEventsByClubId(clubId: Int): Result<List<Event>> {
+        return try {
+            val events = (api.getEvents(clubId = clubId) ?: emptyList()).map { it.formatDates() }
+            Result.success(events)
+        } catch (e: HttpException) {
+            if (e.code() == 204) Result.success(emptyList()) else Result.failure(e)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     suspend fun getEventById(id: Int): Result<Event> {
         return try {
             val event = api.getEventById(id).formatDates()

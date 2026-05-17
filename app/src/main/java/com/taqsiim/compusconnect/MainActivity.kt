@@ -20,10 +20,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.taqsiim.compusconnect.data.model.UserRole
+import com.taqsiim.compusconnect.ui.theme.CompusConnectTheme
 import com.taqsiim.compusconnect.ui.auth.LoginScreen
 import com.taqsiim.compusconnect.ui.navigation.ManagerAppRoot
 import com.taqsiim.compusconnect.ui.navigation.StudentAppRoot
-import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 import com.taqsiim.compusconnect.ui.auth.AuthViewModel
 import com.taqsiim.compusconnect.ui.auth.AuthIntent
 import dagger.hilt.android.AndroidEntryPoint
@@ -61,7 +61,7 @@ fun MainContent(
         Log.d(TAG, "Logout complete, currentUserRole set to null")
     }
 
-    CampusAppTheme(userRole = displayRole) {
+    CompusConnectTheme {
         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
             Box(
                 modifier = Modifier
@@ -86,8 +86,8 @@ fun MainContent(
                     displayRole == UserRole.STUDENT -> {
                         Log.d(TAG, "Displaying StudentAppRoot")
                         StudentAppRoot(
-                            canSwitchRole = effectiveAccountRole == UserRole.CLUB_MANAGER,
-                            onSwitchRole = { 
+                            canSwitchRole = accountRole == UserRole.CLUB_MANAGER,
+                            onSwitchRole = {
                                 Log.d(TAG, "Switching to CLUB_MANAGER")
                                 currentUserRole = UserRole.CLUB_MANAGER
                             },

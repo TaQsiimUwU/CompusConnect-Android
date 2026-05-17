@@ -77,7 +77,7 @@ fun StudentAppRoot(
                  currentRoute != "student/report_issue" &&
                  currentRoute != "student/reserve_sport" &&
                  currentRoute != "student/reservations" &&
-                 currentRoute != "student/notifications" &&
+                 currentRoute != "student/post/{postId}" &&
                  !currentRoute.startsWith("student/event/") &&
                  !currentRoute.startsWith("student/club/")
 
@@ -127,17 +127,11 @@ fun StudentAppRoot(
                     onNavigateToRoomForm = { navController.navigate("student/book_room") },
                     onNavigateToSportForm = { navController.navigate("student/reserve_sport") },
                     onNavigateToReportIssue = { navController.navigate("student/report_issue") },
-                    onNavigateToNotifications = { navController.navigate("student/notifications") },
                     isScrolling = { isScrolling ->
                         isBottomBarVisible = !isScrolling
                     },
                     scrollToTop = scrollToTopHome,
                     onScrollToTopComplete = { scrollToTopHome = false }
-                )
-            }
-            composable("student/notifications") {
-                NotificationsScreen(
-                    onNavigateBack = { navController.popBackStack() }
                 )
             }
             composable("student/reservations") {
@@ -238,7 +232,7 @@ fun StudentAppRoot(
                 val postId = backStackEntry.arguments?.getString("postId") ?: ""
                 PostDetailScreen(
                     postId = postId,
-                    onNavigateToEventDetail = { eventId -> navController.navigate("student/event/$eventId") },
+                    onEventClick = { eventId -> navController.navigate("student/event/$eventId") },
                     onNavigateBack = { navController.popBackStack()}
                 )
             }
@@ -367,7 +361,7 @@ fun ManagerAppRoot(
                 val postId = backStackEntry.arguments?.getString("postId") ?: ""
                 PostDetailScreen(
                     postId = postId,
-                    onNavigateToEventDetail = { eventId -> navController.navigate("manager/event/$eventId") },
+                    onEventClick = { eventId -> navController.navigate("manager/event/$eventId") },
                     onNavigateBack = { navController.popBackStack() }
                 )
             }
@@ -382,17 +376,7 @@ fun ManagerAppRoot(
                 )
             }
             composable("manager/attendees") {
-                // Get the ManagerHomeViewModel's events to pass to attendees
-                val managerHomeVM: ManagerHomeViewModel = hiltViewModel()
-                val homeState by managerHomeVM.state.collectAsState()
-                val events = when (val s = homeState.events) {
-                    is com.taqsiim.compusconnect.mvi.UiState.Success -> s.data
-                    else -> emptyList()
-                }
-                AttendeesScreen(
-                    events = events,
-                    viewModel = attendeesViewModel
-                )
+                AttendeesScreen(viewModel = attendeesViewModel)
             }
             composable("manager/account") {
                 ClubAccountScreen(

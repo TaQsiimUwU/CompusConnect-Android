@@ -1,6 +1,10 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package com.taqsiim.compusconnect.ui.student
 
 import android.content.res.Configuration
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -64,7 +68,6 @@ import com.taqsiim.compusconnect.data.model.EventType
 import com.taqsiim.compusconnect.mvi.UiState
 import com.taqsiim.compusconnect.ui.student.events.EventsIntent
 import com.taqsiim.compusconnect.ui.student.events.EventsViewModel
-import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 import kotlinx.coroutines.launch
 
 // TODO: Implement EventsScreen composable
@@ -441,7 +444,7 @@ fun EventCardPreview() {
         noOfRegistrations = 46,
         noOfMaxRegistrations = 60
     )
-    CampusAppTheme {
+    MaterialExpressiveTheme {
         EventCard(event = event, onRegister = {}, onViewDetails = {})
     }
 }
@@ -504,7 +507,7 @@ fun EventsScreenPreview() {
         )
     )
 
-    CampusAppTheme {
+    MaterialExpressiveTheme {
         EventsScreenContent(
             eventsState = UiState.Success(sampleEvents),
             sessionsState = UiState.Success(sampleSessions),

@@ -1,7 +1,12 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package com.taqsiim.compusconnect.ui.student
 
 import androidx.compose.foundation.clickable
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -49,7 +54,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.taqsiim.compusconnect.data.model.Facility
-import com.taqsiim.compusconnect.ui.theme.CampusAppTheme
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -224,51 +228,41 @@ fun ReserveSport(
                         enabled = false
                     )
 
-                    // Time Inputs
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        OutlinedTextField(
-                            value = startTime,
-                            onValueChange = { },
-                            label = { Text("Start Time") },
-                            placeholder = { Text("HH:MM") },
-                            leadingIcon = {
-                                Icon(Icons.Default.AccessTime, contentDescription = null)
-                            },
-                            trailingIcon = {
-                                IconButton(onClick = { showStartTimePicker = true }) {
-                                    Icon(Icons.Default.AccessTime, contentDescription = "Select Start Time")
-                                }
-                            },
-                            modifier = Modifier
-                                .weight(1f)
-                                .clickable { showStartTimePicker = true },
-                            readOnly = true,
-                            enabled = false
-                        )
 
-                        OutlinedTextField(
-                            value = endTime,
-                            onValueChange = { },
-                            label = { Text("End Time") },
-                            placeholder = { Text("HH:MM") },
-                            leadingIcon = {
-                                Icon(Icons.Default.AccessTime, contentDescription = null)
-                            },
-                            trailingIcon = {
-                                IconButton(onClick = { showEndTimePicker = true }) {
-                                    Icon(Icons.Default.AccessTime, contentDescription = "Select End Time")
-                                }
-                            },
-                            modifier = Modifier
-                                .weight(1f)
-                                .clickable { showEndTimePicker = true },
-                            readOnly = true,
-                            enabled = false
-                        )
-                    }
+
+                    // Time Inputs
+
+                        // --- Start Time Field ---
+
+                            OutlinedTextField(
+                                value = startTime,
+                                onValueChange = { },
+                                label = { Text("Start Time") },
+                                placeholder = { Text("HH:MM") },
+                                leadingIcon = {
+                                    Icon(Icons.Default.AccessTime, contentDescription = null)
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                readOnly = true, // Prevents keyboard from popping up
+                                enabled = false
+                            )
+
+
+                        // --- End Time Field ---
+
+                            OutlinedTextField(
+                                value = endTime,
+                                onValueChange = { },
+                                label = { Text("End Time") },
+                                placeholder = { Text("HH:MM") },
+                                leadingIcon = {
+                                    Icon(Icons.Default.AccessTime, contentDescription = null)
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                readOnly = true
+                            )
+
+
 
                     // Team IDs
                     OutlinedTextField(
@@ -298,29 +292,6 @@ fun ReserveSport(
                     ) {
                         Text("Reserve Facility")
                     }
-                }
-            }
-
-            // How it works
-            Card(
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
-                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    Text(
-                        text = "How it works",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    HowItWorksItem("Submit your reservation request")
-                    HowItWorksItem("Reserve the selected sports facility")
-                    HowItWorksItem("Provide start/end time and team member IDs")
                 }
             }
         }
@@ -367,29 +338,12 @@ private fun SportTimePickerDialog(
     }
 }
 
-@Composable
-private fun HowItWorksItem(text: String) {
-    Row(
-        modifier = Modifier.padding(vertical = 4.dp),
-        verticalAlignment = Alignment.Top
-    ) {
-        Text(
-            text = "• ",
-            color = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.primary
-        )
-    }
-}
+
 
 @Preview(showBackground = true)
 @Composable
 fun ReserveSportPreview() {
-    CampusAppTheme {
+    MaterialExpressiveTheme {
         ReserveSport(
             onNavigateBack = {},
             facilities = emptyList(),
