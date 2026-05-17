@@ -120,6 +120,23 @@ class EventRepository @Inject constructor(
         }
     }
 
+    /**
+     * Batch check-in via POST /api/events/:id/attendees
+     * Body: { "studentIds": [...] }
+     * Returns: { "success": true, "checkedInStudents": [...] }
+     */
+    suspend fun checkInAttendees(eventId: Int, studentIds: List<Int>): Result<com.taqsiim.compusconnect.data.model.CheckInResponse> {
+        return try {
+            val response = api.checkInAttendees(
+                eventId = eventId,
+                request = com.taqsiim.compusconnect.data.model.BatchCheckInRequest(studentIds = studentIds)
+            )
+            Result.success(response)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     suspend fun deleteEvent(eventId: Int): Result<Unit> {
         return try {
             api.deleteEvent(eventId)
