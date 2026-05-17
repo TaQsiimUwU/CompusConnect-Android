@@ -5,14 +5,15 @@ package com.taqsiim.compusconnect.ui.components
 import android.content.res.Configuration
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialExpressiveTheme
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Event
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,21 +25,28 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.taqsiim.compusconnect.data.model.UserRole
+import com.taqsiim.compusconnect.data.model.Event
+import com.taqsiim.compusconnect.data.model.EventType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreatePostDialog(
     onDismissRequest: () -> Unit,
-    onPublish: (content: String, imageUri: String?, linkType: String, shareToSocials: Boolean) -> Unit
+    events: List<Event> = emptyList(),
+    onPublish: (content: String, imageUri: String?, eventId: Int?) -> Unit
 ) {
     var content by remember { mutableStateOf("") }
     var selectedImage by remember { mutableStateOf<String?>(null) }
-    var selectedLinkType by remember { mutableStateOf("No Link") }
-    var shareToSocials by remember { mutableStateOf(false) }
-    var isLinkDropdownExpanded by remember { mutableStateOf(false) }
+    // null = no link, non-null = linked event id
+    var linkedEventId by remember { mutableStateOf<Int?>(null) }
+    // "none" | "event" | "session"
+    var linkType by remember { mutableStateOf("none") }
 
-    val linkOptions = listOf("No Link", "Event", "Session")
+    val filteredEvents = when (linkType) {
+        "event" -> events.filter { it.type == EventType.EVENT }
+        "session" -> events.filter { it.type == EventType.SESSION }
+        else -> emptyList()
+    }
 
     Dialog(
         onDismissRequest = onDismissRequest,
@@ -93,114 +101,125 @@ fun CreatePostDialog(
                     )
                 }
 
-                // Post Image
+                // Post Image URL
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        text = "Post Image",
+                        text = "Image URL (Optional)",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp)
-                            .border(
-                                1.dp,
-                                MaterialTheme.colorScheme.outline,
-                                RoundedCornerShape(8.dp)
-                            )
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable { /* TODO: Implement Image Picker */ },
-                        color = Color.Transparent
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(horizontal = 16.dp),
-                            contentAlignment = Alignment.CenterStart
-                        ) {
-                            Text(
-                                text = selectedImage ?: "Browse... No file selected.",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                    }
+                    OutlinedTextField(
+                        value = selectedImage ?: "",
+                        onValueChange = { selectedImage = it.ifBlank { null } },
+                        placeholder = { Text("https://...") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        shape = RoundedCornerShape(8.dp)
+                    )
                 }
 
-                // Link to (Optional)
+                // Link to Event / Session
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         text = "Link to (Optional)",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    ExposedDropdownMenuBox(
-                        expanded = isLinkDropdownExpanded,
-                        onExpandedChange = { isLinkDropdownExpanded = !isLinkDropdownExpanded }
-                    ) {
-                        OutlinedTextField(
-                            value = selectedLinkType,
-                            onValueChange = {},
-                            readOnly = true,
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isLinkDropdownExpanded) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .menuAnchor(),
-                            shape = RoundedCornerShape(8.dp)
-                        )
-                        ExposedDropdownMenu(
-                            expanded = isLinkDropdownExpanded,
-                            onDismissRequest = { isLinkDropdownExpanded = false }
+
+                    // Link type chips
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        listOf("none" to "No Link", "event" to "Event", "session" to "Session").forEach { (key, label) ->
+                            FilterChip(
+                                selected = linkType == key,
+                                onClick = {
+                                    linkType = key
+                                    linkedEventId = null
+                                },
+                                label = { Text(label) }
+                            )
+                        }
+                    }
+
+                    // List of available events/sessions when a link type is selected
+                    if (linkType != "none" && filteredEvents.isNotEmpty()) {
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                         ) {
-                            linkOptions.forEach { option ->
-                                DropdownMenuItem(
-                                    text = { Text(option) },
-                                    onClick = {
-                                        selectedLinkType = option
-                                        isLinkDropdownExpanded = false
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(max = 180.dp),
+                                contentPadding = PaddingValues(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                items(filteredEvents) { event ->
+                                    val isSelected = linkedEventId == event.eventId
+                                    Surface(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .clickable {
+                                                linkedEventId = if (isSelected) null else event.eventId
+                                            },
+                                        color = if (isSelected)
+                                            MaterialTheme.colorScheme.primaryContainer
+                                        else
+                                            MaterialTheme.colorScheme.surface,
+                                        shape = RoundedCornerShape(6.dp)
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Event,
+                                                contentDescription = null,
+                                                tint = if (isSelected)
+                                                    MaterialTheme.colorScheme.primary
+                                                else
+                                                    MaterialTheme.colorScheme.onSurfaceVariant,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                            Column(modifier = Modifier.weight(1f)) {
+                                                Text(
+                                                    text = event.title,
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                                                    color = if (isSelected)
+                                                        MaterialTheme.colorScheme.onPrimaryContainer
+                                                    else
+                                                        MaterialTheme.colorScheme.onSurface
+                                                )
+                                                Text(
+                                                    text = event.startTime.take(10),
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            }
+                                            if (isSelected) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Close,
+                                                    contentDescription = "Deselect",
+                                                    tint = MaterialTheme.colorScheme.primary,
+                                                    modifier = Modifier.size(16.dp)
+                                                )
+                                            }
+                                        }
                                     }
-                                )
+                                }
                             }
                         }
-                    }
-                }
-
-                // Post to Social Media
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.Share,
-                                contentDescription = null,
-                                modifier = Modifier.size(20.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "Post to Social Media",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                        Checkbox(
-                            checked = shareToSocials,
-                            onCheckedChange = { shareToSocials = it }
+                    } else if (linkType != "none" && filteredEvents.isEmpty()) {
+                        Text(
+                            text = "No ${linkType}s available to link.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = 4.dp)
                         )
                     }
                 }
-
-                Spacer(modifier = Modifier.height(8.dp))
 
                 // Actions
                 Row(
@@ -209,31 +228,16 @@ fun CreatePostDialog(
                 ) {
                     OutlinedButton(
                         onClick = onDismissRequest,
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(48.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = MaterialTheme.colorScheme.onSurface
-                        ),
-                        border = androidx.compose.foundation.BorderStroke(
-                            1.dp,
-                            MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-                        )
+                        modifier = Modifier.weight(1f).height(48.dp),
+                        shape = RoundedCornerShape(8.dp)
                     ) {
                         Text("Cancel")
                     }
                     Button(
-                        onClick = {
-                            onPublish(content, selectedImage, selectedLinkType, shareToSocials)
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(48.dp),
+                        onClick = { onPublish(content, selectedImage, linkedEventId) },
+                        modifier = Modifier.weight(1f).height(48.dp),
                         shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        )
+                        enabled = content.isNotBlank()
                     ) {
                         Text("Publish Post")
                     }
@@ -244,16 +248,14 @@ fun CreatePostDialog(
 }
 
 @Preview(name = "Light Mode")
-@Preview(
-    uiMode = Configuration.UI_MODE_NIGHT_YES,
-    name = "Dark Mode"
-)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, name = "Dark Mode")
 @Composable
 fun CreatePostDialogPreview() {
     MaterialExpressiveTheme {
         CreatePostDialog(
             onDismissRequest = {},
-            onPublish = { _, _, _, _ -> }
+            events = emptyList(),
+            onPublish = { _, _, _ -> }
         )
     }
 }

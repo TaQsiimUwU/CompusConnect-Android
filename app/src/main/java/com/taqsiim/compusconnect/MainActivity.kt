@@ -86,7 +86,7 @@ fun MainContent(
                     displayRole == UserRole.STUDENT -> {
                         Log.d(TAG, "Displaying StudentAppRoot")
                         StudentAppRoot(
-                            canSwitchRole = accountRole == UserRole.CLUB_MANAGER,
+                            canSwitchRole = effectiveAccountRole == UserRole.CLUB_MANAGER,
                             onSwitchRole = {
                                 Log.d(TAG, "Switching to CLUB_MANAGER")
                                 currentUserRole = UserRole.CLUB_MANAGER

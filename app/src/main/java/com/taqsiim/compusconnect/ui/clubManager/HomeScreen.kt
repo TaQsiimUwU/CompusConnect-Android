@@ -40,6 +40,7 @@ import com.taqsiim.compusconnect.ui.clubManager.home.ManagerHomeEffect
 import com.taqsiim.compusconnect.ui.clubManager.home.ManagerHomeIntent
 import com.taqsiim.compusconnect.ui.clubManager.home.ManagerHomeViewModel
 import com.taqsiim.compusconnect.ui.components.CreatePostDialog
+import com.taqsiim.compusconnect.ui.components.PostCard
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -47,7 +48,8 @@ fun ManagerHomeScreen(
     viewModel: ManagerHomeViewModel,
     onScheduleEvent: () -> Unit,
     onScheduleSession: () -> Unit,
-    onOpenPostDetail: (String) -> Unit
+    onOpenPostDetail: (String) -> Unit,
+    onNavigateToEventDetail: (String) -> Unit = {}
 ) {
     val managerState by viewModel.state.collectAsState()
     val postsState = managerState.posts
@@ -73,13 +75,15 @@ fun ManagerHomeScreen(
     }
 
     if (showCreatePostDialog) {
+        val eventsData = (managerState.events as? UiState.Success)?.data ?: emptyList()
         CreatePostDialog(
             onDismissRequest = { showCreatePostDialog = false },
-            onPublish = { content, imageUri, linkType, _ ->
+            events = eventsData,
+            onPublish = { content, imageUri, eventId ->
                 viewModel.processIntent(
                     ManagerHomeIntent.CreatePost(
                         content = content,
-                        eventId = null, // TODO: link to event via linkType + event selector
+                        eventId = eventId,
                         imageUrl = imageUri
                     )
                 )
@@ -241,29 +245,37 @@ fun ManagerHomeScreen(
                     }
                     is UiState.Success -> {
                     items(state.data) { post ->
-                        AnnouncementCard(
+                        PostCard(
                             post = post,
-                            onOpenPost = {
-                                onOpenPostDetail(post.postId.toString())
-                            },
-                            onEdit = {
-                                showEditDialogForPost = post
-                                editedPostContent = post.content
-                            },
                             onLike = {
                                 if (post.isLiked) {
                                     viewModel.processIntent(ManagerHomeIntent.UnlikePost(post.postId))
                                 } else {
                                     viewModel.processIntent(ManagerHomeIntent.LikePost(post.postId))
+                                }
+                            },
+                            onViewDetails = { onOpenPostDetail(post.postId.toString()) },
+                            onEventClick = { eventId -> onNavigateToEventDetail(eventId.toString()) },
+                            onCommentClick = { onOpenPostDetail(post.postId.toString()) },
+                            managerActions = {
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.End
+                                ) {
+                                    TextButton(onClick = {
+                                        showEditDialogForPost = post
+                                        editedPostContent = post.content
+                                    }) { Text("Edit") }
+                                    TextButton(onClick = { showDeleteDialog = post.postId }) {
+                                        Text("Delete", color = MaterialTheme.colorScheme.error)
                                     }
-                                },
-                                onComment = {
-                                    onOpenPostDetail(post.postId.toString())
-                                },
-                                onDelete = { showDeleteDialog = post.postId }
-                            )
-                        }
+                                }
+                            }
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
                     }
+                }
                     is UiState.Idle -> { }
                 }
             }
