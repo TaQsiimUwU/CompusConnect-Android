@@ -253,7 +253,8 @@ fun StudentAppRoot(
                 val clubId = backStackEntry.arguments?.getString("clubId") ?: ""
                 ClubProfileScreen(
                     clubId = clubId,
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToEventDetail = { eventId -> navController.navigate("student/event/$eventId") }
                 )
             }
             composable("student/profile") {
