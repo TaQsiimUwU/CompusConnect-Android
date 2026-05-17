@@ -42,7 +42,8 @@ fun PostCard(
     onViewDetails: (Post) -> Unit,
     onEventClick: (Int) -> Unit = {},
     onCommentClick: () -> Unit = {},
-    showDivider: Boolean = true // Added parameter to control the divider
+    showDivider: Boolean = true,
+    managerActions: (@Composable () -> Unit)? = null
 ) {
     // Outer column handles the background, click, and edge-to-edge elements
     Column(
@@ -212,8 +213,11 @@ fun PostCard(
             }
         }
 
+        // Manager-only Edit/Delete actions (optional)
+        managerActions?.invoke()
+
         // Edge-to-edge Horizontal Divider
-        if (showDivider) {
+        if (showDivider && managerActions == null) {
             HorizontalDivider(
                 modifier = Modifier.fillMaxWidth(),
                 thickness = 1.dp,

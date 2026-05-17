@@ -146,18 +146,30 @@ fun StudentAppRoot(
             }
             composable("student/book_room") {
                 val viewModel: RoomBookingViewModel = hiltViewModel()
-                val effect by viewModel.effect.collectAsState(initial = null)
+                val roomBookingState by viewModel.state.collectAsState()
+                val authViewModel: AuthViewModel = hiltViewModel()
                 val authState by authViewModel.state.collectAsState()
                 
-                LaunchedEffect(effect) {
-                    when (effect) {
-                        is RoomBookingEffect.BookingSuccess -> navController.popBackStack()
-                        else -> {}
+                val snackbarHostState = remember { androidx.compose.material3.SnackbarHostState() }
+                
+                LaunchedEffect(viewModel.effect) {
+                    viewModel.effect.collect { effect ->
+                        when (effect) {
+                            is RoomBookingEffect.BookingSuccess -> {
+                                kotlinx.coroutines.delay(1000)
+                                navController.popBackStack()
+                            }
+                            is RoomBookingEffect.ShowSnackbar -> {
+                                snackbarHostState.showSnackbar(effect.message)
+                            }
+                        }
                     }
                 }
                 
                 BookRoomForm(
                     onNavigateBack = { navController.popBackStack() },
+                    isSubmitting = roomBookingState.isSubmitting,
+                    snackbarHostState = snackbarHostState,
                     onSubmit = { date, startTime, endTime, purpose, _ ->
                         val userId = authState.currentUser?.userId ?: 0
                         val startIso = if (startTime.contains("T")) startTime else "${date}T${startTime}:00Z"
@@ -174,13 +186,22 @@ fun StudentAppRoot(
             }
             composable("student/reserve_sport") {
                 val viewModel: FacilityBookingViewModel = hiltViewModel()
-                val effect by viewModel.effect.collectAsState(initial = null)
                 val facilityState by viewModel.state.collectAsState()
+                val authState by authViewModel.state.collectAsState()
 
-                LaunchedEffect(effect) {
-                    when (effect) {
-                        is FacilityBookingEffect.BookingSuccess -> navController.popBackStack()
-                        else -> {}
+                val snackbarHostState = remember { androidx.compose.material3.SnackbarHostState() }
+
+                LaunchedEffect(viewModel.effect) {
+                    viewModel.effect.collect { effect ->
+                        when (effect) {
+                            is FacilityBookingEffect.BookingSuccess -> {
+                                kotlinx.coroutines.delay(1000)
+                                navController.popBackStack()
+                            }
+                            is FacilityBookingEffect.ShowSnackbar -> {
+                                snackbarHostState.showSnackbar(effect.message)
+                            }
+                        }
                     }
                 }
 
@@ -189,12 +210,14 @@ fun StudentAppRoot(
                     facilities = (facilityState.facilities as? com.taqsiim.compusconnect.mvi.UiState.Success)?.data
                         ?: emptyList(),
                     isSubmitting = facilityState.isSubmitting,
-                    onSubmit = { facilityId, startIso, endIso, teamIds ->
+                    snackbarHostState = snackbarHostState,
+                    onSubmit = { facilityId, startIso, endIso ->
+                        val userId = authState.currentUser?.userId ?: 0
                         val request = ReserveFacilityRequest(
                             facilityId = facilityId,
                             startTime = startIso,
                             endTime = endIso,
-                            teamIds = teamIds
+                            teamIds = if (userId > 0) listOf(userId) else listOf()
                         )
                         viewModel.processIntent(
                             FacilityBookingIntent.ReserveFacility(
@@ -233,7 +256,7 @@ fun StudentAppRoot(
                 PostDetailScreen(
                     postId = postId,
                     onEventClick = { eventId -> navController.navigate("student/event/$eventId") },
-                    onNavigateBack = { navController.popBackStack()}
+                    onNavigateBack = { navController.popBackStack() }
                 )
             }
             composable("student/clubs") {
@@ -326,7 +349,8 @@ fun ManagerAppRoot(
                     viewModel = viewModel,
                     onScheduleEvent = { navController.navigate("manager/schedule_event?type=event") },
                     onScheduleSession = { navController.navigate("manager/schedule_event?type=session") },
-                    onOpenPostDetail = { postId -> navController.navigate("manager/post/$postId") }
+                    onOpenPostDetail = { postId -> navController.navigate("manager/post/$postId") },
+                    onNavigateToEventDetail = { eventId -> navController.navigate("manager/event/$eventId") }
                 )
             }
             composable(

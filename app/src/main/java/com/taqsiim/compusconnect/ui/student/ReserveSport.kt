@@ -9,11 +9,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.Group
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
@@ -37,6 +38,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -64,21 +66,17 @@ fun ReserveSport(
     onNavigateBack: () -> Unit,
     facilities: List<Facility>,
     isSubmitting: Boolean,
-    onSubmit: (facilityId: Int, startTime: String, endTime: String, teamIds: List<Int>) -> Unit
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
+    onSubmit: (facilityId: Int, startTime: String, endTime: String) -> Unit
 ) {
     var date by remember { mutableStateOf("") }
     var startTime by remember { mutableStateOf("") }
     var endTime by remember { mutableStateOf("") }
-    var teamIdsInput by remember { mutableStateOf("") }
     var selectedFacility by remember { mutableStateOf<Facility?>(null) }
     var isFacilityDropdownExpanded by remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) }
     var showStartTimePicker by remember { mutableStateOf(false) }
     var showEndTimePicker by remember { mutableStateOf(false) }
-    val parsedTeamIds = teamIdsInput.split(",")
-        .mapNotNull { raw ->
-            raw.trim().takeIf { it.isNotEmpty() }?.toIntOrNull()?.takeIf { it >= 0 }
-        }
     val isFormValid = selectedFacility != null &&
         date.isNotBlank() &&
         startTime.isNotBlank() &&
@@ -126,6 +124,7 @@ fun ReserveSport(
     }
 
     Scaffold(
+        snackbarHost = { androidx.compose.material3.SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = {
@@ -165,19 +164,19 @@ fun ReserveSport(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
-            // Form Fields
+            // ── Facility Selection ─────────────────────────────────────────────
             Card(
                 shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    // Facility Selection
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Facility",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
                     ExposedDropdownMenuBox(
                         expanded = isFacilityDropdownExpanded,
                         onExpandedChange = { isFacilityDropdownExpanded = !isFacilityDropdownExpanded }
@@ -186,13 +185,13 @@ fun ReserveSport(
                             value = selectedFacility?.name ?: "",
                             onValueChange = {},
                             readOnly = true,
-                            label = { Text("Facility") },
                             placeholder = { Text("Select a facility") },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isFacilityDropdownExpanded) },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .menuAnchor(),
-                            enabled = !isSubmitting
+                            enabled = !isSubmitting,
+                            shape = RoundedCornerShape(8.dp)
                         )
                         ExposedDropdownMenu(
                             expanded = isFacilityDropdownExpanded,
@@ -209,13 +208,26 @@ fun ReserveSport(
                             }
                         }
                     }
+                }
+            }
 
+            // ── Date ──────────────────────────────────────────────────────────
+            Card(
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Date",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
                     OutlinedTextField(
                         value = date,
                         onValueChange = { },
-                        label = { Text("Date") },
                         placeholder = { Text("yyyy-mm-dd") },
-                        leadingIcon = { Icon(Icons.Default.CalendarToday, contentDescription = null) },
                         trailingIcon = {
                             IconButton(onClick = { showDatePicker = true }) {
                                 Icon(Icons.Default.CalendarToday, contentDescription = "Select Date")
@@ -225,73 +237,98 @@ fun ReserveSport(
                             .fillMaxWidth()
                             .clickable { showDatePicker = true },
                         readOnly = true,
-                        enabled = false
+                        enabled = false,
+                        shape = RoundedCornerShape(8.dp)
                     )
+                }
+            }
 
-
-
-                    // Time Inputs
-
-                        // --- Start Time Field ---
-
+            // ── Time ──────────────────────────────────────────────────────────
+            Card(
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Time",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Start Time",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(bottom = 4.dp)
+                            )
                             OutlinedTextField(
                                 value = startTime,
                                 onValueChange = { },
-                                label = { Text("Start Time") },
                                 placeholder = { Text("HH:MM") },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { showStartTimePicker = true },
+                                readOnly = true,
+                                enabled = false,
+                                shape = RoundedCornerShape(8.dp),
                                 leadingIcon = {
-                                    Icon(Icons.Default.AccessTime, contentDescription = null)
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                readOnly = true, // Prevents keyboard from popping up
-                                enabled = false
+                                    Icon(Icons.Default.AccessTime, contentDescription = null, modifier = Modifier.size(18.dp))
+                                }
                             )
-
-
-                        // --- End Time Field ---
-
+                        }
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "End Time",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(bottom = 4.dp)
+                            )
                             OutlinedTextField(
                                 value = endTime,
                                 onValueChange = { },
-                                label = { Text("End Time") },
                                 placeholder = { Text("HH:MM") },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { showEndTimePicker = true },
+                                readOnly = true,
+                                enabled = false,
+                                shape = RoundedCornerShape(8.dp),
                                 leadingIcon = {
-                                    Icon(Icons.Default.AccessTime, contentDescription = null)
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                readOnly = true
+                                    Icon(Icons.Default.AccessTime, contentDescription = null, modifier = Modifier.size(18.dp))
+                                }
                             )
-
-
-
-                    // Team IDs
-                    OutlinedTextField(
-                        value = teamIdsInput,
-                        onValueChange = { teamIdsInput = it },
-                        label = { Text("Team IDs") },
-                        leadingIcon = {
-                            Icon(Icons.Default.Group, contentDescription = null)
-                        },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                        modifier = Modifier.fillMaxWidth(),
-                        supportingText = { Text("Optional: enter IDs separated by commas (e.g. 0,7,10)") },
-                        isError = false
-                    )
-
-                    Button(
-                        onClick = {
-                            selectedFacility?.let {
-                                val startIso = "${date}T${startTime}:00Z"
-                                val endIso = "${date}T${endTime}:00Z"
-                                onSubmit(it.facilityId, startIso, endIso, parsedTeamIds)
-                            }
-                        },
-                        enabled = !isSubmitting && isFormValid,
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text("Reserve Facility")
+                        }
                     }
+                }
+            }
+
+            // ── Submit ────────────────────────────────────────────────────────
+            Button(
+                onClick = {
+                    selectedFacility?.let {
+                        val startIso = "${date}T${startTime}:00Z"
+                        val endIso = "${date}T${endTime}:00Z"
+                        onSubmit(it.facilityId, startIso, endIso)
+                    }
+                },
+                enabled = !isSubmitting && isFormValid,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                if (isSubmitting) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                } else {
+                    Text("Reserve Facility")
                 }
             }
         }
@@ -338,8 +375,6 @@ private fun SportTimePickerDialog(
     }
 }
 
-
-
 @Preview(showBackground = true)
 @Composable
 fun ReserveSportPreview() {
@@ -348,7 +383,7 @@ fun ReserveSportPreview() {
             onNavigateBack = {},
             facilities = emptyList(),
             isSubmitting = false,
-            onSubmit = { _, _, _, _ -> }
+            onSubmit = { _, _, _ -> }
         )
     }
 }

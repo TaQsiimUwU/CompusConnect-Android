@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -21,6 +22,7 @@ import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -62,6 +64,8 @@ import java.util.Locale
 @Composable
 fun BookRoomForm(
     onNavigateBack: () -> Unit,
+    isSubmitting: Boolean = false,
+    snackbarHostState: androidx.compose.material3.SnackbarHostState = remember { androidx.compose.material3.SnackbarHostState() },
     onSubmit: (date: String, startTime: String, endTime: String, purpose: String, numberOfPeople: String) -> Unit
 ) {
     var date by remember { mutableStateOf("") }
@@ -117,6 +121,7 @@ fun BookRoomForm(
     }
 
     Scaffold(
+        snackbarHost = { androidx.compose.material3.SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = {
@@ -156,28 +161,23 @@ fun BookRoomForm(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
-            // Form Fields
+            // ── Date ──────────────────────────────────────────────────────────
             Card(
                 shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-
-                    // Time Inputs
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Date",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
                     OutlinedTextField(
                         value = date,
                         onValueChange = { },
-                        label = { Text("Date") },
                         placeholder = { Text("yyyy-mm-dd") },
-                        leadingIcon = {
-                            Icon(Icons.Default.CalendarToday, contentDescription = null)
-                        },
                         trailingIcon = {
                             IconButton(onClick = { showDatePicker = true }) {
                                 Icon(Icons.Default.CalendarToday, contentDescription = "Select Date")
@@ -187,99 +187,157 @@ fun BookRoomForm(
                             .fillMaxWidth()
                             .clickable { showDatePicker = true },
                         readOnly = true,
-                        enabled = false
+                        enabled = false,
+                        shape = RoundedCornerShape(8.dp)
                     )
+                }
+            }
 
-
-                    // Time Inputs
-
-                    // --- Start Time Field ---
-
-                    OutlinedTextField(
-                        value = startTime,
-                        onValueChange = { },
-                        label = { Text("Start Time") },
-                        placeholder = { Text("HH:MM") },
-                        leadingIcon = {
-                            Icon(Icons.Default.AccessTime, contentDescription = null)
-                            },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { showStartTimePicker = true },
-                        readOnly = true,
-                        enabled = false
+            // ── Time ──────────────────────────────────────────────────────────
+            Card(
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Time",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 8.dp)
                     )
-                    // --- End Time Field ---
-                    OutlinedTextField(
-                        value = endTime,
-                        onValueChange = { },
-                        label = { Text("End Time") },
-                        placeholder = { Text("HH:MM") },
-                        leadingIcon = {
-                            Icon(Icons.Default.AccessTime, contentDescription = null)
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { showEndTimePicker = true },
-                        readOnly = true,
-                        enabled = false
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Start Time",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(bottom = 4.dp)
+                            )
+                            OutlinedTextField(
+                                value = startTime,
+                                onValueChange = { },
+                                placeholder = { Text("HH:MM") },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { showStartTimePicker = true },
+                                readOnly = true,
+                                enabled = false,
+                                shape = RoundedCornerShape(8.dp),
+                                leadingIcon = {
+                                    Icon(Icons.Default.AccessTime, contentDescription = null, modifier = Modifier.size(18.dp))
+                                }
+                            )
+                        }
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "End Time",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(bottom = 4.dp)
+                            )
+                            OutlinedTextField(
+                                value = endTime,
+                                onValueChange = { },
+                                placeholder = { Text("HH:MM") },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { showEndTimePicker = true },
+                                readOnly = true,
+                                enabled = false,
+                                shape = RoundedCornerShape(8.dp),
+                                leadingIcon = {
+                                    Icon(Icons.Default.AccessTime, contentDescription = null, modifier = Modifier.size(18.dp))
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
+            // ── Number of People ──────────────────────────────────────────────
+            Card(
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Number of People",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 8.dp)
                     )
-
-
-                    // Number of People
                     OutlinedTextField(
                         value = numberOfPeople,
                         onValueChange = { numberOfPeople = it },
-                        label = { Text("Number of People") },
+                        placeholder = { Text("1–8") },
                         leadingIcon = {
                             Icon(Icons.Default.Group, contentDescription = null)
                         },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.fillMaxWidth(),
-                        supportingText = { Text("Maximum 8 people per room") }
-                    )
-
-                    // Purpose Radio Buttons
-                    Column {
-                        Text(
-                            text = "Purpose",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-                        purposeOptions.forEach { option ->
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { purpose = option }
-                                    .padding(vertical = 4.dp)
-                            ) {
-                                RadioButton(
-                                    selected = (purpose == option),
-                                    onClick = { purpose = option }
-                                )
-                                Text(
-                                    text = option,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    modifier = Modifier.padding(start = 8.dp)
-                                )
-                            }
-                        }
-                    }
-
-                    Button(
-                        onClick = { onSubmit(date, startTime, endTime, purpose, numberOfPeople) },
-                        enabled = date.isNotBlank() && startTime.isNotBlank() && endTime.isNotBlank(),
-                        modifier = Modifier.fillMaxWidth(),
+                        supportingText = { Text("Maximum 8 people per room") },
                         shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text("Reserve Room")
+                    )
+                }
+            }
+
+            // ── Purpose ───────────────────────────────────────────────────────
+            Card(
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Purpose",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    purposeOptions.forEach { option ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { purpose = option }
+                                .padding(vertical = 4.dp)
+                        ) {
+                            RadioButton(
+                                selected = (purpose == option),
+                                onClick = { purpose = option }
+                            )
+                            Text(
+                                text = option,
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.padding(start = 8.dp)
+                            )
+                        }
                     }
                 }
             }
 
-
+            // ── Submit ────────────────────────────────────────────────────────
+            Button(
+                onClick = { onSubmit(date, startTime, endTime, purpose, numberOfPeople) },
+                enabled = date.isNotBlank() && startTime.isNotBlank() && endTime.isNotBlank() && !isSubmitting,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                if (isSubmitting) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                } else {
+                    Text("Reserve Room")
+                }
+            }
         }
     }
 }
