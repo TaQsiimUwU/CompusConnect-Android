@@ -12,6 +12,7 @@ import com.taqsiim.compusconnect.data.repository.PostRepository
 import com.taqsiim.compusconnect.data.repository.ReportRepository
 import com.taqsiim.compusconnect.mvi.MviViewModel
 import com.taqsiim.compusconnect.mvi.UiState
+import com.taqsiim.compusconnect.ui.student.home.HomeIntent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -32,6 +33,8 @@ sealed class ClubDetailIntent {
     data class RegisterForEvent(val eventId: Int) : ClubDetailIntent()
     data class UnregisterFromEvent(val eventId: Int) : ClubDetailIntent()
     data class ReportClub(val clubId: Int, val reason: String, val details: String) : ClubDetailIntent()
+    data class LikePost(val postId: Int) : ClubDetailIntent()
+    data class UnlikePost(val postId: Int) : ClubDetailIntent()
 }
 
 sealed class ClubDetailEffect {
@@ -60,6 +63,7 @@ class ClubDetailViewModel @Inject constructor(
             is ClubDetailIntent.RegisterForEvent -> registerForEvent(intent.eventId)
             is ClubDetailIntent.UnregisterFromEvent -> unregisterFromEvent(intent.eventId)
             is ClubDetailIntent.ReportClub -> reportClub(intent.clubId, intent.reason, intent.details)
+            else -> {}
         }
     }
 

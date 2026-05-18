@@ -277,7 +277,8 @@ fun StudentAppRoot(
                 ClubProfileScreen(
                     clubId = clubId,
                     onNavigateBack = { navController.popBackStack() },
-                    onNavigateToEventDetail = { eventId -> navController.navigate("student/event/$eventId") }
+                    onNavigateToEventDetail = { eventId -> navController.navigate("student/event/$eventId") },
+                    onNavigateToPostDetail = { postId -> navController.navigate("student/post/$postId") }
                 )
             }
             composable("student/profile") {

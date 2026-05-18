@@ -217,16 +217,7 @@ private fun EventsScreenContent(
     }
 }
 
-// TODO: Implement EventsList composable
-@Composable
-fun EventsList(
-    events: List<Event>,
-    onNavigateToDetail: (String) -> Unit
-) {
-    // Not used in this implementation, logic moved to EventsScreen
-}
 
-// TODO: Implement EventCard composable
 @Composable
 fun EventCard(
     event: Event,
@@ -234,6 +225,7 @@ fun EventCard(
     onUnregister: () -> Unit = {},
     onViewDetails: () -> Unit
 ) {
+
     val isRegistered = event.isRegistered == true // safe-cast from Boolean? to Boolean
 
     Card(
@@ -246,6 +238,8 @@ fun EventCard(
     ) {
         Column {
             // Header with Cover Image
+            val onCoverColor = if (event.type == EventType.EVENT) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onTertiary
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -269,7 +263,7 @@ fun EventCard(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(if (event.type == EventType.EVENT) Color(0xFF2196F3) else Color(0xFFA020F0))
+                            .background(if (event.type == EventType.EVENT) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary)
                     )
                 }
 
@@ -298,7 +292,7 @@ fun EventCard(
                             Surface(
                                 modifier = Modifier.size(28.dp),
                                 shape = RoundedCornerShape(6.dp),
-                                color = Color.White.copy(alpha = 0.2f)
+                                color = onCoverColor.copy(alpha = 0.2f)
                             ) { }
                         }
 
@@ -306,7 +300,7 @@ fun EventCard(
 
                         if (isRegistered) {
                             Surface(
-                                color = Color.White.copy(alpha = 0.25f),
+                                color = onCoverColor.copy(alpha = 0.25f),
                                 shape = RoundedCornerShape(16.dp)
                             ) {
                                 Text(
@@ -360,7 +354,7 @@ fun EventCard(
                     Icon(Icons.Outlined.Schedule, null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "${event.startTime.substringAfter("T", "").take(5)} - ${event.endTime.substringAfter("T", "").take(5)}",
+                        text = "${event.startTime} - ${event.endTime}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -383,8 +377,8 @@ fun EventCard(
                 LinearProgressIndicator(
                     progress = { event.noOfRegistrations.toFloat() / event.noOfMaxRegistrations },
                     modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                    color = Color(0xFF2196F3),
-                    trackColor = Color.LightGray.copy(alpha = 0.5f),
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
                 )
 
                 Row(
@@ -412,7 +406,7 @@ fun EventCard(
                         Button(
                             onClick = onRegister,
                             modifier = Modifier.weight(1f),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3))
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                         ) {
                             Text("Register")
                         }

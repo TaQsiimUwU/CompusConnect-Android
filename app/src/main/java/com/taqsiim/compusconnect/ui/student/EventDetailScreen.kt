@@ -33,10 +33,14 @@ import com.taqsiim.compusconnect.ui.student.events.EventDetailIntent
 import com.taqsiim.compusconnect.mvi.UiState
 import android.content.res.Configuration
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Group
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
+import androidx.compose.ui.tooling.preview.Preview
+import com.taqsiim.compusconnect.data.model.EventType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,12 +79,8 @@ fun EventDetailScreen(
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF2196F3),
-                    navigationIconContentColor = Color.White,
-                    actionIconContentColor = Color.White
-                )
+                }
+
             )
         }
     ) { paddingValues ->
@@ -134,7 +134,7 @@ private fun EventDetailContent(
     onRegister: () -> Unit,
     onUnregister: () -> Unit
 ) {
-    val isRegistered = event.isRegistered == true // TODO: Get from event model
+    val isRegistered = event.isRegistered == true
 
     Column(
         modifier = Modifier
@@ -146,29 +146,63 @@ private fun EventDetailContent(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFF2196F3))
+                .background(MaterialTheme.colorScheme.background)
                 .padding(16.dp)
         ) {
             Column {
+                // Cover image
+//                if (!event.clubCoverUrl.isNullOrEmpty()) {
+//                    AsyncImage(
+//                        model = event.clubCoverUrl,
+//                        contentDescription = "Event cover",
+//                        modifier = Modifier.fillMaxSize(),
+//                        contentScale = ContentScale.Crop
+//                    )
+//                    // Dark scrim overlay for text readability
+//                    Box(
+//                        modifier = Modifier
+//                            .fillMaxSize()
+//                            .background(Color.Black.copy(alpha = 0.4f))
+//                    )
+//                } else {
+//                    Box(
+//                        modifier = Modifier
+//                            .fillMaxSize()
+//                    )
+//                }
+
+
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     // Placeholder for Club Logo
-                    Surface(
-                        modifier = Modifier.size(24.dp),
-                        shape = RoundedCornerShape(4.dp),
-                        color = Color.White.copy(alpha = 0.2f)
-                    ) {
+
+                    if (!event.clubLogoUrl.isNullOrEmpty()) {
                         AsyncImage(
                             model = event.clubLogoUrl,
-                            contentDescription = "club logo image",
+                            contentDescription = "${event.clubName} logo",
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .height(200.dp)
-                                .clip(RoundedCornerShape(8.dp)),
+                                .size(40.dp)
+                                .clip(CircleShape),
                             contentScale = ContentScale.Crop
                         )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .background(
+                                    MaterialTheme.colorScheme.primaryContainer,
+                                    CircleShape
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Group,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
                     }
 
                     if (isRegistered) {
@@ -183,7 +217,7 @@ private fun EventDetailContent(
                             ) {
                                 Text(
                                     text = "✓ Registered",
-                                    color = Color.White,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     style = MaterialTheme.typography.labelSmall
                                 )
                             }
@@ -196,7 +230,7 @@ private fun EventDetailContent(
                 Text(
                     text = event.title,
                     style = MaterialTheme.typography.headlineMedium,
-                    color = Color.White,
+                    color =  MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold
                 )
 
@@ -205,7 +239,7 @@ private fun EventDetailContent(
                 Text(
                     text = event.clubName,
                     style = MaterialTheme.typography.titleMedium,
-                    color = Color.White.copy(alpha = 0.9f)
+                    color =  MaterialTheme.colorScheme.onSurface
                 )
             }
         }
@@ -216,8 +250,8 @@ private fun EventDetailContent(
         ) {
             // Date, Time, Location Card
             Card(
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
@@ -226,12 +260,17 @@ private fun EventDetailContent(
                     DetailRow(
                         icon = Icons.Outlined.CalendarToday,
                         label = "Date",
-                        value = "Dec 5, 2025" // TODO: Format date
+                        value =event.startTime.substringBefore("T"),
                     )
                     DetailRow(
                         icon = Icons.Outlined.Schedule,
-                        label = "Time",
-                        value = "3:00 PM - 6:00 PM" // TODO: Format time
+                        label = "Start Time",
+                        value = event.startTime.substringAfter("T")
+                    )
+                    DetailRow(
+                        icon = Icons.Outlined.Schedule,
+                        label = "End Time",
+                        value = event.endTime.substringAfter("T")
                     )
                     DetailRow(
                         icon = Icons.Outlined.Place,
@@ -278,7 +317,7 @@ private fun EventDetailContent(
                     LinearProgressIndicator(
                         progress = { event.noOfRegistrations.toFloat() / event.noOfMaxRegistrations },
                         modifier = Modifier.fillMaxWidth(),
-                        color = Color(0xFF2196F3),
+                        color = MaterialTheme.colorScheme.primary,
                         trackColor = Color.LightGray.copy(alpha = 0.5f),
                     )
 
@@ -294,8 +333,7 @@ private fun EventDetailContent(
 
             // About Section
             Card(
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp)
@@ -334,10 +372,8 @@ private fun EventDetailContent(
             } else {
                 Button(
                     onClick = onRegister,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF2196F3)
-                    )
+                    modifier = Modifier.fillMaxWidth()
+
                 ) {
                     Text("Register")
                 }
@@ -380,14 +416,31 @@ private fun DetailRow(
     }
 }
 
-@androidx.compose.ui.tooling.preview.Preview(name = "Light Mode")
-@androidx.compose.ui.tooling.preview.Preview(
-    uiMode = Configuration.UI_MODE_NIGHT_YES,
-    name = "Dark Mode"
-)
+@Preview(showBackground = true, name = "EventDetail - Light")
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, name = "EventDetail - Dark")
 @Composable
-fun EventDetailScreenPreview() {
-    MaterialExpressiveTheme {
-        EventDetailScreen(eventId = "1", onNavigateBack = {})
-    }
+private fun EventDetailPreview() {
+    val sampleEvent = Event(
+        eventId = 1,
+        clubName = "Tech Club",
+        clubLogoUrl = null,
+        clubCoverUrl = null,
+        type = com.taqsiim.compusconnect.data.model.EventType.EVENT,
+        title = "Introduction to Kotlin Multiplatform",
+        description = "Join us for an exciting workshop where we explore the fundamentals of Kotlin Multiplatform. Learn how to share code between Android and iOS platforms efficiently.",
+        startTime = "2026-05-20T15:00:00",
+        endTime = "2026-05-20T18:00:00",
+        location = "Engineering Building, Room 301",
+        noOfRegistrations = 25,
+        noOfMaxRegistrations = 50,
+        isRegistered = false
+    )
+
+    EventDetailContent(
+        event = sampleEvent,
+        paddingValues = PaddingValues(0.dp),
+        onRegister = {},
+        onUnregister = {}
+    )
 }
+

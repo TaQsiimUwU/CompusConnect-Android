@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -229,7 +230,7 @@ fun TabButton(
         onClick = onClick,
         modifier = modifier.height(40.dp),
         shape = RoundedCornerShape(8.dp),
-        color = if (selected) MaterialTheme.colorScheme.surface else Color.Transparent,
+        color = if (selected) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surface.copy(alpha = 0f),
         shadowElevation = if (selected) 2.dp else 0.dp
     ) {
         Box(contentAlignment = Alignment.Center) {
@@ -242,24 +243,18 @@ fun TabButton(
     }
 }
 
-// TODO: Implement ClubCard composable
 @Composable
 fun ClubCard(
     club: Club,
     onJoinLeave: () -> Unit,
     onView: () -> Unit
 ) {
-    val cardColor = when (club.id % 5) {
-        1 -> Color(0xFF2196F3) // Blue
-        2 -> Color(0xFFE91E63) // Pink
-        3 -> Color(0xFF00C853) // Green
-        4 -> Color(0xFFFF9800) // Orange
-        0 -> Color(0xFF9C27B0) // Purple
-        else -> MaterialTheme.colorScheme.primary
-    }
+
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onView),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -289,7 +284,7 @@ fun ClubCard(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(cardColor)
+                            .background(MaterialTheme.colorScheme.primary)
                     )
                 }
 
@@ -315,7 +310,7 @@ fun ClubCard(
                         Surface(
                             modifier = Modifier.size(48.dp),
                             shape = RoundedCornerShape(8.dp),
-                            color = Color.White.copy(alpha = 0.2f)
+                            color = MaterialTheme.colorScheme.surfaceVariant
                         ) { }
                     }
 
@@ -389,20 +384,13 @@ fun ClubCard(
                                 .weight(1f)
                                 .height(40.dp),
                             shape = RoundedCornerShape(8.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = cardColor)
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                         ) {
                             Text("Join Club")
                         }
                     }
 
-                    OutlinedButton(
-                        onClick = onView,
-                        modifier = Modifier.height(40.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
-                    ) {
-                        Text("View")
-                    }
+
                 }
             }
         }

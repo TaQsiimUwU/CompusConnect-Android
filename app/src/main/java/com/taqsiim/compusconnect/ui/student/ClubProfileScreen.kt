@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -61,6 +60,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.taqsiim.compusconnect.data.model.Club
+import com.taqsiim.compusconnect.data.model.ClubStatus
+import com.taqsiim.compusconnect.data.model.Event
+import com.taqsiim.compusconnect.data.model.EventType
 import com.taqsiim.compusconnect.data.model.Post
 import com.taqsiim.compusconnect.mvi.UiState
 import com.taqsiim.compusconnect.ui.student.clubs.ClubDetailEffect
@@ -68,14 +71,20 @@ import com.taqsiim.compusconnect.ui.student.clubs.ClubDetailIntent
 import com.taqsiim.compusconnect.ui.student.clubs.ClubDetailViewModel
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialExpressiveTheme
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.taqsiim.compusconnect.ui.components.PostCard
+import com.taqsiim.compusconnect.ui.student.home.HomeIntent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ClubProfileScreen(
     clubId: String,
     onNavigateBack: () -> Unit,
-    onNavigateToEventDetail: (String) -> Unit = {}
-) {
+    onNavigateToEventDetail: (String) -> Unit = {},
+    onNavigateToPostDetail: (String) -> Unit
+
+
+    ) {
     val viewModel: ClubDetailViewModel = hiltViewModel()
     val state by viewModel.state.collectAsState()
     val club = (state.club as? UiState.Success)?.data
@@ -98,12 +107,44 @@ fun ClubProfileScreen(
         }
     }
 
+    ClubProfileContent(
+        club = club,
+        postsState = state.posts,
+        eventsState = state.events,
+        snackbarHostState = snackbarHostState,
+        onNavigateBack = onNavigateBack,
+        onNavigateToEventDetail = onNavigateToEventDetail,
+        onRegisterForEvent = { eventId -> viewModel.processIntent(ClubDetailIntent.RegisterForEvent(eventId)) },
+        onUnregisterFromEvent =  {eventId -> viewModel.processIntent(ClubDetailIntent.UnregisterFromEvent(eventId))},
+        onNavigateToPostDetail = onNavigateToPostDetail,
+        onLikePost = { postId ->
+            viewModel.processIntent(ClubDetailIntent.LikePost(postId))
+        },
+        onUnlikePost = { postId ->
+            viewModel.processIntent(ClubDetailIntent.UnlikePost(postId))
+        }
+    )
+}
+
+@Composable
+private fun ClubProfileContent(
+    club: Club?,
+    postsState: UiState<List<Post>>,
+    eventsState: UiState<List<Event>>,
+    snackbarHostState: SnackbarHostState,
+    onNavigateBack: () -> Unit,
+    onNavigateToEventDetail: (String) -> Unit = {},
+    onRegisterForEvent: (Int) -> Unit = {},
+    onUnregisterFromEvent: (Int) -> Unit = {},
+    onNavigateToPostDetail: (String) -> Unit,
+    onLikePost: (Int) -> Unit = {},
+    onUnlikePost: (Int) -> Unit = {}
+) {
     var selectedTab by remember { mutableIntStateOf(0) }
     val tabs = listOf("Posts", "Sessions", "Events")
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        // No TopAppBar — back button floats over the hero image
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
@@ -305,7 +346,7 @@ fun ClubProfileScreen(
 
                 // Posts tab
                 0 -> {
-                    when (val postsState = state.posts) {
+                    when (postsState) {
                         is UiState.Loading -> item {
                             Box(
                                 modifier = Modifier.fillMaxWidth().padding(32.dp),
@@ -327,7 +368,19 @@ fun ClubProfileScreen(
                                 }
                             } else {
                                 items(postsState.data) { post ->
-                                    ClubPostCard(post = post)
+                                    PostCard(
+                                        post = post,
+                                        onLike = {
+                                            if (post.isLiked) {
+                                                onUnlikePost(post.postId)
+                                            } else {
+                                                onLikePost(post.postId)
+                                            }
+                                        },
+                                        onViewDetails = { clickedPost -> onNavigateToPostDetail(clickedPost.postId.toString()) },
+                                        onEventClick = { eventId -> onNavigateToEventDetail(eventId.toString()) },
+                                        onCommentClick = { onNavigateToPostDetail(post.postId.toString()) }
+                                    )
                                 }
                             }
                         }
@@ -342,7 +395,7 @@ fun ClubProfileScreen(
 
                 // Events tab
                 2 -> {
-                    when (val eventsState = state.events) {
+                    when (eventsState) {
                         is UiState.Loading -> item {
                             Box(
                                 modifier = Modifier.fillMaxWidth().padding(32.dp),
@@ -365,16 +418,8 @@ fun ClubProfileScreen(
                                     Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                                         EventCard(
                                             event = event,
-                                            onRegister = {
-                                                viewModel.processIntent(
-                                                    ClubDetailIntent.RegisterForEvent(event.eventId)
-                                                )
-                                            },
-                                            onUnregister = {
-                                                viewModel.processIntent(
-                                                    ClubDetailIntent.UnregisterFromEvent(event.eventId)
-                                                )
-                                            },
+                                            onRegister = { onRegisterForEvent(event.eventId) },
+                                            onUnregister = { onUnregisterFromEvent(event.eventId) },
                                             onViewDetails = {
                                                 onNavigateToEventDetail(event.eventId.toString())
                                             }
@@ -552,7 +597,74 @@ fun ClubPostCard(post: Post) {
 )
 @Composable
 fun ClubProfileScreenPreview() {
+    val sampleClub = Club(
+        id = 1,
+        name = "Tech Club",
+        description = "Explore cutting-edge technology, coding, and innovation. We host workshops, hackathons, and speaker sessions every month.",
+        email = "tech@example.com",
+        logo = null,
+        cover = null,
+        followersCount = 245,
+        members = 200,
+        eventNumber = 12,
+        sessionsNumber = 8,
+        postsNumber = 50,
+        clubAdminName = "John Doe",
+        status = ClubStatus.ACTIVE,
+        isJoined = true
+    )
+
+    val samplePosts = listOf(
+        Post(
+            postId = 1,
+            clubId = 1,
+            eventId = null,
+            content = "Join us this Friday for our AI workshop! We'll cover neural networks and practical implementations.",
+            imageUrl = null,
+            createdAt = "2026-05-16T10:00:00",
+            likeCount = 42,
+            commentCount = 5,
+            isLiked = false
+        ),
+        Post(
+            postId = 2,
+            clubId = 1,
+            eventId = 1,
+            content = "Recap of last week's hackathon — amazing projects from all teams!",
+            imageUrl = null,
+            createdAt = "2026-05-14T14:30:00",
+            likeCount = 28,
+            commentCount = 3,
+            isLiked = true
+        )
+    )
+
+    val sampleEvents = listOf(
+        Event(
+            eventId = 1,
+            clubName = "Tech Club",
+            clubLogoUrl = null,
+            clubCoverUrl = null,
+            type = EventType.EVENT,
+            title = "AI & Machine Learning Workshop",
+            description = "Learn the fundamentals of AI and build your first model.",
+            startTime = "2026-05-20T15:00:00",
+            endTime = "2026-05-20T18:00:00",
+            location = "Engineering Building - Room 201",
+            noOfRegistrations = 46,
+            noOfMaxRegistrations = 60,
+            isRegistered = true
+        )
+    )
+
     MaterialExpressiveTheme {
-        ClubProfileScreen(clubId = "1", onNavigateBack = {})
+        ClubProfileContent(
+            club = sampleClub,
+            postsState = UiState.Success(samplePosts),
+            eventsState = UiState.Success(sampleEvents),
+            snackbarHostState = remember { SnackbarHostState() },
+            onNavigateBack = {},
+            onNavigateToPostDetail = {}
+        )
     }
 }
