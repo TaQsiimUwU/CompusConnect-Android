@@ -20,63 +20,20 @@
 Immerse yourself in our beautifully crafted UI, featuring seamless light, dark, and default themes.
 
 <details open>
-<summary><b>Default Theme</b></summary>
-<br>
-
-#### Student Experience
-<table>
-  <tr>
-    <td align="center"><b>Login</b><br><img src="screenshots/default_colors/login.jpeg" width="200" alt="Login"/></td>
-    <td align="center"><b>Home Feed</b><br><img src="screenshots/default_colors/home_feed_student.jpeg" width="200" alt="Student Home"/></td>
-    <td align="center"><b>User Profile</b><br><img src="screenshots/default_colors/userProfile.jpeg" width="200" alt="User Profile"/></td>
-    <td align="center"><b>Clubs</b><br><img src="screenshots/default_colors/clubs.jpeg" width="200" alt="Clubs"/></td>
-    <td align="center"><b>Club Profile</b><br><img src="screenshots/default_colors/club_profile.jpeg" width="200" alt="Club Profile"/></td>
-  </tr>
-  <tr>
-    <td align="center"><b>Sessions</b><br><img src="screenshots/default_colors/sessions.jpeg" width="200" alt="Sessions"/></td>
-    <td align="center"><b>Session Details</b><br><img src="screenshots/default_colors/sessions_details.jpeg" width="200" alt="Session Details"/></td>
-    <td align="center"><b>Facility Booking</b><br><img src="screenshots/default_colors/reserve_room.jpeg" width="200" alt="Facility Booking"/></td>
-    <td align="center"><b>Issue Reporting</b><br><img src="screenshots/default_colors/reporting.jpeg" width="200" alt="Issue Reporting"/></td>
-  </tr>
-</table>
-
-#### Club Manager Experience
-<table>
-  <tr>
-    <td align="center"><b>Manager Feed</b><br><img src="screenshots/default_colors/manager_feed.jpeg" width="200" alt="Manager Feed"/></td>
-    <td align="center"><b>Requested Events</b><br><img src="screenshots/default_colors/requested_events.jpeg" width="200" alt="Requested Events"/></td>
-  </tr>
-</table>
-
-</details>
-
-<details open>
 <summary><b>Dynamic Colors (Light Mode)</b></summary>
 <br>
 
-#### Student Experience
 <table>
   <tr>
     <td align="center"><b>Login</b><br><img src="screenshots/light_mode_daynamic_colors/login.jpeg" width="200" alt="Login"/></td>
     <td align="center"><b>Home Feed</b><br><img src="screenshots/light_mode_daynamic_colors/student_feed.jpeg" width="200" alt="Student Home"/></td>
     <td align="center"><b>User Profile</b><br><img src="screenshots/light_mode_daynamic_colors/student_profile.jpeg" width="200" alt="User Profile"/></td>
-    <td align="center"><b>Clubs</b><br><img src="screenshots/light_mode_daynamic_colors/clubs.jpeg" width="200" alt="Clubs"/></td>
     <td align="center"><b>Club Profile</b><br><img src="screenshots/light_mode_daynamic_colors/clubprofile.jpeg" width="200" alt="Club Profile"/></td>
   </tr>
   <tr>
     <td align="center"><b>Sessions</b><br><img src="screenshots/light_mode_daynamic_colors/sessions.jpeg" width="200" alt="Sessions"/></td>
-    <td align="center"><b>Session Details</b><br><img src="screenshots/light_mode_daynamic_colors/sessions_details.jpeg" width="200" alt="Session Details"/></td>
     <td align="center"><b>Room Reservations</b><br><img src="screenshots/light_mode_daynamic_colors/room_reservations.jpeg" width="200" alt="Room Reservations"/></td>
-    <td align="center"><b>Reservations Details</b><br><img src="screenshots/light_mode_daynamic_colors/reservations_details.jpeg" width="200" alt="Reservations Details"/></td>
-    <td align="center"><b>Issue Reporting</b><br><img src="screenshots/light_mode_daynamic_colors/reporting.jpeg" width="200" alt="Issue Reporting"/></td>
-  </tr>
-</table>
-
-#### Club Manager Experience
-<table>
-  <tr>
     <td align="center"><b>Manager Feed</b><br><img src="screenshots/light_mode_daynamic_colors/club_manager_feed.jpeg" width="200" alt="Manager Feed"/></td>
-    <td align="center"><b>Attendee</b><br><img src="screenshots/light_mode_daynamic_colors/attndee.jpeg" width="200" alt="Attendee"/></td>
     <td align="center"><b>Requested Events</b><br><img src="screenshots/light_mode_daynamic_colors/requsted_evetns.jpeg" width="200" alt="Requested Events"/></td>
   </tr>
 </table>
@@ -87,28 +44,39 @@ Immerse yourself in our beautifully crafted UI, featuring seamless light, dark, 
 <summary><b>Dynamic Colors (Dark Mode)</b></summary>
 <br>
 
-#### Student Experience
 <table>
   <tr>
     <td align="center"><b>Home Feed</b><br><img src="screenshots/dark_mode_daynamic_colors/student_feed.jpeg" width="200" alt="Student Home"/></td>
     <td align="center"><b>User Profile</b><br><img src="screenshots/dark_mode_daynamic_colors/student_proffile.jpeg" width="200" alt="User Profile"/></td>
-    <td align="center"><b>Clubs</b><br><img src="screenshots/dark_mode_daynamic_colors/clubs.jpeg" width="200" alt="Clubs"/></td>
     <td align="center"><b>Club Profile</b><br><img src="screenshots/dark_mode_daynamic_colors/club_profile.jpeg" width="200" alt="Club Profile"/></td>
+    <td align="center"><b>Sessions</b><br><img src="screenshots/dark_mode_daynamic_colors/sessions.jpeg" width="200" alt="Sessions"/></td>
   </tr>
   <tr>
-    <td align="center"><b>Sessions</b><br><img src="screenshots/dark_mode_daynamic_colors/sessions.jpeg" width="200" alt="Sessions"/></td>
     <td align="center"><b>Facility Booking</b><br><img src="screenshots/dark_mode_daynamic_colors/reserve_room.jpeg" width="200" alt="Facility Booking"/></td>
-    <td align="center"><b>Reservation Details</b><br><img src="screenshots/dark_mode_daynamic_colors/reservations_detials.jpeg" width="200" alt="Reservation Details"/></td>
     <td align="center"><b>Issue Reporting</b><br><img src="screenshots/dark_mode_daynamic_colors/reporting.jpeg" width="200" alt="Issue Reporting"/></td>
+    <td align="center"><b>Manager Feed</b><br><img src="screenshots/dark_mode_daynamic_colors/clubmangerfeed.jpeg" width="200" alt="Manager Feed"/></td>
+    <td align="center"><b>Schedule Event</b><br><img src="screenshots/dark_mode_daynamic_colors/scdule_event.jpeg" width="200" alt="Schedule Event"/></td>
   </tr>
 </table>
 
-#### Club Manager Experience
+</details>
+
+<details open>
+<summary><b>Default Theme</b></summary>
+<br>
+
 <table>
   <tr>
-    <td align="center"><b>Manager Feed</b><br><img src="screenshots/dark_mode_daynamic_colors/clubmangerfeed.jpeg" width="200" alt="Manager Feed"/></td>
-    <td align="center"><b>Edit Post</b><br><img src="screenshots/dark_mode_daynamic_colors/edit_post.jpeg" width="200" alt="Edit Post"/></td>
-    <td align="center"><b>Schedule Event</b><br><img src="screenshots/dark_mode_daynamic_colors/scdule_event.jpeg" width="200" alt="Schedule Event"/></td>
+    <td align="center"><b>Login</b><br><img src="screenshots/default_colors/login.jpeg" width="200" alt="Login"/></td>
+    <td align="center"><b>Home Feed</b><br><img src="screenshots/default_colors/home_feed_student.jpeg" width="200" alt="Student Home"/></td>
+    <td align="center"><b>User Profile</b><br><img src="screenshots/default_colors/userProfile.jpeg" width="200" alt="User Profile"/></td>
+    <td align="center"><b>Club Profile</b><br><img src="screenshots/default_colors/club_profile.jpeg" width="200" alt="Club Profile"/></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Sessions</b><br><img src="screenshots/default_colors/sessions.jpeg" width="200" alt="Sessions"/></td>
+    <td align="center"><b>Facility Booking</b><br><img src="screenshots/default_colors/reserve_room.jpeg" width="200" alt="Facility Booking"/></td>
+    <td align="center"><b>Manager Feed</b><br><img src="screenshots/default_colors/manager_feed.jpeg" width="200" alt="Manager Feed"/></td>
+    <td align="center"><b>Requested Events</b><br><img src="screenshots/default_colors/requested_events.jpeg" width="200" alt="Requested Events"/></td>
   </tr>
 </table>
 
